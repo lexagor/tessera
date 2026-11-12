@@ -1,5 +1,5 @@
-import { verifyAction, verifyReceipt, type VerifyDomain } from "@tessera/verify";
-import type { AnyReceipt } from "@tessera/receipt-schema";
+import { verifyAction, verifyReceipt, type VerifyDomain } from "@tessera-verify/verify";
+import type { AnyReceipt } from "@tessera-verify/receipt-schema";
 
 import { decryptSecret } from "./crypto.js";
 import { env } from "./env.js";

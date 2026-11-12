@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import { readFileSync } from "node:fs";
 
-import type { AnyReceipt } from "@tessera/receipt-schema";
+import type { AnyReceipt } from "@tessera-verify/receipt-schema";
 
 import {
   ChainEntry,

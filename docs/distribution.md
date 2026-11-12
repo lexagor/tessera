@@ -15,16 +15,18 @@ Keep the strategy/fundraise/interview docs out of the public tree (see `.gitigno
 
 ## 2. npm packages
 
-The `@tessera` scope must exist in the npm org. Build and dry-run first:
+The `@tessera-verify` scope must exist for `receipt-schema` and `verify`. The remaining SDK and
+adapter packages still use `@tessera`; rename them before publishing those. Build and dry-run
+first:
 
 ```bash
 pnpm install
-pnpm --filter @tessera/receipt-schema build
-pnpm --filter @tessera/receipt-schema publish --dry-run --no-git-checks --access public
+pnpm --filter @tessera-verify/receipt-schema build
+pnpm --filter @tessera-verify/receipt-schema publish --dry-run --no-git-checks --access public
 pnpm --filter @tessera/sdk-ts build
 pnpm --filter @tessera/sdk-ts publish --dry-run --no-git-checks --access public
-pnpm --filter @tessera/verify build
-pnpm --filter @tessera/verify publish --dry-run --no-git-checks --access public
+pnpm --filter @tessera-verify/verify build
+pnpm --filter @tessera-verify/verify publish --dry-run --no-git-checks --access public
 pnpm --filter @tessera/mcp-adapter build
 pnpm --filter @tessera/mcp-adapter publish --dry-run --no-git-checks --access public
 pnpm --filter @tessera/langchain build
@@ -33,7 +35,7 @@ pnpm --filter @tessera/agent-receipts build
 pnpm --filter @tessera/agent-receipts publish --dry-run --no-git-checks --access public
 ```
 
-Publish `@tessera/receipt-schema` first. The tag workflow (`.github/workflows/release.yml`)
+Publish `@tessera-verify/receipt-schema` first. The tag workflow (`.github/workflows/release.yml`)
 publishes all packages and the Python SDK when a `v*` tag is pushed.
 
 ## 3. Verifier
@@ -50,6 +52,6 @@ Tessera receipt remains available.
 ## 5. Smoke checks
 
 - `curl https://<verifier>/` returns the verification page.
-- `npm view @tessera/verify version` matches the release.
+- `npm view @tessera-verify/verify version` matches the release.
 - A verification link from the portal resolves at `<verifier>/verify/<token>`.
 - The evidence pack and `GET /v1/transitions` show the same authority events.

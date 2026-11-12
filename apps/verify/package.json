@@ -13,8 +13,8 @@
     "clean": "rm -rf dist"
   },
   "dependencies": {
-    "@tessera/receipt-schema": "workspace:*",
-    "@tessera/verify": "workspace:*"
+    "@tessera-verify/receipt-schema": "workspace:*",
+    "@tessera-verify/verify": "workspace:*"
   },
   "devDependencies": {
     "typescript": "^5.6.3",

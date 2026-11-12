@@ -1,8 +1,8 @@
 import { createHash } from "node:crypto";
 
 import { ed25519 } from "@noble/curves/ed25519";
-import { canonicalize } from "@tessera/receipt-schema";
-import type { ReceiptV2 } from "@tessera/receipt-schema";
+import { canonicalize } from "@tessera-verify/receipt-schema";
+import type { ReceiptV2 } from "@tessera-verify/receipt-schema";
 
 export interface AgentReceiptProof {
   type: "Ed25519Signature2020";

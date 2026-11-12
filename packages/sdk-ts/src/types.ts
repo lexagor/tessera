@@ -37,7 +37,7 @@ export interface AuthorizeInput {
   args: Record<string, unknown>;
   /**
    * Hash of the tool definition the agent was given (`toolDefinitionHash` from
-   * `@tessera/receipt-schema`). Required by the broker for tools pinned by the tenant;
+   * `@tessera-verify/receipt-schema`). Required by the broker for tools pinned by the tenant;
    * a mismatch is denied as a definition drift (rug pull).
    */
   toolSchemaHash?: string;

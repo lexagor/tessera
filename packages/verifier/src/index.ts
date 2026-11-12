@@ -6,7 +6,7 @@ import {
   isReceiptV2,
   payloadHash,
   validateReceipt,
-} from "@tessera/receipt-schema";
+} from "@tessera-verify/receipt-schema";
 
 export interface VerifyDomain {
   chainId: number | bigint;

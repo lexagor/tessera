@@ -1,4 +1,4 @@
-import { canonicalize, keccak256Hex, toolDefinitionHash } from "@tessera/receipt-schema";
+import { canonicalize, keccak256Hex, toolDefinitionHash } from "@tessera-verify/receipt-schema";
 import type {
   AgentMetadataInput,
   EphemeralCredential,

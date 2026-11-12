@@ -21,7 +21,7 @@
     "clean": "rm -rf dist"
   },
   "dependencies": {
-    "@tessera/receipt-schema": "workspace:*"
+    "@tessera-verify/receipt-schema": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "^22.10.2",

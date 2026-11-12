@@ -1,4 +1,4 @@
-import { canonicalize, keccak256Hex } from "@tessera/receipt-schema";
+import { canonicalize, keccak256Hex } from "@tessera-verify/receipt-schema";
 
 import { createClient, TesseraClient } from "./client.js";
 import type {

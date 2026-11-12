@@ -62,7 +62,7 @@ Full loop against real providers + a real chain, one command (mock Stripe + anvi
 Verify a record offline (TypeScript verifier):
 
 ```bash
-npm install @tessera/verify
+npm install @tessera-verify/verify
 npx tessera-verify receipt.json
 # or run the local verification page:
 pnpm --filter @tessera/verify-app dev

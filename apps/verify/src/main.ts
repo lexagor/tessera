@@ -4,8 +4,8 @@ import {
   verifyReceipt,
   type ChainEntry,
   type VerifyDomain,
-} from "@tessera/verify";
-import type { AnyReceipt } from "@tessera/receipt-schema";
+} from "@tessera-verify/verify";
+import type { AnyReceipt } from "@tessera-verify/receipt-schema";
 
 const $ = <T extends HTMLElement>(id: string): T => {
   const element = document.getElementById(id);

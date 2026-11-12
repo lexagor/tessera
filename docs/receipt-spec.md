@@ -193,7 +193,7 @@ secret; opaque tokens fall back to a random issuance id.
 
 ### V2 verification
 
-`receipt::validate_v2` (Rust) and `validateReceipt` (`@tessera/receipt-schema`) require
+`receipt::validate_v2` (Rust) and `validateReceipt` (`@tessera-verify/receipt-schema`) require
 `actionId`, `principal`, `agentMeta`, `policy`, and `attestation`; an allowed record must also
 carry `credential`. In v2, `user` mirrors `principal.principalId`. The verifier checks the hash
 formats, the signature, and the chain link.

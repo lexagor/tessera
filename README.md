@@ -200,6 +200,7 @@ docs/              Architecture, threat model, receipt spec, controls, RFCs
 - [`docs/evidence-packs.md`](docs/evidence-packs.md) — framework coverage, reviewer reports, and share links
 - [`docs/distribution.md`](docs/distribution.md) — public repo, npm packages, and verifier rollout
 - [`docs/demo-script.md`](docs/demo-script.md) — product demo recording sequence
+- [`docs/deploy-thetessera-xyz.md`](docs/deploy-thetessera-xyz.md) — site/app/verifier deployment checklist
 - [`docs/billing.md`](docs/billing.md) — plans, usage limits, and Stripe billing
 - [`docs/rls.md`](docs/rls.md) — Postgres row-level security (defense in depth)
 - [`docs/golden-path.md`](docs/golden-path.md) — full loop against real providers

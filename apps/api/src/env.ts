@@ -46,7 +46,10 @@ const schema = z.object({
   CONTROL_PLANE_ENC_KEY: z.string().optional(),
   AGENT_RECEIPT_ED25519_KEY: z.string().optional(),
   AGENT_RECEIPT_ISSUER_DID: z.string().optional(),
-  AGENT_RECEIPT_TSA_URL: z.string().url().optional(),
+  AGENT_RECEIPT_TSA_URL: z.preprocess(
+    (value) => (value === "" ? undefined : value),
+    z.string().url().optional(),
+  ),
   AUTH_DEV_MODE: bool,
   OIDC_ISSUER: z.string().optional(),
   OIDC_CLIENT_ID: z.string().optional(),
@@ -58,7 +61,10 @@ const schema = z.object({
     z.string().min(32).optional(),
   ),
   OIDC_ALLOW_EMAIL_LINKING: bool,
-  BOOTSTRAP_EMAIL: z.string().email().optional(),
+  BOOTSTRAP_EMAIL: z.preprocess(
+    (value) => (value === "" ? undefined : value),
+    z.string().email().optional(),
+  ),
   COOKIE_SECURE: z.string().optional(),
   ALLOW_PRIVATE_WEBHOOKS: bool,
   STRIPE_SECRET_KEY: z.string().optional(),

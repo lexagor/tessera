@@ -15,8 +15,33 @@ const $ = <T extends HTMLElement>(id: string): T => {
   return element as T;
 };
 
-const API_BASE =
-  (import.meta as { env?: { VITE_API_BASE_URL?: string } }).env?.VITE_API_BASE_URL ?? "";
+const VITE_ENV = (
+  import.meta as {
+    env?: {
+      VITE_API_BASE_URL?: string;
+      VITE_SITE_URL?: string;
+      VITE_APP_URL?: string;
+    };
+  }
+).env;
+const API_BASE = VITE_ENV?.VITE_API_BASE_URL ?? "";
+const IS_LOCAL = ["localhost", "127.0.0.1", "::1"].includes(window.location.hostname);
+const SITE_URL = (
+  VITE_ENV?.VITE_SITE_URL ?? (IS_LOCAL ? "http://localhost:8090" : "https://thetessera.xyz")
+).replace(/\/$/, "");
+const APP_URL = (
+  VITE_ENV?.VITE_APP_URL ?? (IS_LOCAL ? "http://localhost:5173" : "https://app.thetessera.xyz")
+).replace(/\/$/, "");
+
+for (const link of Array.from(document.querySelectorAll<HTMLAnchorElement>("[data-site-link]"))) {
+  link.href = `${SITE_URL}/`;
+}
+for (const link of Array.from(document.querySelectorAll<HTMLAnchorElement>("[data-site-path]"))) {
+  link.href = `${SITE_URL}${link.dataset.sitePath ?? "/"}`;
+}
+for (const link of Array.from(document.querySelectorAll<HTMLAnchorElement>("[data-app-link]"))) {
+  link.href = `${APP_URL}/`;
+}
 
 const input = $<HTMLTextAreaElement>("input");
 const result = $<HTMLElement>("result");
@@ -200,6 +225,9 @@ async function loadSample(): Promise<void> {
 
 $<HTMLButtonElement>("verify").addEventListener("click", verify);
 $<HTMLButtonElement>("sample").addEventListener("click", () => {
+  void loadSample();
+});
+$<HTMLButtonElement>("hero-sample").addEventListener("click", () => {
   void loadSample();
 });
 $<HTMLButtonElement>("clear").addEventListener("click", () => {

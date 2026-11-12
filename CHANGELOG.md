@@ -17,6 +17,8 @@
 - Added `/app`, `/login`, and `/verify` redirects from the marketing domain.
 - Added favicon, manifest, OG image, canonical/OG metadata, sitemap, and robots.txt.
 - Unified the docs pages on the light Vercel-style surface.
+- Rebuilt the public verifier in the same light product style, with local sample auto-load, a
+  side-by-side record/trust view, and consistent navigation/footer.
 
 ## 0.1.3 — 2026-11-12
 

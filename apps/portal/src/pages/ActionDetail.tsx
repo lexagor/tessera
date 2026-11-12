@@ -14,6 +14,7 @@ import {
   shortHash,
 } from "@tessera/ui";
 import { RiskBadge, Stat } from "../components/Charts";
+import { enforcementLabel } from "../lib/enforcement";
 import { riskForTool } from "../lib/risk";
 
 export function ActionDetailPage() {
@@ -77,15 +78,7 @@ export function ActionDetailPage() {
   const outcomeStatus = outcomeRef?.status ?? action.outcomeStatus ?? "pending";
   const outcomeSource = outcomeRef?.source ?? "not recorded";
   const signer = action.verification?.recovered;
-  const enforcement = denied
-    ? { tone: "bad" as const, label: "Policy denied" }
-    : outcomeSource === "broker_observed"
-      ? { tone: "ok" as const, label: "Level 1 · broker-observed" }
-      : credential?.credentialType === "broker_grant"
-        ? { tone: "ok" as const, label: "Level 1 · broker-held" }
-        : credential
-          ? { tone: "warn" as const, label: "Level 2 · scoped credential" }
-          : { tone: "warn" as const, label: "Caller-asserted authority" };
+  const enforcement = enforcementLabel({ denied, outcomeSource, credential });
 
   const timeline = [
     {

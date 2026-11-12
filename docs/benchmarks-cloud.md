@@ -30,6 +30,7 @@ export TESSERA_AUTHORITY_HMAC_SECRET="$(openssl rand -hex 32)"
 export TESSERA_AUTHORITY_REQUIRE_TOKEN=1
 export KMS_SIGNER_URL=https://kms-bridge.internal/sign
 export KMS_SIGNER_ADDRESS=0x...
+export TESSERA_AUTHORITY_TOKEN=... # from POST /v1/authority-tokens; or set REQUIRE=0 below
 export STRIPE_API_BASE=http://mock-stripe:12111
 export STRIPE_RESTRICTED_KEYS="charges_create=rk_test_cloud,refunds_create=rk_test_cloud"
 export RUST_LOG=tessera_broker=warn
@@ -46,17 +47,17 @@ cargo build --release
 # Same-agent chain contention
 BENCH_REQUESTS=2000 BENCH_CONCURRENCY=32 BENCH_AGENTS=1 \
 TESSERA_ENDPOINT=https://broker-bench.example TESSERA_API_KEY=... \
-pnpm bench:concurrency
+TESSERA_AUTHORITY_TOKEN=... pnpm bench:concurrency
 
 # Multiple independent agents
 BENCH_REQUESTS=4000 BENCH_CONCURRENCY=64 BENCH_AGENTS=32 \
 TESSERA_ENDPOINT=https://broker-bench.example TESSERA_API_KEY=... \
-pnpm bench:concurrency
+TESSERA_AUTHORITY_TOKEN=... pnpm bench:concurrency
 
 # HTTP latency baseline
 BENCH_REQUESTS=1000 BENCH_CONCURRENCY=8 \
 TESSERA_ENDPOINT=https://broker-bench.example TESSERA_API_KEY=... \
-pnpm bench:http
+TESSERA_AUTHORITY_TOKEN=... pnpm bench:http
 
 # Offline verification on the load generator
 pnpm bench:verify

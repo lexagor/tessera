@@ -27,6 +27,28 @@ test("builds the chain-of-trust entities from a signed receipt", () => {
   assert.match(view.summary, /billing-agent/);
 });
 
+test("labels scoped credentials and caller-asserted authority", () => {
+  const scoped = buildTrustView({
+    authorization: {
+      ...fixture.receipt,
+      credential: { issuer: "stripe" },
+    },
+    verification: { valid: true, recovered: fixture.expectedSigner },
+  });
+  assert.equal(scoped.enforcement.level, "Level 2");
+  assert.equal(scoped.enforcement.label, "Level 2 · scoped credential");
+
+  const caller = buildTrustView({
+    authorization: {
+      ...fixture.receipt,
+      credential: {},
+    },
+    verification: { valid: true, recovered: fixture.expectedSigner },
+  });
+  assert.equal(caller.enforcement.level, "Caller-asserted");
+  assert.equal(caller.enforcement.label, "Caller-asserted authority");
+});
+
 test("tampering one signed field invalidates the receipt", () => {
   const tampered = tamperPayload({ receipt: fixture.receipt });
   const result = verifyReceipt(

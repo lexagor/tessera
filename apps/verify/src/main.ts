@@ -28,6 +28,7 @@ const linkSummary = $<HTMLElement>("link-summary");
 const linkFacts = $<HTMLElement>("link-facts");
 const trustPanel = $<HTMLElement>("trust-panel");
 const trustSummary = $<HTMLElement>("trust-summary");
+const enforcement = $<HTMLElement>("enforcement");
 const trustFlow = $<HTMLElement>("trust-flow");
 const tamperButton = $<HTMLButtonElement>("tamper");
 const restoreButton = $<HTMLButtonElement>("restore");
@@ -82,6 +83,7 @@ function renderTrust(
 ): void {
   if (!records.authorization) {
     trustPanel.hidden = true;
+    enforcement.hidden = true;
     return;
   }
   const view = buildTrustView({
@@ -92,7 +94,10 @@ function renderTrust(
     signer: expectedSigner(),
   });
   trustPanel.hidden = false;
-  trustSummary.textContent = `${view.enforcement.label}. ${view.enforcement.detail} ${view.summary}`;
+  enforcement.hidden = false;
+  enforcement.className = `enforcement ${view.enforcement.level === "Level 1" ? "level-1" : view.enforcement.level === "Level 2" ? "level-2" : "caller"}`;
+  enforcement.textContent = view.enforcement.label;
+  trustSummary.textContent = `${view.enforcement.detail} ${view.summary}`;
   trustFlow.innerHTML = view.entities
     .map(
       (entity, index) => `<div class="trust-step ${entity.state}">

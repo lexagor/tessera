@@ -179,6 +179,23 @@ button:disabled { opacity: .5; cursor: not-allowed; }
 .trust-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 18px; }
 .trust-head h2 { margin: 0; font-size: clamp(22px, 3vw, 30px); line-height: 1.1; }
 .trust-head .lede { margin: 8px 0 0; }
+.enforcement {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 12px;
+  padding: 5px 10px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+.enforcement.level-1 { color: var(--accent); border-color: rgba(110, 231, 183, .45); background: rgba(110, 231, 183, .08); }
+.enforcement.level-2 { color: #fbbf24; border-color: rgba(251, 191, 36, .45); background: rgba(251, 191, 36, .08); }
+.enforcement.caller { color: var(--bad); border-color: rgba(251, 113, 133, .35); background: rgba(251, 113, 133, .08); }
 .trust-head > button { flex: 0 0 auto; }
 .tamper-note { margin-top: 14px; border: 1px solid rgba(251, 113, 133, .35); background: rgba(251, 113, 133, .08); color: var(--bad); border-radius: 10px; padding: 11px 13px; font-size: 13px; }
 .trust-flow { display: grid; gap: 0; margin: 22px 0; }

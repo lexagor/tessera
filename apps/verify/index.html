@@ -4,79 +4,205 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Tessera — Verify an action record</title>
+    <meta
+      name="description"
+      content="Verify a signed Tessera action record, authorization/outcome pair, or receipt chain entirely in your browser."
+    />
+    <meta name="theme-color" content="#fafafa" />
+    <link rel="icon" href="/verify/favicon.svg" type="image/svg+xml" />
     <link rel="stylesheet" href="/src/style.css" />
   </head>
   <body>
-    <main>
-      <header>
-        <p class="eyebrow">Tessera</p>
-        <h1>Verify an action record</h1>
-        <p class="lede">
-          Paste a signed authorization record, outcome pair, or receipt chain. Verification
-          runs entirely in your browser — no call to Tessera.
-        </p>
-      </header>
+    <a class="skip-link" href="#verify-main">Skip to content</a>
 
-      <section id="link-panel" class="panel" hidden>
-        <h2 id="link-title" style="margin: 0 0 8px;">Verification link</h2>
-        <p id="link-summary" class="lede" style="margin: 0 0 14px;"></p>
-        <div id="link-facts" class="row"></div>
-      </section>
+    <header class="nav-shell">
+      <div class="wrap nav">
+        <a class="brand" href="https://thetessera.xyz/" data-site-link aria-label="Tessera home">
+          <svg class="brand-mark" viewBox="0 0 32 32" aria-hidden="true">
+            <rect x="2" y="2" width="12" height="12" rx="2" fill="currentColor" />
+            <rect x="18" y="2" width="12" height="12" rx="2" fill="currentColor" />
+            <rect x="2" y="18" width="12" height="12" rx="2" fill="currentColor" />
+            <rect x="18" y="18" width="12" height="12" rx="2" fill="var(--accent)" />
+          </svg>
+          <span>Tessera</span>
+        </a>
 
-      <section id="trust-panel" class="panel trust-panel" hidden>
-        <div class="trust-head">
-          <div>
-            <p class="eyebrow">Chain of trust</p>
-            <h2>What happened, on whose authority</h2>
-            <div id="enforcement" class="enforcement" hidden></div>
-            <p id="trust-summary" class="lede"></p>
-          </div>
-          <button id="tamper" class="danger">Simulate tampering</button>
-          <button id="restore" hidden>Restore original</button>
+        <nav class="nav-links" aria-label="Main navigation">
+          <a href="https://thetessera.xyz/#product" data-site-path="/#product">Product</a>
+          <a href="https://thetessera.xyz/#how-it-works" data-site-path="/#how-it-works">How it works</a>
+          <a href="https://thetessera.xyz/#security" data-site-path="/#security">Security</a>
+          <a href="https://thetessera.xyz/docs/index.html" data-site-path="/docs/index.html">Docs</a>
+          <a class="active" href="/verify/">Verifier</a>
+        </nav>
+
+        <div class="nav-actions">
+          <a class="nav-quiet" href="https://app.thetessera.xyz/" data-app-link>Sign in</a>
+          <a class="button primary small" href="mailto:partners@thetessera.xyz?subject=Agent%20security%20review%20audit">Request audit</a>
         </div>
-        <div id="tamper-note" class="tamper-note" hidden></div>
-        <div id="trust-flow" class="trust-flow"></div>
-        <div class="trust-proof">
-          <strong>What this proves</strong>
-          <p>The broker signed this exact record and its link to the prior record. Changing one signed field invalidates the payload hash and signature. It does not prove the provider executed correctly or that the agent did not leak a credential.</p>
-        </div>
-      </section>
 
-      <section class="panel">
-        <details class="advanced">
-          <summary>Advanced: domain and expected signer</summary>
-          <div class="row">
-            <label>
-              Chain ID
-              <input id="chain-id" value="31337" inputmode="numeric" />
-            </label>
-            <label>
-              Verifying contract
-              <input id="contract" value="0x0000000000000000000000000000000000000000" spellcheck="false" />
-            </label>
-            <label>
-              Expected signer (optional)
-              <input id="expected-signer" placeholder="0x…" spellcheck="false" />
-            </label>
+        <details class="mobile-nav">
+          <summary aria-label="Open menu">Menu</summary>
+          <div class="mobile-panel">
+            <a href="https://thetessera.xyz/#product" data-site-path="/#product">Product</a>
+            <a href="https://thetessera.xyz/#how-it-works" data-site-path="/#how-it-works">How it works</a>
+            <a href="https://thetessera.xyz/#security" data-site-path="/#security">Security</a>
+            <a href="https://thetessera.xyz/docs/index.html" data-site-path="/docs/index.html">Docs</a>
+            <a class="active" href="/verify/">Verifier</a>
+            <a href="https://app.thetessera.xyz/" data-app-link>Sign in</a>
+            <a class="button primary" href="mailto:partners@thetessera.xyz?subject=Agent%20security%20review%20audit">Request audit</a>
           </div>
         </details>
-        <label class="file">
-          <span>Load a JSON file</span>
-          <input id="file" type="file" accept="application/json,.json" />
-        </label>
-        <textarea id="input" spellcheck="false" placeholder='{"receipt": { … }}'></textarea>
-        <div class="actions">
-          <button id="verify" class="primary">Verify</button>
-          <button id="sample">Load sample</button>
-          <button id="clear">Clear</button>
+      </div>
+    </header>
+
+    <main id="verify-main" class="wrap">
+      <section class="hero">
+        <p class="eyebrow">Public verifier</p>
+        <h1>Verify an action record.</h1>
+        <p class="lede">
+          Paste a signed authorization record, an authorization/outcome pair, or a receipt chain.
+          Verification runs entirely in your browser — no call to Tessera.
+        </p>
+        <div class="hero-actions">
+          <button id="hero-sample" class="button primary">Load a signed sample</button>
+          <a class="button ghost" href="https://thetessera.xyz/docs/receipt-spec.html" data-site-path="/docs/receipt-spec.html">Read the receipt spec</a>
         </div>
+        <p class="hero-note">Open-source verifier · nothing is uploaded</p>
       </section>
 
-      <section id="result" class="result" hidden>
-        <div id="verdict" class="verdict"></div>
-        <pre id="details"></pre>
+      <section id="link-panel" class="panel link-panel" hidden>
+        <h2 id="link-title">Verification link</h2>
+        <p id="link-summary" class="lede small"></p>
+        <div id="link-facts" class="facts"></div>
       </section>
+
+      <div class="verify-grid">
+        <section class="panel editor">
+          <div class="panel-head">
+            <div>
+              <p class="eyebrow">Input</p>
+              <h2>Signed record</h2>
+            </div>
+            <span class="mono muted">JSON</span>
+          </div>
+
+          <details class="advanced">
+            <summary>Advanced: domain and expected signer</summary>
+            <div class="row">
+              <label>
+                Chain ID
+                <input id="chain-id" value="31337" inputmode="numeric" />
+              </label>
+              <label>
+                Verifying contract
+                <input id="contract" value="0x0000000000000000000000000000000000000000" spellcheck="false" />
+              </label>
+              <label>
+                Expected signer (optional)
+                <input id="expected-signer" placeholder="0x…" spellcheck="false" />
+              </label>
+            </div>
+          </details>
+
+          <div class="editor-tools">
+            <label class="file">
+              <span>Load a JSON file</span>
+              <input id="file" type="file" accept="application/json,.json" />
+            </label>
+            <button id="sample" class="button small">Load sample</button>
+          </div>
+
+          <textarea id="input" spellcheck="false" placeholder='{"receipt": { … }}'></textarea>
+
+          <div class="actions">
+            <button id="verify" class="button primary">Verify record</button>
+            <button id="clear" class="button ghost">Clear</button>
+          </div>
+          <p class="editor-note">Nothing is uploaded. The verifier runs locally and makes no network call.</p>
+        </section>
+
+        <aside class="side-stack">
+          <section id="trust-panel" class="panel trust-panel" hidden>
+            <div class="trust-head">
+              <div>
+                <p class="eyebrow">Chain of trust</p>
+                <h2>What happened, on whose authority</h2>
+                <div id="enforcement" class="enforcement" hidden></div>
+                <p id="trust-summary" class="lede small"></p>
+              </div>
+              <button id="tamper" class="button danger small">Simulate tampering</button>
+              <button id="restore" class="button small" hidden>Restore original</button>
+            </div>
+            <div id="tamper-note" class="tamper-note" hidden></div>
+            <div id="trust-flow" class="trust-flow"></div>
+            <div class="trust-proof">
+              <strong>What this proves</strong>
+              <p>The broker signed this exact record and its link to the prior record. Changing one signed field invalidates the payload hash and signature. It does not prove the provider executed correctly or that the agent did not leak a credential.</p>
+            </div>
+          </section>
+
+          <section id="result" class="panel result" hidden aria-live="polite">
+            <div id="verdict" class="verdict"></div>
+            <pre id="details"></pre>
+          </section>
+
+          <section class="panel info-panel">
+            <p class="eyebrow">What this checks</p>
+            <h2>Proof, not a promise.</h2>
+            <ul>
+              <li>EIP-712 signature and expected signer</li>
+              <li>Payload hash and chain link</li>
+              <li>Human, agent, intent, policy, tool, credential, and outcome bindings</li>
+              <li>Level 1 broker-observed or Level 2 caller-reported provenance</li>
+            </ul>
+            <p class="fine-print">What it does not prove: the provider executed correctly, the agent did not leak a credential, or the underlying business intent was lawful.</p>
+            <div class="info-links">
+              <a href="https://thetessera.xyz/docs/security-guarantees.html" data-site-path="/docs/security-guarantees.html">Security guarantees</a>
+              <a href="https://thetessera.xyz/docs/receipt-spec.html" data-site-path="/docs/receipt-spec.html">Receipt spec</a>
+            </div>
+          </section>
+        </aside>
+      </div>
     </main>
+
+    <footer class="footer">
+      <div class="wrap footer-grid">
+        <div class="footer-brand">
+          <a class="brand" href="https://thetessera.xyz/" data-site-link>
+            <svg class="brand-mark" viewBox="0 0 32 32" aria-hidden="true">
+              <rect x="2" y="2" width="12" height="12" rx="2" fill="currentColor" />
+              <rect x="18" y="2" width="12" height="12" rx="2" fill="currentColor" />
+              <rect x="2" y="18" width="12" height="12" rx="2" fill="currentColor" />
+              <rect x="18" y="18" width="12" height="12" rx="2" fill="var(--accent)" />
+            </svg>
+            <span>Tessera</span>
+          </a>
+          <p>Proof of action for AI agents.</p>
+          <p class="mono muted">Runs locally · Apache-2.0</p>
+        </div>
+        <div>
+          <h3>Product</h3>
+          <a href="https://thetessera.xyz/#how-it-works" data-site-path="/#how-it-works">How it works</a>
+          <a href="/verify/">Verifier</a>
+          <a href="https://thetessera.xyz/docs/pricing.html" data-site-path="/docs/pricing.html">Pricing</a>
+          <a href="https://thetessera.xyz/docs/index.html" data-site-path="/docs/index.html">Docs</a>
+        </div>
+        <div>
+          <h3>Trust</h3>
+          <a href="https://thetessera.xyz/docs/trust-center.html" data-site-path="/docs/trust-center.html">Trust Center</a>
+          <a href="https://thetessera.xyz/docs/security-guarantees.html" data-site-path="/docs/security-guarantees.html">Security Guarantees</a>
+          <a href="https://thetessera.xyz/docs/audit-readiness.html" data-site-path="/docs/audit-readiness.html">Audit Readiness</a>
+          <a href="https://github.com/lexagor/tessera">GitHub</a>
+        </div>
+        <div>
+          <h3>Contact</h3>
+          <a href="mailto:partners@thetessera.xyz">partners@thetessera.xyz</a>
+          <a href="mailto:security@thetessera.xyz">security@thetessera.xyz</a>
+          <a href="https://thetessera.xyz/docs/design-partner-program.html" data-site-path="/docs/design-partner-program.html">Design partner program</a>
+        </div>
+      </div>
+    </footer>
+
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>

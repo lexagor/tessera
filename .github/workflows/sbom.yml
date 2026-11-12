@@ -1,0 +1,32 @@
+name: SBOM
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  sbom:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: anchore/sbom-action@v0
+        with:
+          path: apps/broker
+          format: cyclonedx-json
+          output-file: tessera-broker.cdx.json
+      - uses: anchore/sbom-action@v0
+        with:
+          path: .
+          format: cyclonedx-json
+          output-file: tessera-workspace.cdx.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: tessera-sbom
+          path: |
+            tessera-broker.cdx.json
+            tessera-workspace.cdx.json
+          if-no-files-found: error

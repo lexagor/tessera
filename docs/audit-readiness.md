@@ -93,7 +93,8 @@ SBOM: CI job `sbom.yml` emits a CycloneDX SBOM (`tessera-broker.cdx.json`) as an
   (receipt payloads and tool-definition hashes).
 - Contracts: 5 tests.
 - SDK ↔ broker e2e: 1 test (spawns the broker, drives the real TypeScript SDK).
-- Golden path: end-to-end run in CI.
+- Golden path: one-command local run; CI covers the broker, SDK end-to-end test, and separate
+  tenant-isolation/security jobs. A full compose golden-path smoke is tracked for release hardening.
 
 ## 6. Controls added recently (review focus)
 

@@ -7,6 +7,7 @@ use std::sync::Arc;
 
 use async_trait::async_trait;
 use k256::ecdsa::SigningKey;
+use rand::RngCore;
 use serde::Deserialize;
 use serde_json::json;
 
@@ -24,7 +25,7 @@ pub trait DigestSigner: Send + Sync {
 
 /// Ethereum-style address (last 20 bytes of `keccak(uncompressed_pubkey[1..])`).
 pub fn address_of(vk: &k256::ecdsa::VerifyingKey) -> [u8; 20] {
-    let point = vk.to_encoded_point(false);
+    let point = vk.to_sec1_point(false);
     let hash = crate::merkle::keccak(&point.as_bytes()[1..]);
     let mut addr = [0u8; 20];
     addr.copy_from_slice(&hash[12..]);
@@ -53,7 +54,13 @@ impl LocalSigner {
     }
 
     pub fn random() -> Self {
-        let key = SigningKey::random(&mut rand::thread_rng());
+        let mut bytes = [0u8; 32];
+        let key = loop {
+            rand::thread_rng().fill_bytes(&mut bytes);
+            if let Ok(key) = SigningKey::from_slice(&bytes) {
+                break key;
+            }
+        };
         let address = address_of(key.verifying_key());
         Self { key, address }
     }
@@ -79,10 +86,7 @@ impl DigestSigner for LocalSigner {
         &self,
         digest: &[u8; 32],
     ) -> Result<([u8; 32], [u8; 32], u8), BrokerError> {
-        let (sig, recid) = self
-            .key
-            .sign_prehash_recoverable(digest)
-            .map_err(|e| BrokerError::Receipt(format!("signing failed: {e}")))?;
+        let (sig, recid) = self.key.sign_prehash_recoverable(digest);
         let bytes = sig.to_bytes();
         let mut r = [0u8; 32];
         let mut s = [0u8; 32];

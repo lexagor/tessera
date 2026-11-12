@@ -12,7 +12,7 @@ latency.
 | OS | macOS 27.2 |
 | Rust | 1.98.1 |
 | Node | 22.23.4 |
-| Broker baseline | `4522cf61` (benchmark harness) |
+| Broker baseline | benchmark harness + k256 0.14 upgrade |
 | Issuer | mock Stripe issuer, no live provider calls |
 
 ## Commands
@@ -36,10 +36,10 @@ database and set `TESSERA_ENDPOINT=http://127.0.0.1:<port>`.
 
 | Benchmark | Result |
 |---|---:|
-| Policy evaluation (constraint + CEL) | 4.47 µs |
-| Canonical JSON + Keccak hash | 1.28 µs |
-| Receipt payload hash | 5.29 µs |
-| EIP-712 receipt signing | 32.87 µs |
+| Policy evaluation (constraint + CEL) | 4.70 µs |
+| Canonical JSON + Keccak hash | 1.30 µs |
+| Receipt payload hash | 5.37 µs |
+| EIP-712 receipt signing | 23.42 µs |
 
 ## HTTP authorize latency
 
@@ -47,21 +47,21 @@ database and set `TESSERA_ENDPOINT=http://127.0.0.1:<port>`.
 
 | Metric | Result |
 |---|---:|
-| Throughput | 908 req/s |
-| Mean | 4.37 ms |
-| p50 | 4.05 ms |
-| p95 | 6.04 ms |
-| p99 | 14.83 ms |
+| Throughput | 955 req/s |
+| Mean | 4.17 ms |
+| p50 | 3.87 ms |
+| p95 | 6.10 ms |
+| p99 | 10.25 ms |
 
 **Postgres broker, mock issuer, 200 requests, concurrency 4:**
 
 | Metric | Result |
 |---|---:|
-| Throughput | 422 req/s |
-| Mean | 9.43 ms |
-| p50 | 7.36 ms |
-| p95 | 21.26 ms |
-| p99 | 30.82 ms |
+| Throughput | 410 req/s |
+| Mean | 9.72 ms |
+| p50 | 8.12 ms |
+| p95 | 22.34 ms |
+| p99 | 28.03 ms |
 
 These runs include the HTTP client (Node `fetch`) and loopback overhead, so they are
 end-to-end client-observed numbers, not pure server-side timings.
@@ -74,10 +74,10 @@ Fixture: signed v2 receipt from `packages/receipt-schema/fixtures/receipt-v2-sig
 |---|---:|
 | Receipt size | 2,243 bytes |
 | Iterations | 10,000 |
-| Mean | 0.964 ms |
-| p50 | 0.956 ms |
-| p95 | 1.023 ms |
-| p99 | 1.055 ms |
+| Mean | 1.000 ms |
+| p50 | 0.977 ms |
+| p95 | 1.130 ms |
+| p99 | 1.204 ms |
 
 Verification uses the published `@tessera-verify/verify` code path and makes no network call.
 

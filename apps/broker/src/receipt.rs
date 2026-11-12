@@ -367,7 +367,7 @@ pub fn recover(domain: &Domain, receipt: &GrantReceipt) -> Result<String, Broker
     }
     let signature = Signature::from_slice(&raw[..64])
         .map_err(|e| BrokerError::Receipt(format!("bad signature: {e}")))?;
-    if signature.normalize_s().is_some() {
+    if signature.normalize_s().to_bytes() != signature.to_bytes() {
         return Err(BrokerError::Receipt(
             "signature is not low-S (malleable)".into(),
         ));
@@ -398,7 +398,7 @@ pub fn recover_hash(digest: &[u8; 32], sig_hex: &str) -> Result<String, BrokerEr
     }
     let signature = Signature::from_slice(&raw[..64])
         .map_err(|e| BrokerError::Receipt(format!("bad signature: {e}")))?;
-    if signature.normalize_s().is_some() {
+    if signature.normalize_s().to_bytes() != signature.to_bytes() {
         return Err(BrokerError::Receipt(
             "signature is not low-S (malleable)".into(),
         ));
@@ -462,7 +462,7 @@ fn keccak(bytes: &[u8]) -> [u8; 32] {
 }
 
 fn address_of(vk: &VerifyingKey) -> [u8; 20] {
-    let point = vk.to_encoded_point(false);
+    let point = vk.to_sec1_point(false);
     let hash = keccak(&point.as_bytes()[1..]);
     let mut addr = [0u8; 20];
     addr.copy_from_slice(&hash[12..]);

@@ -1,4 +1,4 @@
-/* Tessera design surfaces. Five directions, each with a light and dark mode. */
+/* Tessera surface. One product design with light and dark modes. */
 
 :root {
   --tf-font-sans: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
@@ -97,254 +97,6 @@
   --tf-nav-active-marker: inset 2px 0 0 var(--tf-accent);
 }
 
-/* ── Ui: clinical blueprint on frosted paper ───────────────────────────── */
-[data-design="ui"][data-mode="light"] {
-  --tf-bg: #f5f5f5;
-  --tf-surface: #ffffff;
-  --tf-surface-2: #fafafa;
-  --tf-line: #e5e5e5;
-  --tf-text: #0a0a0a;
-  --tf-muted: #737373;
-  --tf-accent: #0a0a0a;
-  --tf-accent-ink: #fafafa;
-  --tf-blue: #2563eb;
-  --tf-danger: #e7000b;
-  --tf-warning: #b45309;
-  --tf-ok: #15803d;
-  --tf-sidebar-bg: #fafafa;
-  --tf-topbar-bg: rgba(245, 245, 245, 0.84);
-  --tf-input-bg: #f5f5f5;
-  --tf-hover: #f5f5f5;
-  --tf-row-hover: #fafafa;
-  --tf-glow: rgba(0, 0, 0, 0.03);
-  --tf-login-glow: rgba(0, 0, 0, 0.05);
-  --tf-radius: 24px;
-  --tf-radius-sm: 18px;
-  --tf-card-padding: 20px;
-  --tf-heading-weight: 600;
-  --tf-heading-tracking: -0.025em;
-  --tf-primary-weight: 500;
-  --tf-card-shadow: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
-  --tf-control-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
-  --tf-nav-active-marker: none;
-}
-
-[data-design="ui"][data-mode="dark"] {
-  --tf-bg: #0a0a0a;
-  --tf-surface: #111111;
-  --tf-surface-2: #181818;
-  --tf-line: #262626;
-  --tf-text: #fafafa;
-  --tf-muted: #a3a3a3;
-  --tf-accent: #fafafa;
-  --tf-accent-ink: #0a0a0a;
-  --tf-blue: #60a5fa;
-  --tf-danger: #ff6b6b;
-  --tf-warning: #fbbf24;
-  --tf-ok: #4ade80;
-  --tf-sidebar-bg: #0d0d0d;
-  --tf-topbar-bg: rgba(10, 10, 10, 0.84);
-  --tf-input-bg: #181818;
-  --tf-hover: #1d1d1d;
-  --tf-row-hover: #151515;
-  --tf-glow: rgba(255, 255, 255, 0.03);
-  --tf-login-glow: rgba(255, 255, 255, 0.06);
-  --tf-radius: 24px;
-  --tf-radius-sm: 18px;
-  --tf-card-padding: 20px;
-  --tf-heading-weight: 600;
-  --tf-heading-tracking: -0.025em;
-  --tf-primary-weight: 500;
-  --tf-card-shadow: 0 1px 3px rgba(0, 0, 0, 0.35), 0 1px 2px rgba(0, 0, 0, 0.25);
-  --tf-control-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
-  --tf-nav-active-marker: none;
-}
-
-/* ── Linear: midnight precision instrument ───────────────────────────── */
-[data-design="linear"][data-mode="dark"] {
-  --tf-bg: #08090a;
-  --tf-surface: #0f1011;
-  --tf-surface-2: #161718;
-  --tf-line: #23252a;
-  --tf-text: #ffffff;
-  --tf-muted: #8a8f98;
-  --tf-accent: #e4f222;
-  --tf-accent-ink: #08090a;
-  --tf-blue: #02b8cc;
-  --tf-danger: #eb5757;
-  --tf-warning: #d9a441;
-  --tf-ok: #27a644;
-  --tf-sidebar-bg: #08090a;
-  --tf-topbar-bg: rgba(8, 9, 10, 0.88);
-  --tf-input-bg: rgba(255, 255, 255, 0.02);
-  --tf-hover: rgba(255, 255, 255, 0.045);
-  --tf-row-hover: rgba(255, 255, 255, 0.025);
-  --tf-glow: rgba(228, 242, 34, 0.075);
-  --tf-login-glow: rgba(228, 242, 34, 0.09);
-  --tf-radius: 12px;
-  --tf-radius-sm: 6px;
-  --tf-card-padding: 20px;
-  --tf-heading-weight: 510;
-  --tf-heading-tracking: -0.03em;
-  --tf-primary-weight: 510;
-  --tf-card-shadow: inset 0 0 0 1px rgba(35, 37, 42, 0.75);
-  --tf-nav-active-marker: inset 2px 0 0 var(--tf-accent);
-}
-
-[data-design="linear"][data-mode="light"] {
-  --tf-bg: #f7f7f8;
-  --tf-surface: #ffffff;
-  --tf-surface-2: #f0f0f2;
-  --tf-line: #e4e4e7;
-  --tf-text: #111113;
-  --tf-muted: #6b6f76;
-  --tf-accent: #b8c900;
-  --tf-accent-ink: #08090a;
-  --tf-blue: #0e7490;
-  --tf-danger: #c02626;
-  --tf-warning: #a16207;
-  --tf-ok: #15803d;
-  --tf-sidebar-bg: #ffffff;
-  --tf-topbar-bg: rgba(247, 247, 248, 0.86);
-  --tf-input-bg: #ffffff;
-  --tf-hover: #f0f0f2;
-  --tf-row-hover: #fafafa;
-  --tf-glow: rgba(184, 201, 0, 0.12);
-  --tf-login-glow: rgba(184, 201, 0, 0.14);
-  --tf-radius: 12px;
-  --tf-radius-sm: 6px;
-  --tf-card-padding: 20px;
-  --tf-heading-weight: 510;
-  --tf-heading-tracking: -0.03em;
-  --tf-primary-weight: 510;
-  --tf-card-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.05);
-  --tf-nav-active-marker: inset 2px 0 0 var(--tf-accent);
-}
-
-/* ── Factory: terminal war room at midnight ───────────────────────────── */
-[data-design="factory"][data-mode="dark"] {
-  --tf-bg: #101010;
-  --tf-surface: #171513;
-  --tf-surface-2: #1f1c1a;
-  --tf-line: #3d3a39;
-  --tf-text: #eeeeee;
-  --tf-muted: #8a8380;
-  --tf-accent: #fafafa;
-  --tf-accent-ink: #101010;
-  --tf-blue: #a0ca92;
-  --tf-danger: #ff7a45;
-  --tf-warning: #ee6018;
-  --tf-ok: #a0ca92;
-  --tf-sidebar-bg: #101010;
-  --tf-topbar-bg: rgba(16, 16, 16, 0.9);
-  --tf-input-bg: #1d1a18;
-  --tf-hover: #24201e;
-  --tf-row-hover: #1d1a18;
-  --tf-glow: rgba(238, 96, 24, 0.06);
-  --tf-login-glow: rgba(238, 96, 24, 0.09);
-  --tf-radius: 10px;
-  --tf-radius-sm: 3px;
-  --tf-card-padding: 22px;
-  --tf-heading-weight: 400;
-  --tf-heading-tracking: -0.025em;
-  --tf-primary-weight: 400;
-  --tf-card-shadow: none;
-  --tf-nav-active-marker: inset 2px 0 0 var(--tf-warning);
-}
-
-[data-design="factory"][data-mode="light"] {
-  --tf-bg: #f4f2ef;
-  --tf-surface: #ffffff;
-  --tf-surface-2: #ebe7e2;
-  --tf-line: #d8d4d0;
-  --tf-text: #101010;
-  --tf-muted: #6f6864;
-  --tf-accent: #101010;
-  --tf-accent-ink: #fafafa;
-  --tf-blue: #3f6b39;
-  --tf-danger: #b4460f;
-  --tf-warning: #b4460f;
-  --tf-ok: #3f6b39;
-  --tf-sidebar-bg: #f4f2ef;
-  --tf-topbar-bg: rgba(244, 242, 239, 0.9);
-  --tf-input-bg: #ffffff;
-  --tf-hover: #ebe7e2;
-  --tf-row-hover: #faf8f6;
-  --tf-glow: rgba(238, 96, 24, 0.07);
-  --tf-login-glow: rgba(238, 96, 24, 0.09);
-  --tf-radius: 10px;
-  --tf-radius-sm: 3px;
-  --tf-card-padding: 22px;
-  --tf-heading-weight: 400;
-  --tf-heading-tracking: -0.025em;
-  --tf-primary-weight: 400;
-  --tf-card-shadow: none;
-  --tf-nav-active-marker: inset 2px 0 0 var(--tf-warning);
-}
-
-/* ── Resend: black velvet with violet neon ────────────────────────────── */
-[data-design="resend"][data-mode="dark"] {
-  --tf-font-display: "Iowan Old Style", "Palatino Linotype", Palatino, "Times New Roman", serif;
-  --tf-bg: #000000;
-  --tf-surface: #0a0a0a;
-  --tf-surface-2: #141414;
-  --tf-line: #292d30;
-  --tf-text: #ffffff;
-  --tf-muted: #a1a4a5;
-  --tf-accent: #baa7ff;
-  --tf-accent-ink: #0a0a0a;
-  --tf-blue: #3b9eff;
-  --tf-danger: #ff9592;
-  --tf-warning: #ffca16;
-  --tf-ok: #3ad389;
-  --tf-sidebar-bg: #000000;
-  --tf-topbar-bg: rgba(0, 0, 0, 0.86);
-  --tf-input-bg: #0a0a0a;
-  --tf-hover: #141414;
-  --tf-row-hover: #0f0f0f;
-  --tf-glow: rgba(146, 129, 247, 0.1);
-  --tf-login-glow: rgba(146, 129, 247, 0.14);
-  --tf-radius: 16px;
-  --tf-radius-sm: 6px;
-  --tf-card-padding: 24px;
-  --tf-heading-weight: 400;
-  --tf-heading-tracking: -0.01em;
-  --tf-primary-weight: 500;
-  --tf-card-shadow: 0 0 0 1px rgba(176, 199, 217, 0.04);
-  --tf-nav-active-marker: inset 2px 0 0 var(--tf-accent);
-}
-
-[data-design="resend"][data-mode="light"] {
-  --tf-font-display: "Iowan Old Style", "Palatino Linotype", Palatino, "Times New Roman", serif;
-  --tf-bg: #f7f5fa;
-  --tf-surface: #ffffff;
-  --tf-surface-2: #f0edf6;
-  --tf-line: #e6e2ee;
-  --tf-text: #111014;
-  --tf-muted: #6e697a;
-  --tf-accent: #6c4de6;
-  --tf-accent-ink: #ffffff;
-  --tf-blue: #2563eb;
-  --tf-danger: #c02626;
-  --tf-warning: #a16207;
-  --tf-ok: #15803d;
-  --tf-sidebar-bg: #fbf9fd;
-  --tf-topbar-bg: rgba(247, 245, 250, 0.86);
-  --tf-input-bg: #ffffff;
-  --tf-hover: #f0edf6;
-  --tf-row-hover: #faf8fd;
-  --tf-glow: rgba(108, 77, 230, 0.08);
-  --tf-login-glow: rgba(108, 77, 230, 0.10);
-  --tf-radius: 16px;
-  --tf-radius-sm: 6px;
-  --tf-card-padding: 24px;
-  --tf-heading-weight: 400;
-  --tf-heading-tracking: -0.01em;
-  --tf-primary-weight: 500;
-  --tf-card-shadow: 0 0 0 1px rgba(108, 77, 230, 0.04);
-  --tf-nav-active-marker: inset 2px 0 0 var(--tf-accent);
-}
-
 /* ── Base ─────────────────────────────────────────────────────────────── */
 * { box-sizing: border-box; }
 html, body, #root { min-height: 100%; }
@@ -401,9 +153,7 @@ body {
   font-size: 12px;
   margin: 5px 0 24px 17px;
 }
-[data-design="vercel"] .tf-tagline,
-[data-design="linear"] .tf-tagline,
-[data-design="factory"] .tf-tagline {
+[data-design="vercel"] .tf-tagline {
   font-family: var(--tf-font-mono);
   font-size: 10px;
   letter-spacing: 0.08em;
@@ -425,8 +175,6 @@ body {
   background: var(--tf-hover);
   box-shadow: var(--tf-nav-active-marker);
 }
-[data-design="ui"] .tf-nav a:hover,
-[data-design="ui"] .tf-nav a.active { box-shadow: none; }
 
 .tf-sidebar-foot {
   margin-top: 24px;
@@ -623,31 +371,7 @@ body {
 .tf-login-card p { color: var(--tf-muted); margin: 0 0 20px; }
 .tf-login-card .tf-kpi-label { margin-bottom: 10px; }
 
-/* ── Design switcher and gallery ─────────────────────────────────────── */
-.tf-design-controls { display: flex; align-items: center; gap: 7px; }
-.tf-design-controls select { width: 130px; padding: 7px 9px; }
 .tf-theme-toggle { padding: 7px 10px; min-width: 72px; }
-.tf-design-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 18px; }
-.tf-design-card { border: 1px solid var(--tf-line); border-radius: var(--tf-radius); overflow: hidden; background: var(--tf-surface); box-shadow: var(--tf-card-shadow); }
-.tf-design-preview { padding: 16px; min-height: 190px; background: radial-gradient(420px 240px at 80% -10%, var(--tf-glow), transparent 70%), var(--tf-bg); color: var(--tf-text); }
-.tf-design-preview .preview-bar { display: flex; gap: 5px; margin-bottom: 14px; }
-.tf-design-preview .preview-bar i { width: 7px; height: 7px; border-radius: 50%; background: var(--tf-line); }
-.tf-design-preview .preview-shell { display: grid; grid-template-columns: 62px 1fr; gap: 10px; }
-.tf-design-preview .preview-side { border-right: 1px solid var(--tf-line); padding-right: 8px; display: grid; gap: 6px; align-content: start; }
-.tf-design-preview .preview-side span { display: block; height: 5px; border-radius: 99px; background: var(--tf-line); }
-.tf-design-preview .preview-side span:first-child { width: 24px; height: 7px; background: var(--tf-accent); }
-.tf-design-preview .preview-main { display: grid; gap: 7px; }
-.tf-design-preview .preview-title { font-family: var(--tf-font-display); font-size: 19px; font-weight: var(--tf-heading-weight); letter-spacing: var(--tf-heading-tracking); line-height: 1.05; }
-.tf-design-preview .preview-sub { width: 70%; height: 5px; border-radius: 99px; background: var(--tf-line); }
-.tf-design-preview .preview-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: 4px; }
-.tf-design-preview .preview-cards div { min-height: 36px; border: 1px solid var(--tf-line); border-radius: var(--tf-radius-sm); background: var(--tf-surface); }
-.tf-design-preview .preview-cards div:first-child { background: var(--tf-accent); border-color: var(--tf-accent); }
-.tf-design-card-foot { padding: 16px; border-top: 1px solid var(--tf-line); }
-.tf-design-card-foot h3 { margin: 0 0 3px; font-family: var(--tf-font-display); font-weight: var(--tf-heading-weight); letter-spacing: -0.02em; }
-.tf-design-card-foot p { margin: 0 0 12px; color: var(--tf-muted); font-size: 12px; }
-.tf-design-modes { display: flex; gap: 6px; }
-.tf-design-modes .tf-btn { flex: 1; font-size: 12px; padding: 6px 8px; }
-.tf-design-modes .tf-btn.active { border-color: var(--tf-accent); color: var(--tf-accent); }
 
 @media (max-width: 860px) {
   .tf-app { grid-template-columns: 1fr; }
@@ -658,8 +382,6 @@ body {
   .tf-topbar-right { width: 100%; flex-wrap: wrap; justify-content: flex-end; }
   .tf-topbar-right > .tf-muted { display: none; }
   .tf-search-trigger { margin-right: auto; }
-  .tf-design-controls { order: 3; width: 100%; }
-  .tf-design-controls select { flex: 1; }
   .tf-grid[style*="grid-template-columns"] { grid-template-columns: 1fr !important; }
 }
 
@@ -1387,9 +1109,6 @@ body {
   *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; transition-duration: .01ms !important; }
 }
 @media (max-width: 700px) {
-  .tf-design-controls label,
-  .tf-design-controls select { display: none; }
-  .tf-design-controls { width: auto; order: 0; }
   .tf-search-trigger { margin-right: 0; }
   .tf-topbar-right { gap: 8px; justify-content: flex-end; }
 }

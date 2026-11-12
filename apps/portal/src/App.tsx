@@ -4,7 +4,6 @@ import { Link, NavLink, Navigate, Route, Routes, useLocation, useNavigate } from
 
 import { getMe, logout, type Me } from "./api";
 import { ActionsPage } from "./pages/Actions";
-import { DesignsPage } from "./pages/Designs";
 import { ActionDetailPage } from "./pages/ActionDetail";
 import { AgentsPage } from "./pages/Agents";
 import { AnalyticsPage } from "./pages/Analytics";
@@ -26,7 +25,7 @@ import { TeamPage } from "./pages/Team";
 import { CommandPalette } from "./components/CommandPalette";
 import { NotificationCenter } from "./components/NotificationCenter";
 import { ShortcutsModal } from "./components/ShortcutsModal";
-import { applyDesign, DESIGNS, readDesign, type DesignId, type DesignMode } from "./design";
+import { applyDesign, readMode, type DesignMode } from "./design";
 
 interface Workspace {
   me: Me;
@@ -47,8 +46,7 @@ export function App() {
   const navigate = useNavigate();
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
-  const [designState, setDesignState] = useState(readDesign);
-  const { design, mode } = designState;
+  const [mode, setMode] = useState<DesignMode>(readMode);
   const meQuery = useQuery({ queryKey: ["me"], queryFn: getMe, retry: false });
   const [environmentId, setEnvironmentIdState] = useState(
     () => localStorage.getItem("tessera.environment") ?? "",
@@ -59,8 +57,8 @@ export function App() {
   const publicEvidence = location.pathname.startsWith("/evidence/share/");
 
   useEffect(() => {
-    applyDesign(design, mode);
-  }, [design, mode]);
+    applyDesign(mode);
+  }, [mode]);
 
   useEffect(() => {
     function isEditable(target: EventTarget | null): boolean {
@@ -104,17 +102,8 @@ export function App() {
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [navigate, publicEvidence, publicInvite, publicVerify]);
 
-  function selectDesign(id: DesignId) {
-    const option = DESIGNS.find((item) => item.id === id) ?? DESIGNS[0]!;
-    setDesignState({ design: id, mode: option.defaultMode });
-  }
-
   function selectMode(next: DesignMode) {
-    setDesignState((current) => ({ ...current, mode: next }));
-  }
-
-  function applyDesignChoice(id: DesignId, nextMode: DesignMode) {
-    setDesignState({ design: id, mode: nextMode });
+    setMode(next);
   }
 
   useEffect(() => {
@@ -190,7 +179,6 @@ export function App() {
             <NavLink to="/evidence">Evidence</NavLink>
             <NavLink to="/reviews">Reviews</NavLink>
             <NavLink to="/transitions">Transitions</NavLink>
-            <NavLink to="/designs">Designs</NavLink>
             <NavLink to="/policies">Policies</NavLink>
             <NavLink to="/keys">Agent keys</NavLink>
             <NavLink to="/team">Team</NavLink>
@@ -235,28 +223,13 @@ export function App() {
                 <kbd>⌘K</kbd>
               </button>
               <NotificationCenter />
-              <div className="tf-design-controls">
-                <label className="tf-muted" htmlFor="tf-design">Design</label>
-                <select
-                  id="tf-design"
-                  className="tf-select"
-                  value={design}
-                  onChange={(event) => selectDesign(event.target.value as DesignId)}
-                >
-                  {DESIGNS.map((option) => (
-                    <option key={option.id} value={option.id}>
-                      {option.name}
-                    </option>
-                  ))}
-                </select>
-                <button
-                  className="tf-btn ghost tf-theme-toggle"
-                  onClick={() => selectMode(mode === "dark" ? "light" : "dark")}
-                  aria-label={`Switch to ${mode === "dark" ? "light" : "dark"} mode`}
-                >
-                  {mode === "dark" ? "Light" : "Dark"}
-                </button>
-              </div>
+              <button
+                className="tf-btn ghost tf-theme-toggle"
+                onClick={() => selectMode(mode === "dark" ? "light" : "dark")}
+                aria-label={`Switch to ${mode === "dark" ? "light" : "dark"} mode`}
+              >
+                {mode === "dark" ? "Light" : "Dark"}
+              </button>
               <span className="tf-muted">{workspace.me.user.email}</span>
             </div>
           </header>
@@ -273,16 +246,7 @@ export function App() {
               <Route path="/evidence/:packId" element={<EvidenceDetailPage />} />
               <Route path="/reviews" element={<ReviewsPage />} />
               <Route path="/transitions" element={<TransitionsPage />} />
-              <Route
-                path="/designs"
-                element={
-                  <DesignsPage
-                    design={design}
-                    mode={mode}
-                    onApply={applyDesignChoice}
-                  />
-                }
-              />
+              <Route path="/designs" element={<Navigate to="/" replace />} />
               <Route path="/policies" element={<PoliciesPage />} />
               <Route path="/keys" element={<KeysPage />} />
               <Route path="/team" element={<TeamPage />} />

@@ -8,7 +8,7 @@ import {
   requestTrustedTimestamp,
   signAgentReceipt,
 } from "@tessera/agent-receipts";
-import type { ReceiptV2 } from "@tessera/receipt-schema";
+import type { ReceiptV2 } from "@tessera-verify/receipt-schema";
 import { getCookie } from "hono/cookie";
 import { z } from "zod";
 

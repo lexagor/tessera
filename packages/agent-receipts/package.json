@@ -17,7 +17,7 @@
   },
   "dependencies": {
     "@noble/curves": "^1.9.0",
-    "@tessera/receipt-schema": "workspace:*"
+    "@tessera-verify/receipt-schema": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "^22.10.2",

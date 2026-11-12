@@ -20,18 +20,18 @@ importers:
       '@hono/node-server':
         specifier: ^1.13.7
         version: 1.19.19(hono@4.13.8)
+      '@tessera-verify/receipt-schema':
+        specifier: workspace:*
+        version: link:../../packages/receipt-schema
+      '@tessera-verify/verify':
+        specifier: workspace:*
+        version: link:../../packages/verifier
       '@tessera/agent-receipts':
         specifier: workspace:*
         version: link:../../packages/agent-receipts
       '@tessera/core-policy':
         specifier: workspace:*
         version: link:../../packages/core-policy
-      '@tessera/receipt-schema':
-        specifier: workspace:*
-        version: link:../../packages/receipt-schema
-      '@tessera/verify':
-        specifier: workspace:*
-        version: link:../../packages/verifier
       hono:
         specifier: ^4.6.14
         version: 4.13.8
@@ -137,10 +137,10 @@ importers:
 
   apps/verify:
     dependencies:
-      '@tessera/receipt-schema':
+      '@tessera-verify/receipt-schema':
         specifier: workspace:*
         version: link:../../packages/receipt-schema
-      '@tessera/verify':
+      '@tessera-verify/verify':
         specifier: workspace:*
         version: link:../../packages/verifier
     devDependencies:
@@ -245,7 +245,7 @@ importers:
       '@noble/curves':
         specifier: ^1.9.0
         version: 1.9.7
-      '@tessera/receipt-schema':
+      '@tessera-verify/receipt-schema':
         specifier: workspace:*
         version: link:../receipt-schema
     devDependencies:
@@ -295,7 +295,7 @@ importers:
 
   packages/mcp-adapter:
     dependencies:
-      '@tessera/receipt-schema':
+      '@tessera-verify/receipt-schema':
         specifier: workspace:*
         version: link:../receipt-schema
       '@tessera/sdk-ts':
@@ -324,7 +324,7 @@ importers:
 
   packages/sdk-ts:
     dependencies:
-      '@tessera/receipt-schema':
+      '@tessera-verify/receipt-schema':
         specifier: workspace:*
         version: link:../receipt-schema
     devDependencies:
@@ -359,7 +359,7 @@ importers:
       '@noble/hashes':
         specifier: ^1.5.0
         version: 1.8.0
-      '@tessera/receipt-schema':
+      '@tessera-verify/receipt-schema':
         specifier: workspace:*
         version: link:../receipt-schema
     devDependencies:

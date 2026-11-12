@@ -1,5 +1,5 @@
 {
-  "name": "@tessera/verify",
+  "name": "@tessera-verify/verify",
   "version": "0.1.0",
   "description": "Independent verifier for Tessera v1 and v2 action records",
   "license": "Apache-2.0",
@@ -26,7 +26,7 @@
   "dependencies": {
     "@noble/curves": "^1.9.0",
     "@noble/hashes": "^1.5.0",
-    "@tessera/receipt-schema": "workspace:*"
+    "@tessera-verify/receipt-schema": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "^22.10.2",

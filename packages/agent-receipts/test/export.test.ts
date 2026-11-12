@@ -3,7 +3,7 @@ import { test } from "node:test";
 
 import { ed25519 } from "@noble/curves/ed25519";
 import { readFileSync } from "node:fs";
-import type { ReceiptV2 } from "@tessera/receipt-schema";
+import type { ReceiptV2 } from "@tessera-verify/receipt-schema";
 
 import { exportAgentReceipt, verifyAgentReceiptSignature } from "../src/index.js";
 

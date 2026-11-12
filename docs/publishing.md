@@ -6,7 +6,9 @@ on tag).
 
 ## Prerequisites
 
-- An npm org that owns the `@tessera` scope (or rename the scope to one you own).
+- An npm org that owns the scope used by each package. The receipt schema and verifier are
+  published under `@tessera-verify`; the SDK/adapters still use `@tessera` and must be renamed
+  before their release.
 - Repository secrets: `NPM_TOKEN` and `PYPI_TOKEN`.
 - Versions bumped in `packages/*/package.json` and `packages/sdk-py/pyproject.toml`.
 
@@ -15,18 +17,18 @@ on tag).
 ```bash
 pnpm install
 pnpm typecheck
-pnpm --filter @tessera/receipt-schema test && pnpm --filter @tessera/sdk-ts test
+pnpm --filter @tessera-verify/receipt-schema test && pnpm --filter @tessera/sdk-ts test
 
 # dry run to inspect the tarball contents
-pnpm --filter @tessera/receipt-schema publish --dry-run --no-git-checks --access public
+pnpm --filter @tessera-verify/receipt-schema publish --dry-run --no-git-checks --access public
 pnpm --filter @tessera/sdk-ts publish --dry-run --no-git-checks --access public
-pnpm --filter @tessera/verify publish --dry-run --no-git-checks --access public
+pnpm --filter @tessera-verify/verify publish --dry-run --no-git-checks --access public
 pnpm --filter @tessera/mcp-adapter publish --dry-run --no-git-checks --access public
 pnpm --filter @tessera/langchain publish --dry-run --no-git-checks --access public
 pnpm --filter @tessera/agent-receipts publish --dry-run --no-git-checks --access public
 ```
 
-`pnpm publish` rewrites the `workspace:*` dependency on `@tessera/receipt-schema` to the
+`pnpm publish` rewrites the `workspace:*` dependency on `@tessera-verify/receipt-schema` to the
 published version, so `receipt-schema` must exist at that version before `sdk-ts` is published.
 
 ## Python / PyPI
@@ -46,7 +48,7 @@ Pushing a `v*` tag runs `.github/workflows/release.yml`:
 git tag v0.1.0 && git push origin v0.1.0
 ```
 
-It publishes `@tessera/receipt-schema`, `@tessera/sdk-ts`, `@tessera/verify`,
+It publishes `@tessera-verify/receipt-schema`, `@tessera/sdk-ts`, `@tessera-verify/verify`,
 `@tessera/mcp-adapter`, `@tessera/langchain`, and `@tessera/agent-receipts` to npm, and the
 Python package to PyPI. A CycloneDX SBOM is produced by `sbom.yml`.
 

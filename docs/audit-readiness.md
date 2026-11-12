@@ -62,7 +62,7 @@ cargo clippy --all-targets -- -D warnings
 cargo fmt --check
 
 # Cross-language parity
-pnpm --filter @tessera/receipt-schema test
+pnpm --filter @tessera-verify/receipt-schema test
 
 # Contracts
 cd contracts/receipts && forge test -vv

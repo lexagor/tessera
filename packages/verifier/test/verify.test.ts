@@ -4,7 +4,7 @@ import { test } from "node:test";
 
 import { secp256k1 } from "@noble/curves/secp256k1";
 import { bytesToHex, concatBytes, hexToBytes } from "@noble/hashes/utils";
-import { AnyReceipt, ReceiptV2, payloadHash } from "@tessera/receipt-schema";
+import { AnyReceipt, ReceiptV2, payloadHash } from "@tessera-verify/receipt-schema";
 
 import {
   VerifyDomain,

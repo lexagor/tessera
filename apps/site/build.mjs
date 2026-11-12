@@ -35,7 +35,7 @@ const GITHUB_URL = (process.env.GITHUB_URL ?? "https://github.com/lexagor/tesser
 );
 const PARTNER_EMAIL = process.env.PARTNER_EMAIL ?? "partners@thetessera.xyz";
 const SECURITY_EMAIL = process.env.SECURITY_EMAIL ?? "security@thetessera.xyz";
-const EXCLUDED_DIRS = new Set(["strategy"]);
+const EXCLUDED_DIRS = new Set(["strategy", "investor"]);
 const EXCLUDED_FILES = new Set([
   "fundraise.md",
   "interview-guide.md",

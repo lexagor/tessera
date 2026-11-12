@@ -7,14 +7,35 @@ the policy, the tool definition, the credential, and the outcome into a signed a
 A third party can verify that record offline — without trusting Tessera, the agent vendor, or
 either party's logs.
 
+```
+Agent runtime / SDK / MCP adapter
+        │  agent API key + exact tool call + args
+        ▼
+Control plane (orgs, sessions, environments, agent keys, action read model)
+        │  environment-scoped broker credential
+        ▼
+Rust broker (authorize → CEL policy → scoped credential / broker-held grant)
+        │                                   │
+        ▼                                   ▼
+Provider API / proxy                 EIP-712 signed receipt
+                                            │
+                                            ▼
+                                  Hash-linked chain + anchors
+                                            │
+                                            ▼
+                              Public verifier / evidence pack
+```
+
 Status: **broker + control plane + portal implemented; hosted hardening in progress.** The
 Rust broker ships the authorize → broker → receipt → chain → verify loop with provider
-adapters, broker-observed proxy outcomes, authority transitions, revocation, KMS signing,
-quotas, and 300+ tests. The control plane (`apps/api`) and tenant portal (`apps/portal`) cover
-OIDC sessions, environments, agent keys, actions, integrations, evidence packs, reviewer
-reports and share links, verification links, authority transitions, usage, and audit. Agent Receipts v0.5.0 export, LangChain tool wrapping, OIDC
-provider credentials, Stripe billing, and public package/domain rollout are the remaining
-hosted pieces. Pre-revenue; recruiting design partners.
+adapters, broker-observed proxy outcomes, authority transitions, revocation, KMS/HSM bridge
+signing, quotas, and 300+ tests. The control plane (`apps/api`) and tenant portal (`apps/portal`)
+cover OIDC sessions, environments, agent keys, actions, integrations, evidence packs, reviewer
+reports and share links, verification links, authority transitions, analytics, usage, and audit.
+Agent Receipts v0.5.0 export, LangChain tool wrapping, and the MCP adapter are implemented.
+Remaining hosted/distribution pieces are OIDC provider validation, Stripe billing launch,
+Python SDK publication, and public package/domain rollout. Pre-revenue; recruiting design
+partners.
 
 ## Published packages
 
@@ -131,6 +152,7 @@ docs/              Architecture, threat model, receipt spec, controls, RFCs
 - [`docs/controls-matrix.md`](docs/controls-matrix.md) — invariant → code → test map
 - [`docs/audit-readiness.md`](docs/audit-readiness.md) — scope, invariants, how to reproduce
 - [`docs/audit-brief.md`](docs/audit-brief.md) — submission-ready audit brief
+- [`docs/security-guarantees.md`](docs/security-guarantees.md) — provider-by-provider enforcement and evidence guarantees
 - [`docs/trust-center.md`](docs/trust-center.md) — security posture and data handling
 - [`docs/webhooks.md`](docs/webhooks.md) — signed event delivery and retries
 - [`docs/authority-transitions.md`](docs/authority-transitions.md) — revocations, rotations, and step-ups

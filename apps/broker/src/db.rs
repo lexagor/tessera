@@ -11,7 +11,7 @@
 use std::time::Duration;
 
 use sqlx::postgres::PgPoolOptions;
-use sqlx::{PgPool, Postgres, Transaction};
+use sqlx::{PgPool, Postgres, Row, Transaction};
 
 use crate::error::BrokerError;
 
@@ -57,6 +57,25 @@ pub async fn tenant_tx<'a>(
         .await
         .map_err(map)?;
     Ok(tx)
+}
+
+/// Fail production startup when the runtime database role bypasses RLS.
+pub async fn assert_non_superuser(url: &str) -> Result<(), BrokerError> {
+    let pool = connect_pool(url, 1)?;
+    let result = sqlx::query("SELECT current_setting('is_superuser') AS is_superuser")
+        .fetch_one(&pool)
+        .await
+        .map_err(map);
+    pool.close().await;
+    let row = result?;
+    let is_superuser: String = row.try_get("is_superuser").unwrap_or_default();
+    if is_superuser == "on" {
+        return Err(BrokerError::Invalid(
+            "DATABASE_URL user is a Postgres superuser; use the non-superuser tessera_app role"
+                .into(),
+        ));
+    }
+    Ok(())
 }
 
 pub fn map(err: sqlx::Error) -> BrokerError {

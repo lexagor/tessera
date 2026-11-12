@@ -1,6 +1,6 @@
 image:
   repository: ghcr.io/tessera/broker
-  tag: "0.6"
+  tag: "0.1.3"
   pullPolicy: IfNotPresent
 
 replicaCount: 2
@@ -21,6 +21,7 @@ resources:
 config:
   BROKER_HOST: "0.0.0.0"
   BROKER_PORT: "8787"
+  TESSERA_PRODUCTION: "1"
   TESSERA_DEMO_ALLOW: "0"
   TESSERA_AUTHORITY_REQUIRE_TOKEN: "1"
   TESSERA_AUTHORITY_KID: "v1"
@@ -51,11 +52,6 @@ config:
 # TESSERA_AUTHORITY_HMAC_SECRET_PREVIOUS, and any provider/issuer credentials.
 existingSecret: tessera-secrets
 
-ingress:
-  enabled: false
-  className: ""
-  host: tessera.example.com
-  tlsSecret: ""
 
 podAnnotations: {}
 

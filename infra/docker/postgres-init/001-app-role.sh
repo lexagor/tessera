@@ -1,0 +1,24 @@
+#!/bin/sh
+set -eu
+
+: "${POSTGRES_APP_PASSWORD:?POSTGRES_APP_PASSWORD is required}"
+
+psql -v ON_ERROR_STOP=1 \
+  --username "$POSTGRES_USER" \
+  --dbname "$POSTGRES_DB" \
+  -v app_password="$POSTGRES_APP_PASSWORD" \
+  -v dbname="$POSTGRES_DB" <<'SQL'
+SELECT format(
+  'CREATE ROLE tessera_app LOGIN PASSWORD %L NOSUPERUSER NOBYPASSRLS NOINHERIT',
+  :'app_password'
+)
+WHERE NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'tessera_app')
+\gexec
+
+GRANT CONNECT ON DATABASE :"dbname" TO tessera_app;
+GRANT USAGE, CREATE ON SCHEMA public TO tessera_app;
+GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO tessera_app;
+GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO tessera_app;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO tessera_app;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO tessera_app;
+SQL

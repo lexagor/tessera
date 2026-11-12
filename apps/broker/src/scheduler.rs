@@ -10,16 +10,39 @@ use crate::error::BrokerError;
 use crate::http::AppState;
 
 /// Spawn the sweep loop. Skips the immediate first tick.
+const LEADER_KEY: &str = "tessera:broker:scheduler:leader";
+
+async fn renew_leader(state: &AppState, token: &str, ttl_secs: u64) -> Result<bool, BrokerError> {
+    match state.cache.get(LEADER_KEY).await? {
+        Some(current) if current == token => {
+            state.cache.put(LEADER_KEY, token, ttl_secs).await?;
+            Ok(true)
+        }
+        Some(_) => Ok(false),
+        None => state.cache.put_if_absent(LEADER_KEY, token, ttl_secs).await,
+    }
+}
+
 pub fn spawn(state: Arc<AppState>, interval: Duration) {
     tokio::spawn(async move {
         let mut ticker = tokio::time::interval(interval);
         ticker.tick().await;
+        let leader_token = uuid::Uuid::new_v4().to_string();
+        let leader_ttl = interval.as_secs().saturating_mul(2).saturating_add(30);
         let mut last_retention = tokio::time::Instant::now();
         let archive_interval = Duration::from_secs(state.service.archive_interval_secs.max(60));
         // `None` = never archived yet: the first sweep archives (evidence exists at startup).
         let mut last_archive: Option<tokio::time::Instant> = None;
         loop {
             ticker.tick().await;
+            match renew_leader(&state, &leader_token, leader_ttl).await {
+                Ok(true) => {}
+                Ok(false) => continue,
+                Err(error) => {
+                    tracing::warn!("scheduler leader lock failed: {error}");
+                    continue;
+                }
+            }
             match sweep(&state).await {
                 Ok(n) if n > 0 => tracing::info!(anchored = n, "anchor sweep complete"),
                 Ok(_) => {}

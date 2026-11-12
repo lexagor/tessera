@@ -66,6 +66,14 @@ Use these labels in reviews and demos. They describe the evidence path, not a ce
 - API plan limits return `402 plan_limit_exceeded` before the broker is called.
 - Authority-token replay-cache failures are fail-closed; a token that cannot be checked for
   replay is rejected.
+- The API rejects oversized bodies, applies request timeouts and auth/public/write rate limits,
+  and sends HSTS/CSP/frame/referrer/permissions headers at the edge for production hosts.
+- Webhook delivery rejects redirects, private/reserved DNS results, and non-HTTPS production
+  targets; workers claim deliveries with a database lease.
+- Broker outbound HTTP does not follow redirects. With `EGRESS_ALLOWLIST`, hostnames that
+  resolve into private/reserved space are refused.
+- Production startup refuses a Postgres `DATABASE_URL` that resolves to a superuser; the
+  runtime role must be `tessera_app`.
 - Circuit breakers are not implemented yet; the current boundary is connect/total request
   timeouts plus fail-closed handling.
 

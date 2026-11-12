@@ -13,8 +13,9 @@ pub fn outbound_client() -> reqwest::Client {
     reqwest::Client::builder()
         .connect_timeout(std::time::Duration::from_secs(5))
         .timeout(std::time::Duration::from_secs(15))
+        .redirect(reqwest::redirect::Policy::none())
         .build()
-        .unwrap_or_else(|_| reqwest::Client::new())
+        .expect("outbound HTTP client configuration must be valid")
 }
 
 #[derive(Debug, Clone, Default)]
@@ -63,22 +64,28 @@ pub fn validate_endpoint(url: &str, label: &str) -> Result<(), BrokerError> {
 #[derive(Debug, Clone, Default)]
 pub struct EgressGuard {
     allowlist: Vec<String>,
+    allow_private: bool,
 }
 
 impl EgressGuard {
     pub fn new(allowlist: Vec<String>) -> Self {
+        Self::new_with_private(allowlist, false)
+    }
+
+    pub fn new_with_private(allowlist: Vec<String>, allow_private: bool) -> Self {
         Self {
             allowlist: allowlist
                 .into_iter()
                 .map(|entry| entry.trim().to_ascii_lowercase())
                 .filter(|entry| !entry.is_empty())
                 .collect(),
+            allow_private,
         }
     }
 
     /// Permissive guard (tests/local).
     pub fn permissive() -> Self {
-        Self::default()
+        Self::new_with_private(Vec::new(), true)
     }
 
     pub fn from_env() -> Self {
@@ -86,7 +93,8 @@ impl EgressGuard {
             .ok()
             .map(|raw| raw.split(',').map(str::to_string).collect())
             .unwrap_or_default();
-        Self::new(allowlist)
+        let allow_private = std::env::var("EGRESS_ALLOW_PRIVATE").as_deref() == Ok("1");
+        Self::new_with_private(allowlist, allow_private)
     }
 
     pub fn is_enabled(&self) -> bool {
@@ -114,6 +122,43 @@ impl EgressGuard {
                 "egress to '{host}' is not in EGRESS_ALLOWLIST"
             )))
         }
+    }
+
+    /// When strict egress is enabled, also reject DNS resolutions to private/reserved space.
+    /// This closes the common "public allowlisted hostname resolves inside the network" case.
+    pub async fn check_resolved(&self, url: &str) -> Result<(), BrokerError> {
+        self.check(url)?;
+        if !self.is_enabled() {
+            return Ok(());
+        }
+        let (host, port) = host_of(url)?;
+        if !self.allow_private && is_private_or_local(&host) {
+            return Err(BrokerError::Invalid(format!(
+                "egress to '{host}' resolves to private space"
+            )));
+        }
+        let default_port = if url.starts_with("https://") { 443 } else { 80 };
+        let port = port
+            .and_then(|value| value.parse::<u16>().ok())
+            .unwrap_or(default_port);
+        let addresses = tokio::net::lookup_host((host.as_str(), port))
+            .await
+            .map_err(|e| BrokerError::Invalid(format!("egress DNS lookup failed: {e}")))?;
+        let mut found = false;
+        for address in addresses {
+            found = true;
+            if !self.allow_private && is_private_or_local(&address.ip().to_string()) {
+                return Err(BrokerError::Invalid(format!(
+                    "egress to '{host}' resolves to private space"
+                )));
+            }
+        }
+        if !found {
+            return Err(BrokerError::Invalid(format!(
+                "egress host '{host}' did not resolve"
+            )));
+        }
+        Ok(())
     }
 }
 
@@ -208,24 +253,32 @@ fn split_host_port(authority: &str) -> Result<(String, Option<String>), BrokerEr
     }
 }
 
+fn private_ipv4(ip: [u8; 4]) -> bool {
+    let [a, b, ..] = ip;
+    a == 0
+        || a == 10
+        || a == 127
+        || (a == 169 && b == 254)
+        || (a == 172 && (16..=31).contains(&b))
+        || (a == 192 && b == 168)
+        || (a == 100 && (64..=127).contains(&b))
+}
+
 fn is_private_or_local(host: &str) -> bool {
     if host == "localhost" || host.ends_with(".localhost") || host.ends_with(".internal") {
         return true;
     }
     if let Some(ip) = parse_ipv4(host) {
-        let [a, b, ..] = ip;
-        return match a {
-            0 | 10 | 127 => true,
-            169 if b == 254 => true, // link-local / cloud metadata
-            172 if (16..=31).contains(&b) => true,
-            192 if b == 168 => true,
-            100 if (64..=127).contains(&b) => true, // CGNAT
-            _ => false,
-        };
+        return private_ipv4(ip);
     }
-    // IPv6 literal (already de-bracketed)
+    // IPv6 literal (already de-bracketed), including IPv4-mapped forms.
     if host.contains(':') {
         let lower = host.to_ascii_lowercase();
+        if let Some(mapped) = lower.strip_prefix("::ffff:") {
+            if let Some(ip) = parse_ipv4(mapped) {
+                return private_ipv4(ip);
+            }
+        }
         return lower == "::1"
             || lower.starts_with("fe80:")
             || lower.starts_with("fc")
@@ -322,6 +375,45 @@ mod tests {
         let permissive = EgressGuard::permissive();
         assert!(!permissive.is_enabled());
         assert!(permissive.check("https://anything.example").is_ok());
+    }
+
+    #[tokio::test]
+    async fn outbound_client_does_not_follow_redirects() {
+        use std::io::Write;
+        let listener = std::net::TcpListener::bind("127.0.0.1:0").unwrap();
+        let port = listener.local_addr().unwrap().port();
+        std::thread::spawn(move || {
+            use std::io::Read;
+            let (mut stream, _) = listener.accept().unwrap();
+            let mut request = [0u8; 1024];
+            let _ = stream.read(&mut request);
+            stream
+                .write_all(
+                    b"HTTP/1.1 302 Found\r\nConnection: close\r\nLocation: http://127.0.0.1:1/\r\nContent-Length: 0\r\n\r\n",
+                )
+                .unwrap();
+            std::thread::sleep(std::time::Duration::from_millis(50));
+        });
+        let response = outbound_client()
+            .get(format!("http://127.0.0.1:{port}/"))
+            .send()
+            .await
+            .unwrap();
+        assert_eq!(response.status().as_u16(), 302);
+    }
+
+    #[tokio::test]
+    async fn strict_egress_rejects_private_resolution() {
+        let guard = EgressGuard::new(vec!["localhost".into()]);
+        let error = guard
+            .check_resolved("http://localhost:1234")
+            .await
+            .unwrap_err();
+        assert!(error.to_string().contains("private"));
+        assert!(EgressGuard::permissive()
+            .check_resolved("http://localhost:1234")
+            .await
+            .is_ok());
     }
 
     #[test]

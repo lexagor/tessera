@@ -9,6 +9,7 @@ process.env.AUTH_DEV_MODE = "1";
 process.env.BROKER_DEMO_ALLOW = "1";
 process.env.BROKER_URL = "http://127.0.0.1:1";
 process.env.PUBLIC_BASE_URL = "http://localhost:5173";
+process.env.SESSION_IDLE_HOURS = "1";
 process.env.CONTROL_PLANE_ENC_KEY = "11".repeat(32);
 
 const canRun = Boolean(databaseUrl);
@@ -39,6 +40,8 @@ test("control plane smoke: dev login, environment, session", { skip: !canRun }, 
   assert.equal(body.user.email, "dev@tessera.local");
 
   const { db } = await import("../src/db.js");
+  const timeout = await db()`SHOW statement_timeout`;
+  assert.equal((timeout[0] as { statement_timeout: string }).statement_timeout, "15s");
   await db()`UPDATE orgs SET plan = 'enterprise' WHERE id = ${body.org.id}`;
 
   const envName = `test-${Date.now()}`;
@@ -74,6 +77,12 @@ test("control plane smoke: dev login, environment, session", { skip: !canRun }, 
     body: "{}",
   });
   assert.equal(stripeHook.status, 503);
+
+  const { sha256 } = await import("../src/crypto.js");
+  const token = cookie!.split("=")[1]!;
+  await db()`UPDATE sessions SET last_seen_at = now() - interval '2 hours' WHERE token_hash = ${sha256(token)}`;
+  const idle = await app.request("/v1/session", { headers: { cookie: cookie! } });
+  assert.equal(idle.status, 401);
 
   await closeDb();
 });

@@ -141,7 +141,8 @@ test("OIDC login creates a session and mints an OIDC-bound authority token", { s
 
   const code = randomBytes(12).toString("hex");
   const sub = `oidc-${Date.now()}`;
-  codes.set(code, { nonce, email: "alice@example.com", sub });
+  const email = `alice-${Date.now()}@example.com`;
+  codes.set(code, { nonce, email, sub });
 
   const callback = await app.request(
     `${redirectUri}?code=${encodeURIComponent(code)}&state=${encodeURIComponent(state)}`,
@@ -158,10 +159,16 @@ test("OIDC login creates a session and mints an OIDC-bound authority token", { s
   const session = await app.request("/v1/session", { headers: auth });
   assert.equal(session.status, 200);
   const sessionBody = (await session.json()) as {
-    user: { id: string; email: string; oidc_subject: string | null };
+    user: {
+      id: string;
+      email: string;
+      oidc_issuer: string | null;
+      oidc_subject: string | null;
+    };
     org: { id: string };
   };
-  assert.equal(sessionBody.user.email, "alice@example.com");
+  assert.equal(sessionBody.user.email, email);
+  assert.equal(sessionBody.user.oidc_issuer, issuer);
   assert.equal(sessionBody.user.oidc_subject, sub);
 
   const environmentResponse = await app.request("/v1/environments", {
@@ -196,5 +203,56 @@ test("OIDC login creates a session and mints an OIDC-bound authority token", { s
   assert.equal(claims.tenant, environment.broker_tenant);
 
   await db()`DELETE FROM orgs WHERE id = ${sessionBody.org.id}`;
+  await closeDb();
+});
+
+test("OIDC rejects a tampered state cookie", { skip: !canRun, timeout: 30_000 }, async () => {
+  const { app } = await import("../src/index.js");
+  const login = await app.request("/auth/login", { redirect: "manual" });
+  assert.equal(login.status, 302);
+  const cookie = login.headers.get("set-cookie")?.split(";")[0];
+  assert.ok(cookie);
+  const tampered = `${cookie.slice(0, -1)}${cookie.endsWith("A") ? "B" : "A"}`;
+  const state = new URL(login.headers.get("location")!).searchParams.get("state");
+  assert.ok(state);
+  const callback = await app.request(
+    `${redirectUri}?code=irrelevant&state=${encodeURIComponent(state)}`,
+    { redirect: "manual", headers: { cookie: tampered } },
+  );
+  assert.equal(callback.status, 400);
+});
+
+test("OIDC does not auto-link an existing email to a different identity", { skip: !canRun, timeout: 30_000 }, async () => {
+  const { migrate, closeDb, db } = await import("../src/db.js");
+  await migrate();
+  const { app } = await import("../src/index.js");
+  const authModule = await import("../src/auth.js");
+
+  const email = `collision-${Date.now()}@example.com`;
+  const existing = await authModule.findOrCreateUser({
+    email,
+    name: "Existing",
+    issuer: "https://other-idp.example.com",
+    subject: "other-subject",
+  });
+
+  const login = await app.request("/auth/login", { redirect: "manual" });
+  assert.equal(login.status, 302);
+  const location = new URL(login.headers.get("location")!);
+  const state = location.searchParams.get("state");
+  const nonce = location.searchParams.get("nonce");
+  assert.ok(state && nonce);
+  const cookie = login.headers.get("set-cookie")?.split(";")[0];
+  assert.ok(cookie);
+
+  const code = randomBytes(12).toString("hex");
+  codes.set(code, { nonce, email, sub: `collision-${Date.now()}` });
+  const callback = await app.request(
+    `${redirectUri}?code=${encodeURIComponent(code)}&state=${encodeURIComponent(state)}`,
+    { redirect: "manual", headers: { cookie } },
+  );
+  assert.equal(callback.status, 409);
+
+  await db()`DELETE FROM users WHERE id = ${existing.id}`;
   await closeDb();
 });

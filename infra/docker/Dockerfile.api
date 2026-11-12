@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 # Tessera control-plane API image.
 
-FROM node:22-alpine AS base
+FROM node:22-alpine@sha256:1314fb30ec37592d5845e5a160d522c0e680972aa534549940b8d73bde88481a AS base
 RUN corepack enable
 WORKDIR /app
 
@@ -9,7 +9,7 @@ FROM base AS deps
 COPY pnpm-workspace.yaml package.json pnpm-lock.yaml ./
 COPY apps/api/package.json apps/api/
 COPY packages ./packages
-RUN pnpm install --filter @tessera/api... --frozen-lockfile=false
+RUN pnpm install --filter @tessera/api... --frozen-lockfile=true
 
 FROM deps AS build
 COPY tsconfig.base.json ./
@@ -24,5 +24,7 @@ COPY --from=build /app/apps/api/dist ./apps/api/dist
 COPY --from=build /app/apps/api/migrations ./apps/api/migrations
 COPY --from=build /app/apps/api/package.json ./apps/api/
 WORKDIR /app/apps/api
+RUN mkdir -p /data/evidence && chown -R node:node /app /data/evidence
+USER node
 EXPOSE 8788
 CMD ["node", "dist/index.js"]

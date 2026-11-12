@@ -529,7 +529,10 @@ async fn egress_allowlist_blocks_unapproved_provider_hosts() {
 
     // The same call succeeds when the host is allowlisted.
     let host = base.trim_start_matches("http://").to_string();
-    let allowed = service_with_egress(base, tessera_broker::netguard::EgressGuard::new(vec![host]));
+    let allowed = service_with_egress(
+        base,
+        tessera_broker::netguard::EgressGuard::new_with_private(vec![host], true),
+    );
     let (grant_id, args_hash) = authorize_grant(&allowed, json!({ "amount": 1 })).await;
     assert!(allowed
         .proxy(

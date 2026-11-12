@@ -23,6 +23,7 @@ import { persistAction, persistOutcome } from "./actions.js";
 import { buildAnalytics } from "./analytics.js";
 import { buildNotifications } from "./notifications.js";
 import { searchResources } from "./search.js";
+import { rateLimit } from "./rate-limit.js";
 import { parseDateParam } from "./time.js";
 import {
   type AppEnv,
@@ -30,8 +31,11 @@ import {
   findMembership,
   requireRole,
   requireSession,
+  sessionCookieName,
 } from "./auth.js";
 import * as broker from "./broker.js";
+import { clientIp } from "./client-ip.js";
+import { trustedWriteOrigin } from "./csrf.js";
 import {
   encryptSecret,
   keyPrefix,
@@ -64,11 +68,30 @@ import { getBillingState, getStripe, priceForPlan, setStripeCustomer } from "./b
 
 export const routes = new Hono<AppEnv>();
 
-routes.use("*", async (c, next) => {
-  const requestId = c.req.header("x-request-id") || uuid();
-  c.header("x-request-id", requestId);
-  await next();
+const writeRateLimit = rateLimit({
+  name: "write",
+  limit: env.RATE_LIMIT_WRITE_PER_MINUTE,
+  key: (c) => {
+    const session = getCookie(c, sessionCookieName());
+    if (session) return `session:${sha256(session)}`;
+    const apiKey = c.req.header("x-api-key") || c.req.header("authorization");
+    if (apiKey) return `agent:${sha256(apiKey)}`;
+    return `ip:${clientIp(c)}`;
+  },
 });
+
+const publicRateLimit = rateLimit({
+  name: "public",
+  limit: env.RATE_LIMIT_PUBLIC_PER_MINUTE,
+  key: (c) => `public:${clientIp(c)}`,
+});
+
+routes.use("/v1/*", async (c, next) => {
+  if (c.req.method === "GET" || c.req.method === "HEAD") return next();
+  return writeRateLimit(c, next);
+});
+
+routes.use("/v1/public/*", publicRateLimit);
 
 function fail(c: any, status: number, code: string, message: string) {
   return c.json({ error: { code, message } }, status);
@@ -240,7 +263,9 @@ routes.get("/v1/public/evidence/:token/report", async (c) => {
 routes.use("/v1/*", async (c, next) => {
   if (c.req.method !== "GET" && c.req.method !== "HEAD") {
     const origin = c.req.header("origin");
-    if (origin && origin !== new URL(env.PUBLIC_BASE_URL).origin) {
+    const trusted = trustedWriteOrigin(origin);
+    const hasSessionCookie = Boolean(getCookie(c, sessionCookieName()));
+    if ((origin && !trusted) || (hasSessionCookie && !trusted)) {
       return fail(c, 403, "forbidden", "Cross-origin write rejected");
     }
   }

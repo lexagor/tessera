@@ -4,6 +4,7 @@ export interface User {
   id: string;
   email: string;
   name: string | null;
+  oidc_issuer: string | null;
   oidc_subject: string | null;
 }
 

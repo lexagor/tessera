@@ -33,6 +33,7 @@ is not included.
 | Actions SHA pinning | Implemented | All workflow `uses:` refs pinned to commit SHAs |
 | `cargo-deny` | Implemented and run | `deny.toml`, `security.yml` cargo-deny job, all checks pass |
 | Dependency review | Implemented | `dependency-review-action` runs on pull requests |
+| Image publishing | CI verified | GHCR images for API, broker, portal, verifier, and site; anonymous manifests return 200 |
 | Image scanning | CI verified | Buildx + Trivy job passed for API and broker images |
 | npm provenance / PyPI attestations | Implemented | Release workflow uses `--provenance` and trusted publishing with PEP 740 attestations; registry-side setup still required |
 | Live OIDC/KMS/pen test | Not started | External dependency |
@@ -50,7 +51,7 @@ is not included.
 - Multi-replica: two brokers handled 20 concurrent authorizes with a verified 20-entry chain and elected one scheduler leader; two APIs shared the Redis auth limit and delivered one webhook exactly once.
 - Helm chart rendered successfully with `helm template` (3 manifests, no Ingress).
 - CI Security workflow built and Trivy-scanned API and broker images successfully.
-- CI, Security, and SBOM are green on `1b126af3`.
+- CI, Security, Images, and SBOM are green on `431b4199`.
 - Caddy production config validates.
 - Production compose config validates with a complete secret set.
 - `pnpm install --frozen-lockfile` passes.

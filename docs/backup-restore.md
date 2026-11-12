@@ -32,8 +32,9 @@ archive without its evidence volume is incomplete.
 
 ## Offsite copy
 
-Copy the backup directory to an encrypted, access-controlled bucket or backup host. For
-example, with an operator-installed `rclone`:
+Set `BACKUP_OFFSITE_DIR` to a mounted remote/backup target to have the script copy the dump,
+evidence archive, and SHA-256 manifest there. For example, with an operator-installed
+`rclone`:
 
 ```bash
 rclone copy /var/backups/tessera remote:tessera-backups/$(date -u +%Y/%m/%d) --immutable

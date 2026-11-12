@@ -15,7 +15,9 @@ use tessera_broker::chain_pg::PostgresChainStore;
 use tessera_broker::issuers::mock::MockIssuer;
 use tessera_broker::issuers::stripe::{GrantStore, PostgresGrantStore, StoredGrant};
 use tessera_broker::issuers::{IssuerRegistry, ProxySpec};
-use tessera_broker::policy::{demo_policy, Constraint, InMemoryPolicyStore, Policy, PolicyStore};
+use tessera_broker::policy::{
+    demo_policy, Constraint, InMemoryPolicyStore, Policy, PolicyMode, PolicyStore,
+};
 use tessera_broker::policy_pg::PostgresPolicyStore;
 use tessera_broker::receipt::ReceiptSigner;
 use tessera_broker::revocation::RevocationStore;
@@ -211,6 +213,7 @@ async fn postgres_policy_crud() {
         name: "Refunds".into(),
         grants: vec![],
         fail_open: false,
+        mode: PolicyMode::Enforce,
         limits: Default::default(),
     };
     store.upsert("acme", policy.clone()).await.unwrap();

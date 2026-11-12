@@ -1,4 +1,10 @@
-import { useState, type ButtonHTMLAttributes, type CSSProperties, type ReactNode } from "react";
+import {
+  useEffect,
+  useState,
+  type ButtonHTMLAttributes,
+  type CSSProperties,
+  type ReactNode,
+} from "react";
 
 export function Button({
   variant = "default",
@@ -113,9 +119,23 @@ export function Modal({
   children: ReactNode;
   onClose: () => void;
 }) {
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [onClose]);
+
   return (
     <div className="tf-modal-backdrop" onClick={onClose}>
-      <div className="tf-modal" onClick={(event) => event.stopPropagation()}>
+      <div
+        className="tf-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-label={title}
+        onClick={(event) => event.stopPropagation()}
+      >
         <h2>{title}</h2>
         {children}
       </div>

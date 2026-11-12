@@ -118,6 +118,13 @@ const broker = createServer(async (req: IncomingMessage, res: ServerResponse) =>
     res.end(Buffer.from("fixture archive"));
     return;
   }
+  if (url.pathname === "/v1/integrity") {
+    return json(res, 200, {
+      chains: { agents: 1, receipts: 2, verified: true, unanchoredAgents: 1, drift: [] },
+      anchors: { count: 0, latest: null, pending: 0 },
+      keyEvents: { count: 1, verified: true, signaturesValid: true, chainValid: true },
+    });
+  }
   return json(res, 404, { error: `mock broker has no ${req.method} ${url.pathname}` });
 });
 
@@ -278,6 +285,56 @@ test("control plane routes: auth, actions, evidence, billing, webhooks", { skip:
   assert.equal(credential.proof.type, "Ed25519Signature2020");
   assert.ok(credential.proof.proofValue.startsWith("u"));
 
+  const review = await app.request(`/v1/actions/${authorization.actionId}/review`, {
+    method: "POST",
+    headers: { ...auth, "content-type": "application/json" },
+    body: JSON.stringify({ reason: "Refund exceeds the desk limit" }),
+  });
+  assert.equal(review.status, 201);
+  const reviewBody = (await review.json()) as { id: string; status: string };
+  assert.equal(reviewBody.status, "pending");
+  assert.equal(
+    (await app.request(`/v1/actions/${authorization.actionId}/review`, {
+      method: "POST",
+      headers: { ...auth, "content-type": "application/json" },
+      body: "{}",
+    })).status,
+    409,
+  );
+  const pendingReviews = await app.request("/v1/reviews?status=pending", { headers: auth });
+  assert.equal(pendingReviews.status, 200);
+  const pendingBody = (await pendingReviews.json()) as { items: Array<{ id: string; action_id: string }> };
+  assert.ok(pendingBody.items.some((item) => item.id === reviewBody.id && item.action_id === authorization.actionId));
+  assert.equal((await app.request("/v1/reviews?status=nope", { headers: auth })).status, 400);
+  const decided = await app.request(`/v1/reviews/${reviewBody.id}/decision`, {
+    method: "POST",
+    headers: { ...auth, "content-type": "application/json" },
+    body: JSON.stringify({ decision: "approve", note: "Verified with the customer" }),
+  });
+  assert.equal(decided.status, 200);
+  assert.equal(((await decided.json()) as { status: string }).status, "approved");
+  assert.equal(
+    (await app.request(`/v1/reviews/${reviewBody.id}/decision`, {
+      method: "POST",
+      headers: { ...auth, "content-type": "application/json" },
+      body: JSON.stringify({ decision: "reject" }),
+    })).status,
+    404,
+  );
+  const approvedReviews = await app.request("/v1/reviews?status=approved", { headers: auth });
+  assert.equal(approvedReviews.status, 200);
+  assert.ok(
+    ((await approvedReviews.json()) as { items: Array<{ id: string }> }).items.some(
+      (item) => item.id === reviewBody.id,
+    ),
+  );
+  const detailWithReview = await app.request(`/v1/actions/${authorization.actionId}`, { headers: auth });
+  assert.equal(detailWithReview.status, 200);
+  assert.equal(
+    ((await detailWithReview.json()) as { review: { status: string } }).review.status,
+    "approved",
+  );
+
   const transitions = await app.request("/v1/transitions", { headers: auth });
   assert.equal(transitions.status, 200);
   assert.equal((await transitions.json()).items.length, 1);
@@ -303,16 +360,65 @@ test("control plane routes: auth, actions, evidence, billing, webhooks", { skip:
   assert.equal((await app.request("/v1/policies/test-policy", { method: "DELETE", headers: auth })).status, 200);
   assert.equal((await app.request("/v1/policies/propose", { headers: auth })).status, 200);
 
+  assert.equal((await app.request("/v1/evidence/readiness", { headers: auth })).status, 200);
+  assert.equal(
+    (await app.request("/v1/evidence-packs", {
+      method: "POST",
+      headers: { ...auth, "content-type": "application/json" },
+      body: JSON.stringify({ since: "2026-12-01", until: "2026-01-01" }),
+    })).status,
+    400,
+  );
   const pack = await app.request("/v1/evidence-packs", {
     method: "POST",
     headers: { ...auth, "content-type": "application/json" },
-    body: "{}",
+    body: JSON.stringify({
+      frameworks: ["soc2", "dora"],
+      since: "2026-01-01",
+      until: "2026-12-31",
+      recipients: ["reviewer@example.com"],
+    }),
   });
   assert.equal(pack.status, 201);
-  const packBody = (await pack.json()) as { id: string };
+  const packBody = (await pack.json()) as {
+    id: string;
+    summary: {
+      version: number;
+      frameworks: unknown[];
+      records: unknown[];
+      recipients: string[];
+    };
+  };
+  assert.equal(packBody.summary.version, 1);
+  assert.equal(packBody.summary.frameworks.length, 2);
+  assert.ok(packBody.summary.records.length >= 1);
+  assert.deepEqual(packBody.summary.recipients, ["reviewer@example.com"]);
   assert.equal((await app.request("/v1/evidence-packs", { headers: auth })).status, 200);
+  const packDetail = await app.request(`/v1/evidence-packs/${packBody.id}`, { headers: auth });
+  assert.equal(packDetail.status, 200);
+  assert.equal(((await packDetail.json()) as { summary: { version: number } }).summary.version, 1);
   const download = await app.request(`/v1/evidence-packs/${packBody.id}/download`, { headers: auth });
   assert.equal(download.status, 200);
+  const report = await app.request(`/v1/evidence-packs/${packBody.id}/report`, { headers: auth });
+  assert.equal(report.status, 200);
+  assert.match(report.headers.get("content-type") ?? "", /text\/html/);
+  assert.match(await report.text(), /Evidence pack/);
+  const share = await app.request(`/v1/evidence-packs/${packBody.id}/share`, {
+    method: "POST",
+    headers: { ...auth, "content-type": "application/json" },
+    body: JSON.stringify({ expiresInDays: 7 }),
+  });
+  assert.equal(share.status, 200);
+  const shareUrl = ((await share.json()) as { url: string }).url;
+  const shareToken = shareUrl.split("/").pop()!;
+  assert.equal((await app.request(`/v1/public/evidence/${shareToken}`)).status, 200);
+  assert.equal((await app.request(`/v1/public/evidence/${shareToken}/download`)).status, 200);
+  assert.equal((await app.request(`/v1/public/evidence/${shareToken}/report`)).status, 200);
+  assert.equal(
+    (await app.request(`/v1/evidence-packs/${packBody.id}/share`, { method: "DELETE", headers: auth })).status,
+    200,
+  );
+  assert.equal((await app.request(`/v1/public/evidence/${shareToken}`)).status, 404);
 
   const billing = await app.request("/v1/billing", { headers: auth });
   assert.equal(billing.status, 200);

@@ -228,6 +228,12 @@ export function keyEvents(
   return request(`/v1/key-events?limit=${limit}`, {}, environment);
 }
 
+export function integrity(
+  environment: EnvironmentWithKey,
+): Promise<Record<string, unknown>> {
+  return request("/v1/integrity", {}, environment);
+}
+
 export function chain(
   environment: EnvironmentWithKey,
   agentId: string,

@@ -5,6 +5,9 @@ import { BrowserRouter } from "react-router-dom";
 
 import "@tessera/ui/styles.css";
 import { App } from "./App";
+import { initDesign } from "./design";
+
+initDesign();
 
 const queryClient = new QueryClient({
   defaultOptions: {

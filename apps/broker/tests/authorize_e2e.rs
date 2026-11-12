@@ -28,7 +28,9 @@ use tessera_broker::authorize::{
 use tessera_broker::chain::MemoryChainStore;
 use tessera_broker::issuers::mock::MockIssuer;
 use tessera_broker::issuers::IssuerRegistry;
-use tessera_broker::policy::{Constraint, InMemoryPolicyStore, Policy, PolicyStore, ResourceGrant};
+use tessera_broker::policy::{
+    Constraint, InMemoryPolicyStore, Policy, PolicyMode, PolicyStore, ResourceGrant,
+};
 use tessera_broker::receipt::ReceiptSigner;
 
 const TEST_KEY: &str = "0x59c6995e998f97a5a0044966f0945389dc9e86dae88c7a8412f4603b6b78690d";
@@ -74,6 +76,7 @@ async fn service_opts(
                     condition: None,
                 }],
                 fail_open: false,
+                mode: PolicyMode::Enforce,
                 limits: Default::default(),
             },
         )
@@ -1566,6 +1569,7 @@ fn policy_with_limits(limits: tessera_broker::policy::PolicyLimits) -> Policy {
             condition: None,
         }],
         fail_open: false,
+        mode: PolicyMode::Enforce,
         limits,
     }
 }
@@ -4494,6 +4498,7 @@ async fn record_and_proxy_replay_with_an_idempotency_key() {
                 condition: None,
             }],
             fail_open: false,
+            mode: PolicyMode::Enforce,
             limits: Default::default(),
         }),
     });

@@ -50,6 +50,18 @@ npm install @tessera-verify/langchain
 - `@tessera-verify/sdk-ts` — agent SDK
 - `@tessera-verify/langchain` — LangChain tool wrapper
 
+## Performance
+
+Measured on an Apple M5 development machine with a mock issuer (not a production benchmark):
+
+- policy evaluation + CEL: **4.47 µs**;
+- EIP-712 receipt signing: **32.87 µs**;
+- HTTP authorize p50/p95/p99: **4.05 / 6.04 / 14.83 ms** (in-memory) and **7.36 / 21.26 /
+  30.82 ms** (Postgres);
+- offline v2 verification: **~0.96 ms**, 2,243-byte receipt.
+
+See [`BENCHMARKS.md`](BENCHMARKS.md) for hardware, commands, and caveats.
+
 ## Why
 
 - Agents are moving from read-only to **write + spend** authority.
@@ -145,6 +157,7 @@ docs/              Architecture, threat model, receipt spec, controls, RFCs
 
 ## Documentation
 
+- [`BENCHMARKS.md`](BENCHMARKS.md) — reproducible broker, HTTP, and verifier benchmarks
 - [`docs/proof-of-action.md`](docs/proof-of-action.md) — positioning, ICP, pricing, objections
 - [`docs/receipt-spec.md`](docs/receipt-spec.md) — receipt schema and chain
 - [`docs/architecture.md`](docs/architecture.md) — system design

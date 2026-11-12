@@ -35,7 +35,7 @@ data, and no production secrets are used during testing.
 (`ReceiptAnchor.sol`, 93 LoC) for cross-checking the on-chain Merkle convention.
 
 **Explicitly out of scope (or optional add-ons, §13):**
-- TypeScript SDK and dashboard (`packages/*`, `apps/dashboard`) — thin HTTP clients.
+- TypeScript SDK and portal (`packages/*`, `apps/portal`) — thin HTTP clients.
 - Deployment infrastructure (Docker/Helm) — operational, not code.
 - Provider SDK internals (AWS STS, Stripe, GitHub) — trusted but reviewed at the boundary.
 

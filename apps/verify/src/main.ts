@@ -7,6 +7,8 @@ import {
 } from "@tessera-verify/verify";
 import type { AnyReceipt } from "@tessera-verify/receipt-schema";
 
+import { buildTrustView, extractRecords, tamperPayload } from "./view-model.js";
+
 const $ = <T extends HTMLElement>(id: string): T => {
   const element = document.getElementById(id);
   if (!element) throw new Error(`missing #${id}`);
@@ -24,6 +26,32 @@ const linkPanel = $<HTMLElement>("link-panel");
 const linkTitle = $<HTMLElement>("link-title");
 const linkSummary = $<HTMLElement>("link-summary");
 const linkFacts = $<HTMLElement>("link-facts");
+const trustPanel = $<HTMLElement>("trust-panel");
+const trustSummary = $<HTMLElement>("trust-summary");
+const trustFlow = $<HTMLElement>("trust-flow");
+const tamperButton = $<HTMLButtonElement>("tamper");
+const restoreButton = $<HTMLButtonElement>("restore");
+const tamperNote = $<HTMLElement>("tamper-note");
+
+let originalInput: string | null = null;
+let tampered = false;
+
+function escapeHtml(value: unknown): string {
+  return String(value ?? "").replace(/[&<>"']/g, (character) => {
+    switch (character) {
+      case "&":
+        return "&amp;";
+      case "<":
+        return "&lt;";
+      case ">":
+        return "&gt;";
+      case '"':
+        return "&quot;";
+      default:
+        return "&#39;";
+    }
+  });
+}
 
 function domain(): VerifyDomain {
   const chainId = Number($<HTMLInputElement>("chain-id").value.trim());
@@ -40,7 +68,56 @@ function expectedSigner(): string | undefined {
   return value.length > 0 ? value : undefined;
 }
 
-function render(label: string, output: { valid: boolean; errors: string[] }) {
+function resetTamper(): void {
+  originalInput = null;
+  tampered = false;
+  tamperButton.hidden = false;
+  restoreButton.hidden = true;
+  tamperNote.hidden = true;
+}
+
+function renderTrust(
+  records: { authorization?: Record<string, any>; outcome?: Record<string, any> | null; chainLength?: number },
+  output: { valid: boolean; recovered?: string },
+): void {
+  if (!records.authorization) {
+    trustPanel.hidden = true;
+    return;
+  }
+  const view = buildTrustView({
+    authorization: records.authorization,
+    outcome: records.outcome,
+    chainLength: records.chainLength,
+    verification: output,
+    signer: expectedSigner(),
+  });
+  trustPanel.hidden = false;
+  trustSummary.textContent = view.summary;
+  trustFlow.innerHTML = view.entities
+    .map(
+      (entity, index) => `<div class="trust-step ${entity.state}">
+        <span class="trust-index">${String(index + 1).padStart(2, "0")}</span>
+        <span class="trust-marker"></span>
+        <div class="trust-copy">
+          <span class="trust-label">${escapeHtml(entity.label)}</span>
+          <strong>${escapeHtml(entity.title)}</strong>
+          <span>${escapeHtml(entity.detail)}</span>
+          ${entity.hash ? `<code>${escapeHtml(entity.hash)}</code>` : ""}
+        </div>
+      </div>`,
+    )
+    .join("");
+  tamperNote.hidden = !tampered;
+  tamperNote.textContent = tampered
+    ? "Simulated tampering: one signed field changed. The payload hash and signature no longer match. Restore the original to verify again."
+    : "";
+}
+
+function render(
+  label: string,
+  output: { valid: boolean; errors: string[]; recovered?: string },
+  records: { authorization?: Record<string, any>; outcome?: Record<string, any> | null; chainLength?: number },
+): void {
   const matches =
     "matchesExpected" in output
       ? (output as { matchesExpected?: boolean }).matchesExpected !== false
@@ -49,7 +126,15 @@ function render(label: string, output: { valid: boolean; errors: string[] }) {
   result.hidden = false;
   verdict.textContent = ok ? `Valid — ${label}` : `Invalid — ${label}`;
   verdict.className = `verdict ${ok ? "valid" : "invalid"}`;
-  details.textContent = JSON.stringify(output, null, 2);
+  const displayOutput = {
+    ...output,
+    valid: ok,
+    errors: matches
+      ? output.errors
+      : [...output.errors, "signature does not recover to the expected signer"],
+  };
+  details.textContent = JSON.stringify(displayOutput, null, 2);
+  renderTrust(records, { ...output, valid: ok });
 }
 
 function verify(): void {
@@ -62,15 +147,22 @@ function verify(): void {
       v?: number;
     };
     const d = domain();
+    const records = extractRecords(body);
+    if (!expectedSigner()) {
+      const attestationSigner = (records.authorization?.attestation as Record<string, any> | undefined)?.signerKeyId;
+      if (typeof attestationSigner === "string" && /^0x[0-9a-fA-F]{40}$/.test(attestationSigner)) {
+        $<HTMLInputElement>("expected-signer").value = attestationSigner;
+      }
+    }
     const signer = expectedSigner();
     if (body.entries) {
-      render("chain", verifyChain(body.entries, d, signer));
+      render("chain", verifyChain(body.entries, d, signer), records);
     } else if (body.authorization && body.outcome) {
-      render("action pair", verifyAction(body.authorization, body.outcome, d, signer));
+      render("action pair", verifyAction(body.authorization, body.outcome, d, signer), records);
     } else if (body.receipt) {
-      render("receipt", verifyReceipt(body.receipt, d, signer));
+      render("receipt", verifyReceipt(body.receipt, d, signer), records);
     } else if (typeof body.v === "number") {
-      render("receipt", verifyReceipt(body as unknown as AnyReceipt, d, signer));
+      render("receipt", verifyReceipt(body as unknown as AnyReceipt, d, signer), records);
     } else {
       throw new Error("expected a receipt, an {authorization,outcome} pair, or a chain");
     }
@@ -79,13 +171,25 @@ function verify(): void {
     verdict.textContent = "Could not verify";
     verdict.className = "verdict invalid";
     details.textContent = error instanceof Error ? error.message : String(error);
+    trustPanel.hidden = true;
   }
 }
 
 async function loadSample(): Promise<void> {
   const response = await fetch("./sample.json");
   if (!response.ok) throw new Error(`sample unavailable: ${response.status}`);
-  input.value = JSON.stringify(await response.json(), null, 2);
+  const sample = (await response.json()) as {
+    domain?: { chainId: number; verifyingContract: string };
+    expectedSigner?: string;
+    receipt?: unknown;
+  };
+  resetTamper();
+  if (sample.domain) {
+    $<HTMLInputElement>("chain-id").value = String(sample.domain.chainId);
+    $<HTMLInputElement>("contract").value = sample.domain.verifyingContract;
+  }
+  if (sample.expectedSigner) $<HTMLInputElement>("expected-signer").value = sample.expectedSigner;
+  input.value = JSON.stringify(sample, null, 2);
   verify();
 }
 
@@ -96,13 +200,39 @@ $<HTMLButtonElement>("sample").addEventListener("click", () => {
 $<HTMLButtonElement>("clear").addEventListener("click", () => {
   input.value = "";
   result.hidden = true;
+  trustPanel.hidden = true;
+  resetTamper();
 });
 $<HTMLInputElement>("file").addEventListener("change", async (event) => {
   const file = (event.target as HTMLInputElement).files?.[0];
   if (!file) return;
+  resetTamper();
   input.value = await file.text();
+  verify();
 });
-
+tamperButton.addEventListener("click", () => {
+  try {
+    if (!originalInput) originalInput = input.value;
+    const body = JSON.parse(input.value) as Record<string, any>;
+    input.value = JSON.stringify(tamperPayload(body), null, 2);
+    tampered = true;
+    tamperButton.hidden = true;
+    restoreButton.hidden = false;
+    verify();
+  } catch (error) {
+    tamperNote.hidden = false;
+    tamperNote.textContent = error instanceof Error ? error.message : String(error);
+  }
+});
+restoreButton.addEventListener("click", () => {
+  if (originalInput) input.value = originalInput;
+  originalInput = null;
+  tampered = false;
+  tamperButton.hidden = false;
+  restoreButton.hidden = true;
+  tamperNote.hidden = true;
+  verify();
+});
 
 interface PublicVerification {
   expiresAt: string;
@@ -127,6 +257,7 @@ async function loadVerificationLink(token: string): Promise<void> {
   linkTitle.textContent = "Verification link";
   linkSummary.textContent = "Loading the signed record…";
   linkFacts.replaceChildren();
+  resetTamper();
   try {
     const response = await fetch(`${API_BASE.replace(/\/$/, "")}/v1/public/verify/${encodeURIComponent(token)}`);
     const body = (await response.json()) as PublicVerification & { error?: { message?: string } };

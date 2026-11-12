@@ -68,7 +68,7 @@ agent code
 |---|---|---|
 | `apps/broker` | Rust (axum) | authorize + issue; hot path; holds only TTL-scoped material |
 | `apps/api` | TS (Hono) + Prisma | control plane: CRUD, tenancy, policy versions, dashboards API |
-| `apps/dashboard` | Vite + React | console: agents, policies, calls, anomalies, receipts |
+| `apps/portal` | Vite + React | product console: actions, agents, policies, evidence, reviews |
 | `packages/core-policy` | TS + CEL | shared policy model & evaluation helpers |
 | `packages/issuers` | TS adapters | AWS STS, GCP STS, GitHub App, Stripe restricted keys, OAuth2 token exchange |
 | `packages/receipt-schema` | TS + JSON Schema | receipt schema, EIP-712 types, hashing |
@@ -323,7 +323,7 @@ Signature: EIP-712 over the canonical JSON, keyed by tenant signing key; optiona
   via the raw endpoint. Skipped if the binary is not built.
 - **Reference agent:** `examples/governed-agent` runs the full loop and branches on
   credential material (bearer/AWS direct, grant via the proxy).
-- **Console:** `apps/dashboard` is a minimal React console (chain explorer + verify + anchor,
+- **Console:** `apps/portal` is the product console (chain explorer + verify + anchor,
   policy editor, key management) backed by the Vite dev proxy to `localhost:8787`.
 
 ## Implementation notes (v0.4 additions)

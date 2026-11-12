@@ -14,7 +14,7 @@ tool calls, brokers ephemeral credentials, signs receipts, chains them per agent
 Merkle roots on-chain, and provides revocation + independent verification.
 
 **Out of scope (separate review):**
-- TypeScript SDK / dashboard (`packages/*`, `apps/dashboard`) — thin clients.
+- TypeScript SDK / portal (`packages/*`, `apps/portal`) — thin clients.
 - Solidity `ReceiptAnchor.sol` — recommend a dedicated contract audit.
 - Deployment infra (Docker/Helm) — operational review, not code.
 

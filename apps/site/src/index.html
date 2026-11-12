@@ -6,114 +6,398 @@
     <title>Tessera — Proof of action for AI agents</title>
     <meta
       name="description"
-      content="Tessera enforces what an AI agent may do and produces a signed, independently verifiable record of every action — binding the agent, the delegating human, the policy, the credential, and the outcome."
+      content="Tessera enforces what an AI agent may do and produces a signed, independently verifiable record of every action. Built for enterprise security reviews."
     />
-    <link rel="stylesheet" href="styles.css" />
+    <link rel="canonical" href="%%SITE_URL%%/" />
+    <meta name="theme-color" content="#fafafa" />
+    <meta name="robots" content="index,follow" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/site.webmanifest" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Tessera" />
+    <meta property="og:url" content="%%SITE_URL%%/" />
+    <meta property="og:title" content="Tessera — Proof of action for AI agents" />
+    <meta
+      property="og:description"
+      content="Enforce what an AI agent may do. Sign the exact tool call, human authority, policy, credential, and outcome into a record anyone can verify offline."
+    />
+    <meta property="og:image" content="%%SITE_URL%%/og.png" />
+    <meta property="og:image:type" content="image/png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="Tessera — proof of action for AI agents" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Tessera — Proof of action for AI agents" />
+    <meta
+      name="twitter:description"
+      content="Signed, independently verifiable action records for AI agents. Built for the security review, not just the demo."
+    />
+    <meta name="twitter:image" content="%%SITE_URL%%/og.png" />
+    <meta name="twitter:image:alt" content="Tessera — proof of action for AI agents" />
+    <link rel="stylesheet" href="landing.css" />
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "Organization",
+        "name": "Tessera",
+        "url": "%%SITE_URL%%/",
+        "logo": "%%SITE_URL%%/favicon.svg",
+        "sameAs": ["%%GITHUB_URL%%"],
+        "description": "Enforcement and evidence layer for AI agent actions."
+      }
+    </script>
   </head>
-  <body class="landing">
-    <header class="hero">
-      <div class="wrap">
-        <p class="eyebrow">Proof of action for AI agents</p>
-        <h1>Your enterprise buyer asked for proof.<br />Here it is.</h1>
-        <p class="lede">
-          Tessera enforces what your agent may do — then produces a signed record that binds
-          the agent, the delegating human, the policy, the credential, and the outcome. A third
-          party can verify it offline, without trusting you or us.
-        </p>
-        <div class="cta">
-          <a class="btn primary" href="docs/design-partner-program.html">Book a security review audit</a>
-          <a class="btn" href="docs/index.html">Read the docs</a>
-          <a class="btn" href="https://verify.thetessera.xyz/verify/">Verify a receipt</a>
-          <a class="btn ghost" href="docs/receipt-spec.html">Read the verifier spec</a>
-          <a class="btn ghost" href="docs/pricing.html">Pricing</a>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+
+    <header class="nav-shell">
+      <div class="wrap nav">
+        <a class="brand" href="/" aria-label="Tessera home">
+          <svg class="brand-mark" viewBox="0 0 32 32" aria-hidden="true">
+            <rect x="2" y="2" width="12" height="12" rx="2" fill="currentColor" />
+            <rect x="18" y="2" width="12" height="12" rx="2" fill="currentColor" />
+            <rect x="2" y="18" width="12" height="12" rx="2" fill="currentColor" />
+            <rect x="18" y="18" width="12" height="12" rx="2" fill="var(--accent)" />
+          </svg>
+          <span>Tessera</span>
+        </a>
+
+        <nav class="nav-links" aria-label="Main navigation">
+          <a href="#product">Product</a>
+          <a href="#how-it-works">How it works</a>
+          <a href="#security">Security</a>
+          <a href="/docs/pricing.html">Pricing</a>
+          <a href="/docs/index.html">Docs</a>
+        </nav>
+
+        <div class="nav-actions">
+          <a class="nav-quiet" href="%%VERIFY_URL%%">Verify a receipt</a>
+          <a class="nav-quiet" href="%%APP_URL%%">Sign in</a>
+          <a class="button primary small" href="mailto:%%PARTNER_EMAIL%%?subject=Agent%20security%20review%20audit&amp;body=Company%3A%0AAgent%20action%20stuck%20in%20review%3A%0AEnterprise%20customer%20question%3A">Request audit</a>
         </div>
-        <pre class="hero-code"><code>const call = await tessera.authorize({
-  tool: "stripe.refunds.create",
-  intent: "refund a duplicate charge",
-  args: { charge: "ch_123", amount: 4200 },
-  principal: { id: "user_42", authorityRef: "oauth_grant_9f2" },
-});
-if (call.decision === "allow") {
-  await tessera.proxy({ grantId, argsHash: call.credential.argsHash, ... });
-  await tessera.record({ receiptId: call.receiptId, status: "success" });
-}</code></pre>
+
+        <details class="mobile-nav">
+          <summary aria-label="Open menu">Menu</summary>
+          <div class="mobile-panel">
+            <a href="#product">Product</a>
+            <a href="#how-it-works">How it works</a>
+            <a href="#security">Security</a>
+            <a href="/docs/pricing.html">Pricing</a>
+            <a href="/docs/index.html">Docs</a>
+            <a href="%%VERIFY_URL%%">Verify a receipt</a>
+            <a href="%%APP_URL%%">Sign in</a>
+            <a class="button primary" href="mailto:%%PARTNER_EMAIL%%?subject=Agent%20security%20review%20audit">Request audit</a>
+          </div>
+        </details>
       </div>
     </header>
 
-    <main>
-      <section class="wrap">
-        <h2>Why security reviews stall</h2>
-        <div class="cards">
-          <div class="card">
-            <h3>Logs are self-asserted</h3>
-            <p>Anyone can edit a log. An enterprise reviewer cannot tell what the agent actually
-            did, on whose authority, or whether the record changed.</p>
+    <main id="main">
+      <section class="hero">
+        <div class="wrap hero-grid">
+          <div class="hero-copy">
+            <p class="eyebrow">Proof of action for AI agents</p>
+            <h1>Your enterprise buyer asked for proof. Here it is.</h1>
+            <p class="hero-lede">
+              Tessera enforces what an AI agent may do — then signs the exact tool call, human
+              authority, policy, credential, and outcome into a record anyone can verify offline.
+            </p>
+            <div class="cta-row">
+              <a class="button primary" href="mailto:%%PARTNER_EMAIL%%?subject=Agent%20security%20review%20audit&amp;body=Company%3A%0AAgent%20action%20stuck%20in%20review%3A%0AEnterprise%20customer%20question%3A">Request a security review audit</a>
+              <a class="button ghost" href="%%VERIFY_URL%%?sample=1">See a verified action</a>
+            </div>
+            <p class="hero-note">6-week design partner pilot · sandbox credentials · one action to start</p>
           </div>
-          <div class="card">
-            <h3>Identity is not proof</h3>
-            <p>IAM says which app an agent can reach. It does not bind the exact tool call, the
-            human delegation, the policy version, and the outcome.</p>
-          </div>
-          <div class="card">
-            <h3>Deals get stuck</h3>
-            <p>The buyer's security team asks for an audit trail and attribution. The vendor has
-            dashboards and logs, but nothing a third party can verify.</p>
+
+          <div class="hero-proof" aria-label="Example action record">
+            <div class="proof-card">
+              <div class="proof-top">
+                <div class="proof-dots" aria-hidden="true"><i></i><i></i><i></i></div>
+                <span class="mono muted">ACTION RECORD · V2</span>
+              </div>
+              <div class="proof-title">
+                <code>stripe.refunds.create</code>
+                <span class="pill ok">ALLOW</span>
+              </div>
+              <dl class="proof-rows">
+                <div><dt>Human</dt><dd>user_42 · OIDC</dd></div>
+                <div><dt>Agent</dt><dd>billing-agent · gpt-5</dd></div>
+                <div><dt>Policy</dt><dd>acme-refunds v7</dd></div>
+                <div><dt>Credential</dt><dd>Stripe broker grant · 30s · single use</dd></div>
+                <div><dt>Outcome</dt><dd>broker-observed · success</dd></div>
+                <div><dt>Signature</dt><dd class="mono">0x5ad2…691c · verified</dd></div>
+              </dl>
+              <div class="proof-foot">
+                <span class="pill ok">Level 1 · broker-observed</span>
+                <a href="%%VERIFY_URL%%?sample=1">Verify this record <span aria-hidden="true">→</span></a>
+              </div>
+            </div>
+            <p class="proof-caption">Example action record. Open the verifier to inspect a real signed fixture.</p>
           </div>
         </div>
       </section>
 
-      <section class="wrap">
-        <h2>Enforce, bind, verify, prove</h2>
-        <ol class="steps">
-          <li><strong>Enforce</strong> the declared intent against per-action policy and issue a
-            scoped credential — or a broker-held grant the agent never sees.</li>
-          <li><strong>Bind</strong> the agent, delegating human, intent, policy hash, tool
-            definition, arguments, credential thumbprint, and outcome into one signed record.</li>
-          <li><strong>Verify</strong> offline with the open-source verifier — no trust in the
-            vendor, no call back to our servers.</li>
-          <li><strong>Prove</strong> it with a verification page and an exportable evidence pack
-            mapped to SOC 2, ISO 42001, EU AI Act, FINRA, SEC 17a-4, and DORA.</li>
-        </ol>
-      </section>
-
-      <section class="wrap">
-        <h2>Verification, not another dashboard</h2>
-        <p class="lede">
-          A receipt binds the authorization decision and the outcome into one signature. Anyone
-          can recompute the hash, recover the signer, and check the chain.
-        </p>
-        <pre><code>POST /v1/verify/receipt
-{ "receipt": { /* the signed action record */ } }
-→ { "valid": true, "recovered": "0x7099…", "matchesExpected": true }</code></pre>
-      </section>
-
-      <section class="wrap">
-        <h2>Built like infrastructure</h2>
-        <div class="stats">
-          <div class="stat"><span>308</span><small>Rust tests</small></div>
-          <div class="stat"><span>3</span><small>provider adapters</small></div>
-          <div class="stat"><span>4</span><small>properties in one path</small></div>
-          <div class="stat"><span>offline</span><small>verification</small></div>
+      <section class="compat" aria-label="Supported integrations">
+        <div class="wrap">
+          <p class="compat-label">Works with the systems agents already touch</p>
+          <div class="compat-grid">
+            <span><strong>Stripe</strong><small>broker-held grant</small></span>
+            <span><strong>AWS STS</strong><small>scoped session</small></span>
+            <span><strong>GitHub</strong><small>installation token</small></span>
+            <span><strong>Slack</strong><small>scoped bot token</small></span>
+            <span><strong>OpenAI</strong><small>per-action authorization</small></span>
+            <span><strong>Anthropic</strong><small>per-action authorization</small></span>
+            <span><strong>LangChain</strong><small>SDK wrapper</small></span>
+            <span><strong>MCP</strong><small>adapter</small></span>
+          </div>
+          <p class="compat-note">Compatibility, not endorsement. Production coverage varies by provider; see the integrations guide.</p>
         </div>
-        <p class="lede">
-          Per-call enforcement, scoped credential minting, intent/authority binding, and offline
-          verification — with KMS/HSM signing, tenant isolation, quotas, revocation, and an
-          open verifier.
-        </p>
       </section>
 
-      <section class="wrap ctaband">
-        <h2>Unblock the deal with evidence, not promises.</h2>
-        <div class="cta">
-          <a class="btn primary" href="docs/design-partner-program.html">Design partner program</a>
-          <a class="btn" href="docs/one-pager.html">One-pager</a>
+      <section class="section" id="product">
+        <div class="wrap">
+          <p class="eyebrow">The problem</p>
+          <div class="section-head">
+            <h2>Why agent deals stall in security review.</h2>
+            <p>Logs are self-asserted. IAM says who the agent is, not what it actually did on whose authority.</p>
+          </div>
+          <div class="question-grid">
+            <article class="question-card">
+              <span class="mono muted">01</span>
+              <h3>Which agent acted, and for which human?</h3>
+              <p>Attribution has to survive the handoff from a human session to an autonomous tool call.</p>
+            </article>
+            <article class="question-card">
+              <span class="mono muted">02</span>
+              <h3>What exact call was authorized?</h3>
+              <p>The tool, arguments, intent, and policy version need to be bound together — not reconstructed from logs.</p>
+            </article>
+            <article class="question-card">
+              <span class="mono muted">03</span>
+              <h3>Which credential did it receive?</h3>
+              <p>Short-lived and scoped is not enough if the reviewer cannot see what was issued, for how long, and for what.</p>
+            </article>
+            <article class="question-card">
+              <span class="mono muted">04</span>
+              <h3>What happened, and can it be checked?</h3>
+              <p>An audit trail a third party can verify offline is different from a dashboard only the vendor can inspect.</p>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section class="section section-rule" id="how-it-works">
+        <div class="wrap">
+          <p class="eyebrow">How it works</p>
+          <div class="section-head">
+            <h2>Enforce. Bind. Verify. Prove.</h2>
+            <p>One execution path from policy decision to portable evidence.</p>
+          </div>
+          <div class="how-grid">
+            <ol class="steps">
+              <li>
+                <span class="step-number">01</span>
+                <div><h3>Enforce</h3><p>Evaluate per-action policy and issue a scoped credential — or a broker-held grant the agent never sees.</p></div>
+              </li>
+              <li>
+                <span class="step-number">02</span>
+                <div><h3>Bind</h3><p>Sign the agent, human authority, intent, policy hash, tool definition, argument hash, credential thumbprint, and outcome.</p></div>
+              </li>
+              <li>
+                <span class="step-number">03</span>
+                <div><h3>Verify</h3><p>Check the record offline with the open-source verifier. No call back to Tessera and no trust in the vendor.</p></div>
+              </li>
+              <li>
+                <span class="step-number">04</span>
+                <div><h3>Prove</h3><p>Share a verification page or an exportable evidence pack mapped to the controls a reviewer asks for.</p></div>
+              </li>
+            </ol>
+            <div class="code-panel">
+              <div class="code-head"><span class="mono muted">agent.ts</span><span class="mono ok">policy: allow</span></div>
+              <pre><code>const call = await tessera.authorize({
+  tool: "stripe.refunds.create",
+  intent: "refund a duplicate charge",
+  args: { charge: "ch_123", amount: 4200 },
+  authorityToken,
+});
+
+if (call.decision === "allow") {
+  await tessera.proxy({
+    grantId,
+    argsHash: call.credential.argsHash,
+  });
+}</code></pre>
+              <div class="code-foot mono muted">The receipt is written before the tool runs.</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section section-rule" id="proof">
+        <div class="wrap">
+          <p class="eyebrow">The proof</p>
+          <div class="section-head">
+            <h2>A receipt, not another log line.</h2>
+            <p>A signed record binds the authorization decision and the outcome into one artifact. Change one signed field and verification fails.</p>
+          </div>
+          <div class="trust-chain" aria-label="Receipt trust chain">
+            <span>Human</span><i>→</i><span>Intent</span><i>→</i><span>Policy</span><i>→</i><span>Agent</span><i>→</i><span>Tool</span><i>→</i><span>Credential</span><i>→</i><span>Outcome</span><i>→</i><span>Signature</span>
+          </div>
+          <div class="level-grid">
+            <article class="level-card">
+              <span class="pill ok">Level 1 · broker-observed</span>
+              <h3>Argument-bound execution</h3>
+              <p>The broker holds the provider credential, re-checks the exact argument hash at execution time, forwards one request, and signs the observed response.</p>
+              <span class="mono muted">Example: Stripe broker-held grant</span>
+            </article>
+            <article class="level-card">
+              <span class="pill warn">Level 2 · scoped credential</span>
+              <h3>Provider-scoped access</h3>
+              <p>The broker authorizes a scoped credential and signs the authorization plus the agent-reported outcome. The provider, not Tessera, enforces its scope.</p>
+              <span class="mono muted">Examples: AWS STS, GitHub, OAuth bearer</span>
+            </article>
+            <article class="level-card">
+              <span class="pill muted">Caller-asserted</span>
+              <h3>No authority artifact</h3>
+              <p>The principal is supplied by the caller. The record proves what the broker recorded, not that an IdP authenticated the delegation.</p>
+              <span class="mono muted">Explicitly labelled in the receipt</span>
+            </article>
+          </div>
+          <div class="proof-actions">
+            <a class="button primary" href="%%VERIFY_URL%%?sample=1">Try the tamper demo</a>
+            <a class="button ghost" href="/docs/security-guarantees.html">Read the security guarantees</a>
+            <a class="text-link" href="/docs/receipt-spec.html">Read the receipt spec →</a>
+          </div>
+        </div>
+      </section>
+
+      <section class="section section-rule" id="security">
+        <div class="wrap">
+          <p class="eyebrow">Security posture</p>
+          <div class="section-head">
+            <h2>Built for the reviewer, not just the demo.</h2>
+            <p>Precise claims, explicit limitations, and evidence a third party can check.</p>
+          </div>
+          <div class="security-grid">
+            <article class="security-card">
+              <h3>Human authority</h3>
+              <p>OIDC session → short-lived delegation token → broker-verified <code>hmac-jwt</code>. Tenant/agent scoped, issuer/audience checked, replay-protected, and rotation-aware.</p>
+            </article>
+            <article class="security-card">
+              <h3>Tenant isolation</h3>
+              <p>Per-environment broker keys, separate receipt chains, cross-tenant tests, and optional Postgres RLS for shared databases.</p>
+            </article>
+            <article class="security-card">
+              <h3>Custody and verification</h3>
+              <p>EIP-712 signatures, hash-linked chains, optional on-chain anchors, a KMS/HSM signing bridge, and an open-source offline verifier.</p>
+            </article>
+          </div>
+          <div class="trust-links">
+            <a href="/docs/trust-center.html">Trust Center</a>
+            <a href="/docs/security-guarantees.html">Security Guarantees</a>
+            <a href="/docs/audit-readiness.html">Audit Readiness</a>
+            <a href="%%GITHUB_URL%%">Source on GitHub</a>
+          </div>
+          <p class="fine-print">Evidence mapping, not a certification. SOC 2 and external penetration testing are not claimed yet.</p>
+        </div>
+      </section>
+
+      <section class="section section-rule">
+        <div class="wrap">
+          <p class="eyebrow">Technical credibility</p>
+          <div class="section-head">
+            <h2>Small surface. Serious enforcement.</h2>
+            <p>The broker, verifier, schemas, and SDKs are designed to be inspected — not taken on faith.</p>
+          </div>
+          <div class="stats">
+            <div class="stat"><strong>Rust</strong><span>broker</span></div>
+            <div class="stat"><strong>300+</strong><span>tests</span></div>
+            <div class="stat"><strong>EIP-712</strong><span>signed records</span></div>
+            <div class="stat"><strong>Offline</strong><span>verification</span></div>
+            <div class="stat"><strong>KMS/HSM</strong><span>signing bridge</span></div>
+          </div>
+          <div class="terminal-strip">
+            <div class="mono muted">Verify a receipt</div>
+            <code>npm install @tessera-verify/verify</code>
+            <code>npx tessera-verify receipt.json</code>
+          </div>
+        </div>
+      </section>
+
+      <section class="section section-rule">
+        <div class="wrap pilot">
+          <div>
+            <p class="eyebrow">Design partner pilot</p>
+            <h2>Start with one consequential action.</h2>
+            <p class="pilot-lede">A six-week pilot to instrument one action, produce a verification page, and run a tabletop security review with your team.</p>
+            <div class="cta-row">
+              <a class="button primary" href="mailto:%%PARTNER_EMAIL%%?subject=Agent%20security%20review%20audit&amp;body=Company%3A%0AAgent%20action%20stuck%20in%20review%3A%0AEnterprise%20customer%20question%3A">Request an audit</a>
+              <a class="button ghost" href="/docs/design-partner-program.html">Read the pilot plan</a>
+            </div>
+            <p class="fine-print">Recruiting 3 design partners · sandbox credentials only · never production secrets.</p>
+          </div>
+          <div class="pilot-card">
+            <div class="pilot-row"><span>Pilot</span><strong>Free · 6 weeks</strong></div>
+            <div class="pilot-row"><span>Scope</span><strong>One action</strong></div>
+            <div class="pilot-row"><span>Output</span><strong>Verification + review</strong></div>
+            <div class="pilot-row"><span>After</span><strong>$1,500/month</strong></div>
+            <a class="text-link" href="/docs/pricing.html">See pricing →</a>
+          </div>
+        </div>
+      </section>
+
+      <section class="final-cta">
+        <div class="wrap final-inner">
+          <div>
+            <p class="eyebrow">Bring the questionnaire</p>
+            <h2>We’ll map the evidence.</h2>
+            <p>If an enterprise deal is stuck in security review, start with the exact action their team is asking about.</p>
+          </div>
+          <div class="final-actions">
+            <a class="button light" href="mailto:%%PARTNER_EMAIL%%?subject=Agent%20security%20review%20audit">Request audit</a>
+            <a class="button outline-light" href="%%APP_URL%%">Sign in</a>
+          </div>
         </div>
       </section>
     </main>
 
-    <footer class="wrap">
-      <p>Apache-2.0 · <a href="docs/index.html">Docs</a> · <a href="docs/pricing.html">Pricing</a> ·
-      <a href="docs/trust-center.html">Trust</a> · partners@thetessera.xyz</p>
+    <footer class="footer">
+      <div class="wrap footer-grid">
+        <div class="footer-brand">
+          <a class="brand" href="/">
+            <svg class="brand-mark" viewBox="0 0 32 32" aria-hidden="true">
+              <rect x="2" y="2" width="12" height="12" rx="2" fill="currentColor" />
+              <rect x="18" y="2" width="12" height="12" rx="2" fill="currentColor" />
+              <rect x="2" y="18" width="12" height="12" rx="2" fill="currentColor" />
+              <rect x="18" y="18" width="12" height="12" rx="2" fill="var(--accent)" />
+            </svg>
+            <span>Tessera</span>
+          </a>
+          <p>Proof of action for AI agents.</p>
+          <p class="mono muted">Apache-2.0 · Pre-revenue</p>
+        </div>
+        <div>
+          <h3>Product</h3>
+          <a href="#how-it-works">How it works</a>
+          <a href="%%VERIFY_URL%%">Verifier</a>
+          <a href="/docs/pricing.html">Pricing</a>
+          <a href="/docs/index.html">Docs</a>
+        </div>
+        <div>
+          <h3>Trust</h3>
+          <a href="/docs/trust-center.html">Trust Center</a>
+          <a href="/docs/security-guarantees.html">Security Guarantees</a>
+          <a href="/docs/audit-readiness.html">Audit Readiness</a>
+          <a href="%%GITHUB_URL%%">GitHub</a>
+        </div>
+        <div>
+          <h3>Contact</h3>
+          <a href="mailto:%%PARTNER_EMAIL%%">partners@thetessera.xyz</a>
+          <a href="mailto:%%SECURITY_EMAIL%%">security@thetessera.xyz</a>
+          <a href="/docs/design-partner-program.html">Design partner program</a>
+        </div>
+      </div>
     </footer>
   </body>
 </html>

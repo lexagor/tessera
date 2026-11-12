@@ -90,6 +90,14 @@ curl -fsS https://thetessera.xyz/ | head
 curl -fsS https://thetessera.xyz/docs/ | head
 curl -fsS https://app.thetessera.xyz/healthz
 curl -fsS https://verify.thetessera.xyz/verify/ | head
+
+# Convenience redirects from the marketing domain
+curl -sI https://thetessera.xyz/app | grep -i '^location:'
+curl -sI https://thetessera.xyz/login | grep -i '^location:'
+curl -sI https://thetessera.xyz/verify/ | grep -i '^location:'
+
+# Preview metadata
+curl -sI https://thetessera.xyz/og.png | head
 ```
 
 Then:

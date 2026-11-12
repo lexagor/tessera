@@ -9,6 +9,15 @@
 - Added a `kid` keyring with optional previous-secret overlap for safe HMAC rotation.
 - Added a per-user rate limit to `POST /v1/authority-tokens`.
 
+### Site
+
+- Rebuilt the marketing main page in the Vercel-light direction with a proof-card hero,
+  security-review narrative, Level 1/2 explanation, design-partner CTA, and verified-action
+  link.
+- Added `/app`, `/login`, and `/verify` redirects from the marketing domain.
+- Added favicon, manifest, OG image, canonical/OG metadata, sitemap, and robots.txt.
+- Unified the docs pages on the light Vercel-style surface.
+
 ## 0.1.3 — 2026-11-12
 
 ### Fixed

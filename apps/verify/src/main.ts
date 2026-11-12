@@ -300,3 +300,6 @@ async function loadVerificationLink(token: string): Promise<void> {
 
 const linkToken = window.location.pathname.match(/^\/verify\/([^/]+)$/)?.[1];
 if (linkToken) void loadVerificationLink(linkToken);
+if (new URLSearchParams(window.location.search).get("sample") === "1") {
+  void loadSample();
+}

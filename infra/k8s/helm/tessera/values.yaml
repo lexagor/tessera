@@ -23,6 +23,10 @@ config:
   BROKER_PORT: "8787"
   TESSERA_DEMO_ALLOW: "0"
   TESSERA_AUTHORITY_REQUIRE_TOKEN: "1"
+  TESSERA_AUTHORITY_KID: "v1"
+  TESSERA_AUTHORITY_PREVIOUS_KID: "v0"
+  TESSERA_AUTHORITY_ISSUER: "tessera-api"
+  TESSERA_AUTHORITY_AUDIENCE: "tessera-broker"
   CHAIN_ID: "84532"
   RUST_LOG: "tessera_broker=info"
   # Peers allowed to set X-Forwarded-For; use your ingress controller / proxy CIDRs.
@@ -43,7 +47,8 @@ config:
   ARCHIVE_INTERVAL_SECS: "3600"
 
 # Name of a Secret containing: BROKER_SIGNING_KEY, DATABASE_URL, REDIS_URL,
-# TESSERA_ADMIN_TOKEN, TESSERA_AUTHORITY_HMAC_SECRET, and any provider/issuer credentials.
+# TESSERA_ADMIN_TOKEN, TESSERA_AUTHORITY_HMAC_SECRET, optional
+# TESSERA_AUTHORITY_HMAC_SECRET_PREVIOUS, and any provider/issuer credentials.
 existingSecret: tessera-secrets
 
 ingress:

@@ -36,6 +36,10 @@ Use these labels in reviews and demos. They describe the evidence path, not a ce
   than derived from a verified authority token. The record proves what the broker recorded, not
   who delegated it. With `TESSERA_AUTHORITY_HMAC_SECRET` configured, owner-bound agent keys
   produce `verificationMethod: "hmac-jwt"` records instead.
+- **Authority tokens are scoped and single-use.** The broker checks issuer, audience,
+  tenant/agent binding, expiry, and `jti` replay; a token for agent A in environment A cannot
+  authorize agent B. The replay cache is Redis-backed when `REDIS_URL` is configured and
+  in-memory otherwise.
 
 ## Important nuances
 
@@ -60,6 +64,8 @@ Use these labels in reviews and demos. They describe the evidence path, not a ce
 - Provider transport timeouts are bounded and return structured issuer errors. The proxy records
   a broker-observed failure outcome when the authorization was already bound to a grant.
 - API plan limits return `402 plan_limit_exceeded` before the broker is called.
+- Authority-token replay-cache failures are fail-closed; a token that cannot be checked for
+  replay is rejected.
 - Circuit breakers are not implemented yet; the current boundary is connect/total request
   timeouts plus fail-closed handling.
 
@@ -71,7 +77,8 @@ Use these labels in reviews and demos. They describe the evidence path, not a ce
 - Revocation: `apps/broker/src/revocation.rs`, `apps/broker/src/authorize.rs`, `apps/broker/tests/authorize_e2e.rs`
 - Receipt integrity: `apps/broker/src/receipt.rs`, `apps/broker/tests/verify.rs`, `packages/verifier`
 - Human authority binding: `apps/api/src/authority.ts`, `apps/api/src/routes.ts`,
-  `apps/api/test/authority.test.ts`, `apps/api/test/oidc.test.ts`, `apps/broker/tests/authorize_e2e.rs`
+  `apps/broker/src/authority.rs`, `apps/broker/src/cache.rs`, `apps/api/test/authority.test.ts`,
+  `apps/api/test/oidc.test.ts`, `apps/broker/tests/authorize_e2e.rs`
 - Cross-tenant API isolation: `apps/api/test/tenant-isolation.test.ts` (actions, reviews, evidence, keys, integrations, analytics, notifications, search)
 - Broker RLS: `infra/sql/rls.sql`, `apps/broker/tests/rls_postgres.rs`
 - KMS/HSM bridge: `apps/broker/src/signer.rs`, `apps/broker/tests/kms_signer.rs`

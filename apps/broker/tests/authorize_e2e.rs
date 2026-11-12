@@ -89,8 +89,7 @@ async fn service_opts(
     Arc::new(AuthorizeService {
         policies: Arc::new(policies),
         issuers: Arc::new(issuers),
-        authority_hmac_secret: None,
-        authority_require_token: false,
+        authority: Default::default(),
         signer,
         chain: Arc::new(MemoryChainStore::new()),
         telemetry: Arc::new(tessera_broker::telemetry::MemoryTelemetryStore::new()),
@@ -218,24 +217,37 @@ async fn verifies_hmac_authority_tokens() {
     let mut svc = service(true).await;
     {
         let inner = Arc::get_mut(&mut svc).expect("unique service");
-        inner.authority_hmac_secret = Some(SECRET.to_string());
-        inner.authority_require_token = true;
+        inner.authority = tessera_broker::authority::AuthorityVerifier {
+            keys: vec![tessera_broker::authority::AuthorityKey {
+                kid: "test".into(),
+                secret: SECRET.into(),
+            }],
+            require_token: true,
+            replay: Arc::new(tessera_broker::cache::MemoryCache::new()),
+            ..Default::default()
+        };
     }
     let now = chrono::Utc::now().timestamp();
-    let claims = serde_json::json!({
-        "sub": "user_42",
-        "exp": now + 60,
-        "iat": now,
-        "jti": "consent_1",
-        "principal_type": "user"
-    });
-    let token = encode(
-        &Header::new(Algorithm::HS256),
-        &claims,
-        &EncodingKey::from_secret(SECRET.as_bytes()),
-    )
-    .unwrap();
+    let make_token = |sub: &str, jti: &str, tenant: &str, agent_id: &str, exp: i64| {
+        encode(
+            &Header::new(Algorithm::HS256),
+            &serde_json::json!({
+                "iss": "tessera-api",
+                "aud": "tessera-broker",
+                "sub": sub,
+                "exp": exp,
+                "iat": now,
+                "jti": jti,
+                "tenant": tenant,
+                "agent_id": agent_id,
+                "principal_type": "user"
+            }),
+            &EncodingKey::from_secret(SECRET.as_bytes()),
+        )
+        .unwrap()
+    };
 
+    let token = make_token("user_42", "consent_1", "acme", "billing-agent", now + 60);
     let mut req = request(100);
     req.authority_token = Some(token.clone());
     let resp = svc.authorize("acme", req).await.unwrap();
@@ -251,7 +263,13 @@ async fn verifies_hmac_authority_tokens() {
 
     // A token for a different principal cannot be paired with a caller-asserted principal.
     let mut req = request(100);
-    req.authority_token = Some(token.clone());
+    req.authority_token = Some(make_token(
+        "user_42",
+        "consent_2",
+        "acme",
+        "billing-agent",
+        now + 60,
+    ));
     req.principal = Some(PrincipalInput {
         principal_id: "someone_else".into(),
         principal_type: Some("user".into()),
@@ -263,31 +281,58 @@ async fn verifies_hmac_authority_tokens() {
     let err = svc.authorize("acme", req).await.unwrap_err();
     assert!(matches!(err, tessera_broker::BrokerError::Invalid(_)));
 
-    // A tampered token is rejected.
+    // Tampered tokens, wrong tenants, and wrong agents are rejected.
+    let tampered = make_token("user_42", "consent_3", "acme", "billing-agent", now + 60);
     let mut req = request(100);
-    req.authority_token = Some(format!("{token}x"));
-    let err = svc.authorize("acme", req).await.unwrap_err();
-    assert!(matches!(err, tessera_broker::BrokerError::Invalid(_)));
+    req.authority_token = Some(format!("{tampered}x"));
+    assert!(matches!(
+        svc.authorize("acme", req).await.unwrap_err(),
+        tessera_broker::BrokerError::Invalid(_)
+    ));
+
+    let mut req = request(100);
+    req.authority_token = Some(make_token(
+        "user_42",
+        "consent_4",
+        "other-tenant",
+        "billing-agent",
+        now + 60,
+    ));
+    assert!(matches!(
+        svc.authorize("acme", req).await.unwrap_err(),
+        tessera_broker::BrokerError::Invalid(_)
+    ));
+
+    let mut req = request(100);
+    req.authority_token = Some(make_token(
+        "user_42",
+        "consent_5",
+        "acme",
+        "other-agent",
+        now + 60,
+    ));
+    assert!(matches!(
+        svc.authorize("acme", req).await.unwrap_err(),
+        tessera_broker::BrokerError::Invalid(_)
+    ));
+
+    // A token is single-use even within its TTL.
+    let mut req = request(100);
+    req.authority_token = Some(token.clone());
+    assert!(matches!(
+        svc.authorize("acme", req).await.unwrap_err(),
+        tessera_broker::BrokerError::Invalid(_)
+    ));
 
     // A token cannot be used when the deployment has no verifier configured.
     let unconfigured = service(true).await;
     let mut req = request(100);
-    req.authority_token = Some(token.clone());
+    req.authority_token = Some(token);
     let err = unconfigured.authorize("acme", req).await.unwrap_err();
     assert!(matches!(err, tessera_broker::BrokerError::Invalid(_)));
 
     // The verified subject is authoritative for policy and the receipt user field.
-    let alice_claims = serde_json::json!({
-        "sub": "alice",
-        "exp": now + 60,
-        "iat": now
-    });
-    let alice_token = encode(
-        &Header::new(Algorithm::HS256),
-        &alice_claims,
-        &EncodingKey::from_secret(SECRET.as_bytes()),
-    )
-    .unwrap();
+    let alice_token = make_token("alice", "consent_6", "acme", "billing-agent", now + 60);
     let mut req = request(100);
     req.user_id = "caller_supplied".into();
     req.authority_token = Some(alice_token);
@@ -299,21 +344,40 @@ async fn verifies_hmac_authority_tokens() {
     );
 
     // Excessively long-lived tokens are rejected.
-    let long_claims = serde_json::json!({
-        "sub": "user_42",
-        "exp": now + 90_000,
-        "iat": now
-    });
-    let long_token = encode(
-        &Header::new(Algorithm::HS256),
-        &long_claims,
-        &EncodingKey::from_secret(SECRET.as_bytes()),
-    )
-    .unwrap();
+    let long_token = make_token(
+        "user_42",
+        "consent_7",
+        "acme",
+        "billing-agent",
+        now + 90_000,
+    );
     let mut req = request(100);
     req.authority_token = Some(long_token);
     let err = svc.authorize("acme", req).await.unwrap_err();
     assert!(matches!(err, tessera_broker::BrokerError::Invalid(_)));
+
+    // A wrong audience is rejected.
+    let bad_aud = encode(
+        &Header::new(Algorithm::HS256),
+        &serde_json::json!({
+            "iss": "tessera-api",
+            "aud": "other-service",
+            "sub": "user_42",
+            "exp": now + 60,
+            "iat": now,
+            "jti": "consent_8",
+            "tenant": "acme",
+            "agent_id": "billing-agent"
+        }),
+        &EncodingKey::from_secret(SECRET.as_bytes()),
+    )
+    .unwrap();
+    let mut req = request(100);
+    req.authority_token = Some(bad_aud);
+    assert!(matches!(
+        svc.authorize("acme", req).await.unwrap_err(),
+        tessera_broker::BrokerError::Invalid(_)
+    ));
 }
 
 #[tokio::test]
@@ -1263,8 +1327,7 @@ async fn anchor_target_key_is_encrypted_and_redacted() {
     let svc = Arc::new(tessera_broker::authorize::AuthorizeService {
         policies: Arc::new(InMemoryPolicyStore::new()),
         issuers: Arc::new(issuers),
-        authority_hmac_secret: None,
-        authority_require_token: false,
+        authority: Default::default(),
         signer,
         chain: Arc::new(MemoryChainStore::new()),
         telemetry: Arc::new(tessera_broker::telemetry::MemoryTelemetryStore::new()),
@@ -1378,8 +1441,7 @@ async fn tenant_rpc_urls_are_ssrf_checked() {
         Arc::new(tessera_broker::authorize::AuthorizeService {
             policies: Arc::new(InMemoryPolicyStore::new()),
             issuers: Arc::new(issuers),
-            authority_hmac_secret: None,
-            authority_require_token: false,
+            authority: Default::default(),
             signer,
             chain: Arc::new(MemoryChainStore::new()),
             telemetry: Arc::new(tessera_broker::telemetry::MemoryTelemetryStore::new()),
@@ -4435,8 +4497,7 @@ async fn record_and_proxy_replay_with_an_idempotency_key() {
     let svc = Arc::new(tessera_broker::authorize::AuthorizeService {
         policies: Arc::new(InMemoryPolicyStore::new()),
         issuers: Arc::new(issuers),
-        authority_hmac_secret: None,
-        authority_require_token: false,
+        authority: Default::default(),
         signer,
         chain: Arc::new(tessera_broker::chain::MemoryChainStore::new()),
         telemetry: Arc::new(tessera_broker::telemetry::MemoryTelemetryStore::new()),

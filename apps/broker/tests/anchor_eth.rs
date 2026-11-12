@@ -188,8 +188,7 @@ async fn receipt_proof_cross_checks_the_chain_on_anvil() {
     let svc = AuthorizeService {
         policies: Arc::new(InMemoryPolicyStore::new()),
         issuers: Arc::new(issuers),
-        authority_hmac_secret: None,
-        authority_require_token: false,
+        authority: Default::default(),
         signer: Arc::new(
             ReceiptSigner::from_hex_or_random(
                 Some("0x59c6995e998f97a5a0044966f0945389dc9e86dae88c7a8412f4603b6b78690d"),

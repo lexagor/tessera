@@ -17,8 +17,7 @@ fn svc() -> std::sync::Arc<AuthorizeService> {
     std::sync::Arc::new(AuthorizeService {
         policies: std::sync::Arc::new(InMemoryPolicyStore::new()),
         issuers: std::sync::Arc::new(issuers),
-        authority_hmac_secret: None,
-        authority_require_token: false,
+        authority: Default::default(),
         signer: std::sync::Arc::new(
             ReceiptSigner::from_hex_or_random(
                 Some(TEST_KEY),

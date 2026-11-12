@@ -48,6 +48,7 @@ produces for each.
 - The v2 `principal` binding is caller-attested unless an authority token is present. With an
   authority HMAC secret configured, the API derives short-lived HS256 tokens from the
   OIDC-authenticated session (owner-bound agent keys) or an explicit per-call token; the broker
-  verifies the token and records `verificationMethod: "hmac-jwt"`. The `verificationMethod`
-  field always records which mode was used. Direct broker-side OIDC/JWKS verification and live
-  IdP validation are not claimed yet.
+  verifies the signature, issuer, audience, tenant/agent scope, expiry, and single-use `jti`,
+  then records `verificationMethod: "hmac-jwt"`. The `verificationMethod` field always records
+  which mode was used. Direct broker-side OIDC/JWKS verification and live IdP validation are
+  not claimed yet.

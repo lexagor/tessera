@@ -67,8 +67,11 @@ apps/site     marketing, docs, pricing, trust center
 - **Authority tokens:** the control plane mints short-lived HS256 JWTs for authenticated OIDC
   sessions (`TESSERA_AUTHORITY_HMAC_SECRET`). Agent keys can be owner-bound (the API mints per
   request) or token-delegated (the agent supplies a per-call token from
-  `POST /v1/authority-tokens`). The broker verifies the token and records
-  `verificationMethod: "hmac-jwt"`, binding the delegating principal to v2 records.
+  `POST /v1/authority-tokens`). Tokens carry `iss`, `aud`, `tenant`, `agent_id`, and `jti`;
+  the broker validates them, rejects replay within the token TTL, and records
+  `verificationMethod: "hmac-jwt"`, binding the delegating principal to v2 records. Key
+  rotation uses a `kid` keyring with an optional previous secret. The explicit mint endpoint
+  is per-user rate-limited; owner-bound keys mint per authorize call.
 
 ## Webhooks
 

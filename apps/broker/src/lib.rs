@@ -11,6 +11,7 @@ pub mod anchoring;
 pub mod anchoring_pg;
 pub mod auth;
 pub mod auth_pg;
+pub mod authority;
 pub mod authorize;
 pub mod bootstrap;
 pub mod cache;

@@ -25,6 +25,9 @@ docker compose -f infra/docker/docker-compose.yml up --build
    - `CONTROL_PLANE_ENC_KEY`, `TENANT_SECRET_ENC_KEY`, `BROKER_SIGNING_KEY`
    - `BROKER_ADMIN_KEY`, `BROKER_ADMIN_TOKEN`
    - `TESSERA_AUTHORITY_HMAC_SECRET` (at least 32 bytes)
+   - Optional rotation window: `TESSERA_AUTHORITY_HMAC_SECRET_PREVIOUS` and
+     `TESSERA_AUTHORITY_PREVIOUS_KID`; current key id is `TESSERA_AUTHORITY_KID`
+   - Optional API throttle: `TESSERA_AUTHORITY_MINT_PER_MINUTE` (default `30`)
    - Optional: `AGENT_RECEIPT_ED25519_KEY`, `AGENT_RECEIPT_ISSUER_DID`,
      `AGENT_RECEIPT_TSA_URL`
 2. Bootstrap the broker admin key once (see `TESSERA_BOOTSTRAP_TENANT` in the broker env).
@@ -47,8 +50,10 @@ the next phase.
 - Keep `pgdata` and `evidence` backed up.
 - Rotate `CONTROL_PLANE_ENC_KEY` only with a re-encryption migration; rotating it without one
   makes stored broker keys unreadable.
-- Changing `TESSERA_AUTHORITY_HMAC_SECRET` invalidates outstanding authority tokens. Rotate it
-  together with a short overlap window if agents use per-call tokens.
+- Rotating `TESSERA_AUTHORITY_HMAC_SECRET` invalidates tokens signed by the old key. To overlap,
+  set the new secret as `TESSERA_AUTHORITY_HMAC_SECRET`, move the old secret to
+  `TESSERA_AUTHORITY_HMAC_SECRET_PREVIOUS`, increment `TESSERA_AUTHORITY_KID`, and keep the
+  previous secret until the maximum token TTL has elapsed.
 - `TESSERA_AUTHORITY_REQUIRE_TOKEN=1` is set in the production overlay. Create agent keys after
   the secret is configured so they are owner-bound; migrate old caller-asserted keys explicitly.
 - Do not run the local dev stack in production: it enables dev auth and broker demo mode.

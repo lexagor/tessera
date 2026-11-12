@@ -3,7 +3,6 @@
 
 use std::sync::Arc;
 
-use jsonwebtoken::{decode, Algorithm, DecodingKey, Validation};
 use serde::{Deserialize, Serialize};
 
 use crate::anchoring::{AnchorRecord, AnchorStore, AnchorTarget, AnchorTargetStore, ClaimOutcome};
@@ -208,10 +207,8 @@ pub struct AuthorizeService {
     pub max_ttl_seconds: u32,
     /// Historical broker signer addresses (for verifying pre-rotation receipts).
     pub signing_key_history: Vec<String>,
-    /// HMAC secret for verifying `authorityToken` JWTs (HS256). None = caller-attested only.
-    pub authority_hmac_secret: Option<String>,
-    /// Reject authorize calls without a valid `authorityToken`.
-    pub authority_require_token: bool,
+    /// Authority-token verifier: keyring, issuer/audience, replay cache, required-token mode.
+    pub authority: crate::authority::AuthorityVerifier,
     /// Warn when a live chain has grown this many receipts past its last anchor.
     pub anchor_gap_threshold: u64,
     /// Days after which key-event ledger entries are compacted (0 keeps everything).
@@ -353,11 +350,21 @@ impl AuthorizeService {
 
         let args_hash = canonical::hash_json(&args);
         let intent_hash = canonical::keccak256_str(&req.intent);
-        let principal = principal_with_authority(
-            &req,
-            self.authority_hmac_secret.as_deref(),
-            self.authority_require_token,
-        )?;
+        let principal = self
+            .authority
+            .verify(
+                req.authority_token.as_deref(),
+                tenant,
+                &req.agent_id,
+                req.principal
+                    .as_ref()
+                    .map(|principal| principal.principal_id.as_str()),
+                req.principal
+                    .as_ref()
+                    .and_then(|principal| principal.principal_type.as_deref()),
+            )
+            .await?
+            .unwrap_or_else(|| principal_from(&req));
         // The verified token subject (or the caller-asserted principal when no token is
         // configured) is the identity policy evaluates and the receipt binds as `user`.
         let effective_user_id = principal.principal_id.clone();
@@ -3243,112 +3250,6 @@ fn normalize_outcome_status(status: Option<&str>) -> String {
         Some("") | None => "unknown".to_string(),
         Some(_) => "unknown".to_string(),
     }
-}
-
-#[derive(Debug, Deserialize)]
-struct AuthorityClaims {
-    sub: String,
-    exp: usize,
-    #[serde(default)]
-    iat: Option<usize>,
-    #[serde(default)]
-    jti: Option<String>,
-    #[serde(default)]
-    authority_ref: Option<String>,
-    #[serde(default)]
-    principal_type: Option<String>,
-}
-
-fn principal_with_authority(
-    req: &AuthorizeRequest,
-    hmac_secret: Option<&str>,
-    require_token: bool,
-) -> Result<PrincipalRef, BrokerError> {
-    let Some(token) = req.authority_token.as_deref() else {
-        if require_token {
-            return Err(BrokerError::Invalid("authorityToken is required".into()));
-        }
-        return Ok(principal_from(req));
-    };
-    let secret = hmac_secret.ok_or_else(|| {
-        BrokerError::Invalid("authority token verification is not configured".into())
-    })?;
-    if secret.len() < 32 {
-        return Err(BrokerError::Invalid(
-            "authority HMAC secret must be at least 32 bytes".into(),
-        ));
-    }
-    let mut validation = Validation::new(Algorithm::HS256);
-    validation.validate_aud = false;
-    validation.validate_exp = true;
-    let claims = decode::<AuthorityClaims>(
-        token,
-        &DecodingKey::from_secret(secret.as_bytes()),
-        &validation,
-    )
-    .map_err(|e| BrokerError::Invalid(format!("invalid authority token: {e}")))?
-    .claims;
-    if claims.sub.is_empty() || claims.sub.len() > 256 {
-        return Err(BrokerError::Invalid(
-            "authority token subject must be 1..=256 bytes".into(),
-        ));
-    }
-    if let Some(kind) = &claims.principal_type {
-        if kind.is_empty() || kind.len() > 64 {
-            return Err(BrokerError::Invalid(
-                "authority token principal_type must be 1..=64 bytes".into(),
-            ));
-        }
-    }
-    if let Some(reference) = claims.authority_ref.as_ref().or(claims.jti.as_ref()) {
-        if reference.is_empty() || reference.len() > 512 {
-            return Err(BrokerError::Invalid(
-                "authority token authority_ref must be 1..=512 bytes".into(),
-            ));
-        }
-    }
-    let now = chrono::Utc::now().timestamp();
-    if claims.exp as i64 <= now {
-        return Err(BrokerError::Invalid("authority token is expired".into()));
-    }
-    if claims.exp as i64 > now + 86_400 {
-        return Err(BrokerError::Invalid(
-            "authority token expiry must be within 24 hours".into(),
-        ));
-    }
-    if let Some(iat) = claims.iat {
-        if iat as i64 > now + 300 {
-            return Err(BrokerError::Invalid(
-                "authority token iat is in the future".into(),
-            ));
-        }
-    }
-    if let Some(principal) = &req.principal {
-        if principal.principal_id != claims.sub {
-            return Err(BrokerError::Invalid(
-                "authority token subject does not match principalId".into(),
-            ));
-        }
-    }
-    let authority_ref = claims
-        .authority_ref
-        .or(claims.jti)
-        .unwrap_or_else(|| claims.sub.clone());
-    Ok(PrincipalRef {
-        principal_id: claims.sub,
-        principal_type: claims
-            .principal_type
-            .or_else(|| {
-                req.principal
-                    .as_ref()
-                    .and_then(|p| p.principal_type.clone())
-            })
-            .unwrap_or_else(|| "user".to_string()),
-        authority_ref,
-        authority_hash: canonical::keccak256_str(token),
-        verified_at: Some(now_ts()),
-        verification_method: "hmac-jwt".to_string(),
-    })
 }
 
 fn validate_authorize_input(req: &AuthorizeRequest) -> Result<(), BrokerError> {

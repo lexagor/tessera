@@ -36,9 +36,10 @@ cover OIDC sessions, environments, agent keys, actions, integrations, evidence p
 reports and share links, verification links, authority transitions, analytics, usage, and audit.
 Agent Receipts v0.5 specification export, LangChain tool wrapping, and the MCP adapter are
 implemented. Agent keys can be owner-bound to an OIDC-authenticated human or use a short-lived
-per-call authority token; the broker records `verificationMethod: hmac-jwt` and either mode is
-covered by tests. Remaining hosted/distribution pieces are live Okta/Entra/Auth0 validation,
-Stripe billing launch, and public domain rollout. Pre-revenue; recruiting design partners.
+per-call authority token. The broker validates issuer/audience, tenant/agent scope, expiry, and
+single-use `jti`, supports `kid` key rotation, and records `verificationMethod: hmac-jwt`.
+Remaining hosted/distribution pieces are live Okta/Entra/Auth0 validation, Stripe billing
+launch, and public domain rollout. Pre-revenue; recruiting design partners.
 
 ## Packages
 

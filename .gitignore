@@ -26,3 +26,9 @@ docs/interview-guide.md
 docs/data-moat.md
 docs/governance-plane-plan.md
 tessera-vs-tidy.md
+.pytest_cache/
+**/.pytest_cache/
+.ruff_cache/
+**/.ruff_cache/
+.mypy_cache/
+**/.mypy_cache/

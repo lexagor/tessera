@@ -32,10 +32,12 @@ jobs:
           pnpm --filter @tessera-verify/verify build
           pnpm --filter @tessera-verify/sdk-ts build
           pnpm --filter @tessera-verify/langchain build
+          pnpm --filter @tessera-verify/mcp-adapter build
           pnpm -C packages/receipt-schema pack --pack-destination /tmp/tessera-stage
           pnpm -C packages/verifier pack --pack-destination /tmp/tessera-stage
           pnpm -C packages/sdk-ts pack --pack-destination /tmp/tessera-stage
           pnpm -C packages/langchain pack --pack-destination /tmp/tessera-stage
+          pnpm -C packages/mcp-adapter pack --pack-destination /tmp/tessera-stage
       - name: Stage receipt schema
         run: npm stage publish /tmp/tessera-stage/tessera-verify-receipt-schema-*.tgz --tag latest --access public
         env:
@@ -52,3 +54,25 @@ jobs:
         run: npm stage publish /tmp/tessera-stage/tessera-verify-langchain-*.tgz --tag latest --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - name: Stage MCP adapter
+        run: npm stage publish /tmp/tessera-stage/tessera-verify-mcp-adapter-*.tgz --tag latest --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+  pypi:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Build Python SDK
+        run: |
+          python -m pip install --upgrade pip build twine
+          python -m build packages/sdk-py
+          twine check packages/sdk-py/dist/*
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: packages/sdk-py/dist/
+          password: ${{ secrets.PYPI_TOKEN }}

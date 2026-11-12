@@ -14,5 +14,5 @@ const dispatch = wrapMcpDispatcher(client, server.dispatch, {
 ```
 
 ```bash
-npm install @tessera/mcp-adapter
+npm install @tessera-verify/mcp-adapter
 ```

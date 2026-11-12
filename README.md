@@ -49,6 +49,7 @@ npm install @tessera-verify/langchain
 - `@tessera-verify/verify` — independent verifier and `tessera-verify` CLI
 - `@tessera-verify/sdk-ts` — agent SDK
 - `@tessera-verify/langchain` — LangChain tool wrapper
+- `packages/sdk-py` — Python SDK, distributed as `tessera-verify` (import `tessera_verify`)
 
 ## Performance
 

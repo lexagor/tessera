@@ -16,8 +16,8 @@ Keep the strategy/fundraise/interview docs out of the public tree (see `.gitigno
 ## 2. npm packages
 
 The `@tessera-verify` scope must exist. `receipt-schema`, `verify`, `sdk-ts`, and `langchain`
-are published under it; `mcp-adapter` and `agent-receipts` remain internal until renamed. Build
-and dry-run first:
+are published under it; `mcp-adapter` is staged by the release workflow. `agent-receipts`
+remains internal until renamed. Build and dry-run first:
 
 ```bash
 pnpm install
@@ -29,24 +29,38 @@ pnpm --filter @tessera-verify/verify build
 pnpm --filter @tessera-verify/verify publish --dry-run --no-git-checks --access public
 pnpm --filter @tessera-verify/langchain build
 pnpm --filter @tessera-verify/langchain publish --dry-run --no-git-checks --access public
+pnpm --filter @tessera-verify/mcp-adapter publish --dry-run --no-git-checks --access public
 ```
 
-Publish in order: `receipt-schema`, `verify`, `sdk-ts`, `langchain`. The tag workflow
+Publish in order: `receipt-schema`, `verify`, `sdk-ts`, `langchain`, `mcp-adapter`. The tag workflow
 (`.github/workflows/release.yml`) stages them when a `v*` tag is pushed; approve the staged
 versions with 2FA from npmjs.com or `npm stage approve <stage-id>`.
 
-## 3. Verifier
+## 3. Python / PyPI
+
+The Python distribution is `tessera-verify` (import `tessera_verify`):
+
+```bash
+python -m pip install --upgrade build twine
+python -m build packages/sdk-py
+twine check packages/sdk-py/dist/*
+twine upload packages/sdk-py/dist/*
+```
+
+The tag workflow also builds and publishes the wheel when `PYPI_TOKEN` is configured.
+
+## 4. Verifier
 
 Deploy `apps/verify` behind TLS (Caddy/Nginx). Set `VERIFY_BASE_URL` in the API to the public
 origin so verification links point at it. The verifier is static and does not need a database.
 
-## 4. Agent Receipts export
+## 5. Agent Receipts export
 
 Set `AGENT_RECEIPT_ED25519_KEY` (32-byte hex seed), `AGENT_RECEIPT_ISSUER_DID`, and optionally
 `AGENT_RECEIPT_TSA_URL`. Without the key the export endpoint returns `503`; the native
 Tessera receipt remains available.
 
-## 5. Smoke checks
+## 6. Smoke checks
 
 - `curl https://<verifier>/` returns the verification page.
 - `npm view @tessera-verify/verify version` matches the release.

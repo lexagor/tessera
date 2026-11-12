@@ -5,8 +5,9 @@
 #
 #   ./run-local.sh
 #
-# Requires: cargo, forge/anvil (Foundry), pnpm (via corepack), and a reachable Postgres
-# (defaults to postgres://a@127.0.0.1:5432/tessera_test; override with DATABASE_URL).
+# Requires: cargo, node, pnpm (via corepack), curl, and a reachable Postgres
+# (defaults to postgres://localhost/tessera_test; override with DATABASE_URL).
+# Foundry's anvil/forge are optional; without them the on-chain anchor step is skipped.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
@@ -15,9 +16,27 @@ export PATH="$HOME/.foundry/bin:$HOME/.cargo/bin:$PATH"
 BROKER_PORT="${BROKER_PORT:-8790}"
 MOCK_STRIPE_PORT="${MOCK_STRIPE_PORT:-12111}"
 ANVIL_PORT="${ANVIL_PORT:-8547}"
-DATABASE_URL="${DATABASE_URL:-postgres://a@127.0.0.1:5432/tessera_test}"
+DATABASE_URL="${DATABASE_URL:-postgres://localhost/tessera_test}"
+
+for required in cargo node corepack curl; do
+  if ! command -v "$required" >/dev/null 2>&1; then
+    echo "!! missing required command: $required" >&2
+    exit 1
+  fi
+done
+if command -v psql >/dev/null 2>&1; then
+  if ! psql "$DATABASE_URL" -Atc 'select 1' >/dev/null 2>&1; then
+    echo "!! Postgres is not reachable at $DATABASE_URL" >&2
+    echo "   Create the database or set DATABASE_URL to a reachable instance." >&2
+    exit 1
+  fi
+else
+  echo "==> psql not found; skipping database connectivity check"
+fi
 SIGNING_KEY="0x59c6995e998f97a5a0044966f0945389dc9e86dae88c7a8412f4603b6b78690d"
 ANVIL_PK="0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"
+# Local-only test key for envelope-encrypted Stripe grants. Never use this outside the demo.
+TENANT_SECRET_ENC_KEY="0x1111111111111111111111111111111111111111111111111111111111111111"
 
 BROKER_BIN="$ROOT/apps/broker/target/debug/tessera-broker"
 LOG_DIR="$(mktemp -d)"
@@ -71,6 +90,7 @@ echo "==> starting broker (:$BROKER_PORT)"
   export TESSERA_DEMO_ALLOW=1
   export TESSERA_DEMO_KEY=tsk_demo_local
   export DATABASE_URL="$DATABASE_URL"
+  export TENANT_SECRET_ENC_KEY="$TENANT_SECRET_ENC_KEY"
   export STRIPE_RESTRICTED_KEYS="charges_create=rk_test_local,refunds_create=rk_test_local"
   export STRIPE_API_BASE="http://127.0.0.1:$MOCK_STRIPE_PORT"
   if [[ ${#ANCHOR_ENV[@]} -gt 0 ]]; then export "${ANCHOR_ENV[@]}"; fi

@@ -102,7 +102,7 @@ async function main() {
       `amount=${amount}&currency=${currency}&source=tok_visa`,
     );
     chargeId = String(charge.id);
-    await tessera.record({ receiptId: auth.receiptId, resultHash: hashResult({ chargeId }) });
+    // The proxy already appended the broker-observed outcome; do not self-report it.
     return `charge ${chargeId} (auth: ${String(charge._auth).slice(0, 12)}…)`;
   });
 
@@ -110,7 +110,7 @@ async function main() {
     if (!chargeId) throw new Error("no charge id (previous step failed; set STRIPE_CHARGE_ID to refund an existing test charge)");
     const auth = await authorize("stripe.refunds.create", "refund the test charge", { charge: chargeId, amount });
     const refund = await proxiedStripeCall(auth.credential!, "/v1/refunds", `charge=${chargeId}&amount=${amount}`);
-    await tessera.record({ receiptId: auth.receiptId, resultHash: hashResult({ refundId: refund.id }) });
+    // The proxy already appended the broker-observed outcome; do not self-report it.
     return `refund ${String(refund.id)} (${String(refund.status)})`;
   });
 

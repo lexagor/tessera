@@ -16,6 +16,19 @@ transitions, usage, and audit. Agent Receipts v0.5.0 export, LangChain tool wrap
 provider credentials, Stripe billing, and public package/domain rollout are the remaining
 hosted pieces. Pre-revenue; recruiting design partners.
 
+## Published packages
+
+```bash
+npm install @tessera-verify/verify
+npm install @tessera-verify/sdk-ts
+npm install @tessera-verify/langchain
+```
+
+- `@tessera-verify/receipt-schema` — receipt types, canonical hashing, EIP-712 definitions
+- `@tessera-verify/verify` — independent verifier and `tessera-verify` CLI
+- `@tessera-verify/sdk-ts` — agent SDK
+- `@tessera-verify/langchain` — LangChain tool wrapper
+
 ## Why
 
 - Agents are moving from read-only to **write + spend** authority.

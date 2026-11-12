@@ -12,7 +12,7 @@ latency.
 | OS | macOS 27.2 |
 | Rust | 1.98.1 |
 | Node | 22.23.4 |
-| Broker baseline | `5d91c6f2` + benchmark harness |
+| Broker baseline | `4522cf61` (benchmark harness) |
 | Issuer | mock Stripe issuer, no live provider calls |
 
 ## Commands
@@ -80,6 +80,19 @@ Fixture: signed v2 receipt from `packages/receipt-schema/fixtures/receipt-v2-sig
 | p99 | 1.055 ms |
 
 Verification uses the published `@tessera-verify/verify` code path and makes no network call.
+
+## Time to first receipt (local golden path)
+
+`examples/golden-path/run-local.sh` includes a fresh broker build, mock Stripe, optional anvil,
+the broker, and the golden-path harness.
+
+| Run | Wall time |
+|---|---:|
+| Cold run including `cargo build` | ~14 s |
+| Warm run (broker already built, services restart) | ~1.5 s |
+
+This is the harness duration, not the human onboarding time from `git clone`. It excludes
+dependency installation and Foundry setup.
 
 ## Caveats
 

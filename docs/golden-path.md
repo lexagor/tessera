@@ -107,6 +107,7 @@ the tx hash (`https://sepolia.basescan.org/tx/0x…`).
 | Env | Purpose |
 |---|---|
 | `DATABASE_URL` | Postgres (chain, policies, telemetry, revocations, anchors, keys) |
+| `TENANT_SECRET_ENC_KEY` | 32-byte hex key for envelope-encrypted durable Stripe grants (the local script sets a disposable demo key) |
 | `REDIS_URL` | optional API-key cache backend |
 | `BROKER_SIGNING_KEY` | stable receipt signing key (required outside demo) |
 | `TESSERA_DEMO_ALLOW` | `1` accepts `x-tessera-tenant` without a key (demos only) |

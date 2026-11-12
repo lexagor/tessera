@@ -1,6 +1,6 @@
 {
-  "name": "@tessera/mcp-adapter",
-  "version": "0.1.0",
+  "name": "@tessera-verify/mcp-adapter",
+  "version": "0.1.1",
   "description": "MCP middleware that brokers Tessera credentials for each tool call",
   "license": "Apache-2.0",
   "type": "module",
@@ -26,5 +26,32 @@
   },
   "publishConfig": {
     "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lexagor/tessera.git",
+    "directory": "packages/mcp-adapter"
+  },
+  "homepage": "https://github.com/lexagor/tessera#readme",
+  "bugs": {
+    "url": "https://github.com/lexagor/tessera/issues"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "sideEffects": false,
+  "keywords": [
+    "tessera",
+    "mcp",
+    "model-context-protocol",
+    "agents",
+    "credentials",
+    "audit"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
   }
 }

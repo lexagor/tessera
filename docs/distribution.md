@@ -12,7 +12,7 @@ Current status:
 | `@tessera-verify/sdk-ts` | 0.1.1 live / 0.1.2 built | publish 0.1.2 with npm 2FA |
 | `@tessera-verify/langchain` | 0.1.1 live / 0.1.2 built | publish 0.1.2 with npm 2FA |
 | `@tessera-verify/mcp-adapter` | 0.1.2 built | first publish pending npm 2FA |
-| `tessera-verify` (Python) | 0.1.2 built | pending PyPI project/token |
+| `tessera-verify` (Python) | 0.1.2 live | published on PyPI |
 
 ## 1. Public repository
 

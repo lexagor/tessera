@@ -38,8 +38,8 @@ Agent Receipts v0.5 specification export, LangChain tool wrapping, and the MCP a
 implemented. Agent keys can be owner-bound to an OIDC-authenticated human or use a short-lived
 per-call authority token; the broker records `verificationMethod: hmac-jwt` and either mode is
 covered by tests. Remaining hosted/distribution pieces are live Okta/Entra/Auth0 validation,
-Stripe billing launch, Python SDK publication, MCP adapter publication, and public domain
-rollout. Pre-revenue; recruiting design partners.
+Stripe billing launch, MCP adapter publication, and public domain rollout. Pre-revenue;
+recruiting design partners.
 
 ## Packages
 
@@ -51,8 +51,11 @@ Registry state:
   requires npm 2FA and is pending.
 - `@tessera-verify/mcp-adapter` is packaged in the 0.1.2 release and pending its first npm
   publication.
-- `tessera-verify` (Python, import `tessera_verify`) is prepared in `packages/sdk-py`; PyPI
-  publication is pending a project token.
+- `tessera-verify` (Python, import `tessera_verify`) is live on PyPI at **0.1.2**:
+
+```bash
+pip install tessera-verify
+```
 
 ```bash
 npm install @tessera-verify/receipt-schema

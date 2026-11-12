@@ -16,7 +16,8 @@
 
 - Public domain and deployment targets moved to `thetessera.xyz`,
   `app.thetessera.xyz`, and `verify.thetessera.xyz`.
-- README/package docs now distinguish published npm packages from pending npm/PyPI packages.
+- README/package docs now distinguish published npm/PyPI packages from pending npm packages.
+- `tessera-verify==0.1.2` is published on PyPI.
 - Release workflow publishes only when the corresponding repository secret is configured;
   GitHub Release artifacts are always built.
 

@@ -5,6 +5,7 @@ const requests = Number(process.env.BENCH_REQUESTS ?? 200);
 const concurrency = Number(process.env.BENCH_CONCURRENCY ?? 16);
 const agents = Number(process.env.BENCH_AGENTS ?? 1);
 const agentPrefix = process.env.BENCH_AGENT_PREFIX ?? "benchmark-agent";
+const authorityToken = process.env.TESSERA_AUTHORITY_TOKEN;
 const verifyChains = process.env.BENCH_VERIFY_CHAINS !== "0";
 
 for (const [name, value] of [
@@ -41,6 +42,7 @@ async function one(index) {
       tool: "stripe.refunds.create",
       intent: "concurrency benchmark",
       args: { amount: 10, charge: `ch_bench_${index}` },
+      ...(authorityToken ? { authorityToken } : {}),
     }),
   });
   const elapsed = performance.now() - started;

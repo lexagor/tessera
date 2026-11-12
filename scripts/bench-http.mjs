@@ -4,6 +4,7 @@ const apiKey = process.env.TESSERA_API_KEY ?? "tsk_demo_local";
 const requests = Number(process.env.BENCH_REQUESTS ?? 200);
 const concurrency = Number(process.env.BENCH_CONCURRENCY ?? 4);
 const agentId = process.env.BENCH_AGENT_ID ?? "benchmark-agent";
+const authorityToken = process.env.TESSERA_AUTHORITY_TOKEN;
 if (!Number.isFinite(requests) || requests < 1) throw new Error("BENCH_REQUESTS must be >= 1");
 if (!Number.isFinite(concurrency) || concurrency < 1) throw new Error("BENCH_CONCURRENCY must be >= 1");
 
@@ -28,6 +29,7 @@ async function one(index) {
       tool: "stripe.refunds.create",
       intent: "benchmark authorize latency",
       args: { amount: 10, charge: `ch_bench_${index}` },
+      ...(authorityToken ? { authorityToken } : {}),
     }),
   });
   const elapsed = performance.now() - started;

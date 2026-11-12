@@ -63,10 +63,11 @@ token, the release still builds and attaches the wheel as a GitHub Release artif
 
 ## 4. Verifier
 
-Deploy `apps/site` at `https://thetessera.xyz`, `apps/portal` + `apps/api` at
-`https://app.thetessera.xyz`, and `apps/verify` at `https://verify.thetessera.xyz` (or behind
-`/verify/` on the site origin). Set `VERIFY_BASE_URL` in the API to the verifier origin so
-verification links point at it. The verifier is static and does not need a database.
+Follow [`deploy-thetessera-xyz.md`](deploy-thetessera-xyz.md). In short: deploy `apps/site` at
+`https://thetessera.xyz`, `apps/portal` + `apps/api` at `https://app.thetessera.xyz`, and
+`apps/verify` at `https://verify.thetessera.xyz`. Set `VERIFY_BASE_URL` in the API to the
+verifier origin so verification links point at it. The verifier is static and does not need a
+database.
 
 ## 5. Agent Receipts export
 

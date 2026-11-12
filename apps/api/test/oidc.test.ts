@@ -222,6 +222,46 @@ test("OIDC rejects a tampered state cookie", { skip: !canRun, timeout: 30_000 },
   assert.equal(callback.status, 400);
 });
 
+
+test("existing OIDC identity can log in after the invite/domain gate closes", { skip: !canRun, timeout: 30_000 }, async () => {
+  const { migrate, closeDb, db } = await import("../src/db.js");
+  await migrate();
+  const { app } = await import("../src/index.js");
+  const authModule = await import("../src/auth.js");
+
+  const email = `existing-${Date.now()}@gmail.com`;
+  const sub = `existing-sub-${Date.now()}`;
+  const existing = await authModule.findOrCreateUser({ email, name: "Existing", issuer, subject: sub });
+  const login = await app.request("/auth/login", { redirect: "manual" });
+  assert.equal(login.status, 302);
+  const location = new URL(login.headers.get("location")!);
+  const state = location.searchParams.get("state");
+  const nonce = location.searchParams.get("nonce");
+  assert.ok(state && nonce);
+  const cookie = login.headers.get("set-cookie")?.split(";")[0];
+  assert.ok(cookie);
+  const code = randomBytes(12).toString("hex");
+  codes.set(code, { nonce, email, sub });
+  const callback = await app.request(
+    `${redirectUri}?code=${encodeURIComponent(code)}&state=${encodeURIComponent(state)}`,
+    { redirect: "manual", headers: { cookie } },
+  );
+  assert.equal(callback.status, 302);
+  const sessionCookie = callback.headers
+    .getSetCookie()
+    .find((value) => value.startsWith("tessera_session="))
+    ?.split(";")[0];
+  assert.ok(sessionCookie);
+  const session = await app.request("/v1/session", { headers: { cookie: sessionCookie! } });
+  assert.equal(session.status, 200);
+  const body = (await session.json()) as { user: { id: string }; org: { id: string } };
+  assert.equal(body.user.id, existing.id);
+
+  await db()`DELETE FROM orgs WHERE id = ${body.org.id}`;
+  await db()`DELETE FROM users WHERE id = ${existing.id}`;
+  await closeDb();
+});
+
 test("OIDC does not auto-link an existing email to a different identity", { skip: !canRun, timeout: 30_000 }, async () => {
   const { migrate, closeDb, db } = await import("../src/db.js");
   await migrate();

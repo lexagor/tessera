@@ -166,6 +166,20 @@ export function requireRole(...roles: Role[]): MiddlewareHandler<AppEnv> {
 
 export class OidcIdentityConflict extends Error {}
 
+/** Find an already-linked OIDC user by the verified issuer/subject identity. */
+export async function findOidcUser(input: {
+  issuer: string;
+  subject: string;
+}): Promise<User | null> {
+  const rows = await db()`
+    SELECT id, email, name, oidc_issuer, oidc_subject
+      FROM users
+     WHERE oidc_issuer = ${input.issuer} AND oidc_subject = ${input.subject}
+     LIMIT 1
+  `;
+  return (rows[0] as unknown as User) ?? null;
+}
+
 export async function findOrCreateUser(input: {
   email: string;
   name?: string | null;

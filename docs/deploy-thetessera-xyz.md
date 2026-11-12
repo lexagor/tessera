@@ -91,7 +91,8 @@ with dev auth, insecure cookies, demo broker mode, private webhooks, missing OID
 known development secret values.
 
 The Postgres init script creates `tessera_app` as `NOSUPERUSER NOBYPASSRLS` on a fresh volume.
-Apply the broker RLS policies after the first broker migration, then verify with the RLS test:
+Apply the broker RLS policies after the first broker migration, then verify with the RLS test.
+RLS is not applied automatically; it is a required post-start step.
 
 ```bash
 docker compose -f infra/docker/docker-compose.yml \
@@ -104,10 +105,21 @@ manually and update `DATABASE_URL`; do not keep the runtime on the `tessera` sup
 
 ## Start
 
+The CI `Images` workflow publishes `ghcr.io/lexagor/tessera-{api,broker,portal,verify,site}:0.1.3`.
+Pull those images instead of compiling Rust/Node on a small VPS.
+
 ```bash
+# GHCR packages must be public or you must authenticate with a read:packages PAT.
+# echo "$GHCR_TOKEN" | docker login ghcr.io -u lexagor --password-stdin
+
 docker compose -f infra/docker/docker-compose.yml \
-  -f infra/docker/docker-compose.prod.yml up -d --build
+  -f infra/docker/docker-compose.prod.yml pull
+docker compose -f infra/docker/docker-compose.yml \
+  -f infra/docker/docker-compose.prod.yml up -d --no-build
 ```
+
+Building on the VPS (`up -d --build`) needs substantially more RAM/disk than pulling images;
+use it only on a 4 GB+ host or with adequate swap. Do not treat a 2 GB IONOS XS as a build host.
 
 Caddy obtains certificates for all three hosts. The broker and Postgres are not published on
 host ports. The API rejects bodies over 2 MB, applies request timeouts, rate-limits auth,
@@ -127,6 +139,33 @@ The API uses `openid-client` discovery, signed state, nonce, PKCE, and code exch
 are bound to `(issuer, subject)`, not just email. Automatic email linking is disabled by
 default; use an invite or set `OIDC_ALLOW_EMAIL_LINKING=1` only for a deliberate migration.
 Live provider validation is still required for the chosen Okta/Entra/Auth0 tenant.
+
+## VPS preflight
+
+Before changing DNS or starting the stack, confirm the VPS has enough resources and ports:
+
+```bash
+free -h
+df -h /
+docker --version && docker compose version
+ss -ltnp | grep -E ':(80|443)\b' || true
+dig +short thetessera.xyz A
+dig +short app.thetessera.xyz A
+dig +short verify.thetessera.xyz A
+```
+
+For a 2 GB VPS, add at least 2 GB swap before pulling images; for local builds, use a larger
+machine. Open TCP 80/443 in the IONOS firewall/security group. All three DNS names must point to
+the VPS before Caddy can complete HTTP-01 certificate issuance.
+
+With the production environment file present, run:
+
+```bash
+ENV_FILE=.env VPS_IP=<vps-ip> sh infra/scripts/vps-preflight.sh
+```
+
+This checks required variables, Docker Compose, free memory/disk, DNS A records, and port
+availability without printing secret values.
 
 ## Smoke checks
 

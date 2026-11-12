@@ -72,27 +72,27 @@ jobs:
         run: npm install --global npm@11.16.0
       - name: Stage receipt schema
         if: ${{ env.NPM_TOKEN != '' }}
-        run: npm stage publish /tmp/tessera-stage/tessera-verify-receipt-schema-*.tgz --tag latest --access public
+        run: npm stage publish /tmp/tessera-stage/tessera-verify-receipt-schema-*.tgz --tag latest --access public --provenance
         env:
           NODE_AUTH_TOKEN: ${{ env.NPM_TOKEN }}
       - name: Stage verifier
         if: ${{ env.NPM_TOKEN != '' }}
-        run: npm stage publish /tmp/tessera-stage/tessera-verify-verify-*.tgz --tag latest --access public
+        run: npm stage publish /tmp/tessera-stage/tessera-verify-verify-*.tgz --tag latest --access public --provenance
         env:
           NODE_AUTH_TOKEN: ${{ env.NPM_TOKEN }}
       - name: Stage SDK
         if: ${{ env.NPM_TOKEN != '' }}
-        run: npm stage publish /tmp/tessera-stage/tessera-verify-sdk-ts-*.tgz --tag latest --access public
+        run: npm stage publish /tmp/tessera-stage/tessera-verify-sdk-ts-*.tgz --tag latest --access public --provenance
         env:
           NODE_AUTH_TOKEN: ${{ env.NPM_TOKEN }}
       - name: Stage LangChain adapter
         if: ${{ env.NPM_TOKEN != '' }}
-        run: npm stage publish /tmp/tessera-stage/tessera-verify-langchain-*.tgz --tag latest --access public
+        run: npm stage publish /tmp/tessera-stage/tessera-verify-langchain-*.tgz --tag latest --access public --provenance
         env:
           NODE_AUTH_TOKEN: ${{ env.NPM_TOKEN }}
       - name: Stage MCP adapter
         if: ${{ env.NPM_TOKEN != '' }}
-        run: npm stage publish /tmp/tessera-stage/tessera-verify-mcp-adapter-*.tgz --tag latest --access public
+        run: npm stage publish /tmp/tessera-stage/tessera-verify-mcp-adapter-*.tgz --tag latest --access public --provenance
         env:
           NODE_AUTH_TOKEN: ${{ env.NPM_TOKEN }}
 
@@ -106,12 +106,19 @@ jobs:
         with:
           name: python-dist
           path: packages/sdk-py/dist
-      - name: Publish to PyPI
+      - name: Publish to PyPI (trusted publishing)
+        if: ${{ env.PYPI_TOKEN == '' }}
+        uses: pypa/gh-action-pypi-publish@7245906fb61fa33a13554f9d5fb856fe61758086 # release/v1
+        with:
+          packages-dir: packages/sdk-py/dist/
+          attestations: true
+      - name: Publish to PyPI (token fallback)
         if: ${{ env.PYPI_TOKEN != '' }}
         uses: pypa/gh-action-pypi-publish@7245906fb61fa33a13554f9d5fb856fe61758086 # release/v1
         with:
           packages-dir: packages/sdk-py/dist/
           password: ${{ env.PYPI_TOKEN }}
+          attestations: true
 
   github-release:
     needs: [build, npm, pypi]

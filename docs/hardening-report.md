@@ -33,8 +33,8 @@ is not included.
 | Actions SHA pinning | Implemented | All workflow `uses:` refs pinned to commit SHAs |
 | `cargo-deny` | Implemented and run | `deny.toml`, `security.yml` cargo-deny job, all checks pass |
 | Dependency review | Implemented | `dependency-review-action` runs on pull requests |
-| Image scanning | CI implemented, not run locally | Buildx + Trivy job for API and broker; no local Docker daemon |
-| npm/PyPI provenance | Not implemented | Release workflow still uses token-gated publishing if configured |
+| Image scanning | CI verified | Buildx + Trivy job passed for API and broker images |
+| npm provenance / PyPI attestations | Implemented | Release workflow uses `--provenance` and trusted publishing with PEP 740 attestations; registry-side setup still required |
 | Live OIDC/KMS/pen test | Not started | External dependency |
 
 ## Verification snapshot
@@ -48,6 +48,8 @@ is not included.
 - PITR: local WAL archiving + base backup restored to a target timestamp; the post-target row was absent.
 - Multi-replica: two brokers handled 20 concurrent authorizes with a verified 20-entry chain and elected one scheduler leader; two APIs shared the Redis auth limit and delivered one webhook exactly once.
 - Helm chart rendered successfully with `helm template` (3 manifests, no Ingress).
+- CI Security workflow built and Trivy-scanned API and broker images successfully.
+- CI, Security, and SBOM are green on `f297c2bd`.
 - Caddy production config validates.
 - Production compose config validates with a complete secret set.
 - `pnpm install --frozen-lockfile` passes.
@@ -58,11 +60,11 @@ is not included.
    only against the mock OIDC server. Run a real tenant before external publication.
 2. Broker RLS is verified locally, but must still be applied in each target deployment after
    the first broker migration. Control-plane tables remain application-enforced.
-3. Docker images were not built here (no Docker daemon); non-root runtime verification and
-   image scanning must run in CI or on the target host.
-4. Image scanning is wired into CI but was not run here; npm provenance and PyPI trusted
-   publishing remain P2 work. GitHub Actions are pinned, dependency review runs on PRs, and
-   `cargo-deny` passes locally.
+3. Local Docker was unavailable; images were built and Trivy-scanned in CI, so non-root
+   runtime verification is covered there rather than on this machine.
+4. npm provenance and PyPI trusted publishing are implemented in the tag workflow but require
+   registry-side setup before the next release. GitHub Actions are pinned, dependency review
+   runs on PRs, and `cargo-deny` passes locally and in CI.
 5. Real offsite retention and measured restore timing remain operational validation; the local
    logical restore and PITR drills passed.
 6. Generated galleries/archives are at-least-once; webhook consumers must be idempotent.

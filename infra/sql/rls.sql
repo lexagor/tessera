@@ -25,6 +25,10 @@ DECLARE
     ];
 BEGIN
     FOREACH t IN ARRAY tables LOOP
+        IF to_regclass(format('public.%I', t)) IS NULL THEN
+            RAISE NOTICE 'skipping missing table %', t;
+            CONTINUE;
+        END IF;
         EXECUTE format('ALTER TABLE %I ENABLE ROW LEVEL SECURITY', t);
         EXECUTE format('ALTER TABLE %I FORCE ROW LEVEL SECURITY', t);
         EXECUTE format('DROP POLICY IF EXISTS tenant_isolation ON %I', t);

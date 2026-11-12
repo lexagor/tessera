@@ -40,7 +40,8 @@ docker compose -f infra/docker/docker-compose.yml \
 
 Caddy obtains TLS automatically for all three domains and routes:
 `$SITE_DOMAIN` → site/docs, `$APP_DOMAIN` → portal + API, `$VERIFY_DOMAIN` → verifier.
-The broker and internal services have no host ports; only Caddy is public. Evidence packs are
+The marketing domain redirects `/app` and `/login` to the portal, and `/verify` to the
+verifier. The broker and internal services have no host ports; only Caddy is public. Evidence packs are
 stored in the `evidence` volume by default; point `EVIDENCE_DIR` at S3-compatible storage in
 the next phase.
 

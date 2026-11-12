@@ -2,9 +2,18 @@
  * Static site generator: renders the landing page plus every markdown file in `/docs`
  * into a deployable `dist/` (no framework, one dev dependency).
  *
- *   node build.mjs        # -> dist/index.html, dist/docs/*.html, dist/styles.css
+ *   node build.mjs        # -> dist/index.html, dist/docs/*.html, dist/landing.css
  */
-import { readFileSync, writeFileSync, mkdirSync, rmSync, readdirSync, existsSync } from "node:fs";
+import {
+  copyFileSync,
+  cpSync,
+  existsSync,
+  mkdirSync,
+  readFileSync,
+  readdirSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
 import { dirname, join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -17,6 +26,15 @@ const DOCS = join(ROOT, "docs");
 
 const SITE_NAME = "Tessera";
 const TAGLINE = "Proof of action for AI agents";
+const SITE_URL = (process.env.SITE_URL ?? "https://thetessera.xyz").replace(/\/$/, "");
+const APP_URL = `${(process.env.APP_URL ?? "https://app.thetessera.xyz").replace(/\/$/, "")}/`;
+const VERIFY_URL = `${(process.env.VERIFY_URL ?? "https://verify.thetessera.xyz/verify/").replace(/\/$/, "")}/`;
+const GITHUB_URL = (process.env.GITHUB_URL ?? "https://github.com/lexagor/tessera").replace(
+  /\/$/,
+  "",
+);
+const PARTNER_EMAIL = process.env.PARTNER_EMAIL ?? "partners@thetessera.xyz";
+const SECURITY_EMAIL = process.env.SECURITY_EMAIL ?? "security@thetessera.xyz";
 const EXCLUDED_DIRS = new Set(["strategy"]);
 const EXCLUDED_FILES = new Set([
   "fundraise.md",
@@ -90,6 +108,9 @@ function page(title, body, slug) {
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>${escapeHtml(title)} · ${SITE_NAME}</title>
+<meta name="description" content="${escapeHtml(title)} — Tessera documentation." />
+<link rel="canonical" href="${SITE_URL}/docs/${slug}.html" />
+<link rel="icon" href="/favicon.svg" type="image/svg+xml" />
 <link rel="stylesheet" href="../styles.css" />
 </head>
 <body class="doc">
@@ -129,7 +150,58 @@ writeFileSync(
 );
 
 // ── landing + assets ────────────────────────────────────────────────────────
-writeFileSync(join(OUT, "styles.css"), readFileSync(join(HERE, "src", "styles.css")));
-writeFileSync(join(OUT, "index.html"), readFileSync(join(HERE, "src", "index.html")));
+function renderLanding() {
+  const replacements = {
+    SITE_URL,
+    APP_URL,
+    VERIFY_URL,
+    GITHUB_URL,
+    PARTNER_EMAIL,
+    SECURITY_EMAIL,
+  };
+  let html = readFileSync(join(HERE, "src", "index.html"), "utf8");
+  for (const [name, value] of Object.entries(replacements)) {
+    html = html.replaceAll(`%%${name}%%`, value);
+  }
+  return html;
+}
+
+function escapeXml(value) {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&apos;");
+}
+
+writeFileSync(join(OUT, "index.html"), renderLanding());
+copyFileSync(join(HERE, "src", "landing.css"), join(OUT, "landing.css"));
+copyFileSync(join(HERE, "src", "styles.css"), join(OUT, "styles.css"));
+if (existsSync(join(HERE, "public"))) {
+  cpSync(join(HERE, "public"), OUT, { recursive: true });
+}
+
+const sitemapUrls = [
+  `${SITE_URL}/`,
+  `${SITE_URL}/docs/index.html`,
+  ...sources.map((source) => `${SITE_URL}/docs/${source.slug}.html`),
+];
+writeFileSync(
+  join(OUT, "sitemap.xml"),
+  `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+${sitemapUrls.map((url) => `  <url><loc>${escapeXml(url)}</loc></url>`).join("\n")}
+</urlset>
+`,
+);
+writeFileSync(
+  join(OUT, "robots.txt"),
+  `User-agent: *
+Allow: /
+
+Sitemap: ${SITE_URL}/sitemap.xml
+`,
+);
 
 console.log(`built ${sources.length} docs + landing -> ${relative(ROOT, OUT)}/`);

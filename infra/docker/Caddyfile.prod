@@ -1,7 +1,26 @@
 {$SITE_DOMAIN} {
 	encode gzip
 	tls {$ACME_EMAIL}
-	reverse_proxy site:80
+
+	handle /app {
+		redir https://{$APP_DOMAIN}/ 308
+	}
+	handle /app/* {
+		uri strip_prefix /app
+		redir https://{$APP_DOMAIN}{uri} 308
+	}
+	handle /login {
+		redir https://{$APP_DOMAIN}/ 308
+	}
+	handle /verify {
+		redir https://{$VERIFY_DOMAIN}/verify/ 308
+	}
+	handle /verify/* {
+		redir https://{$VERIFY_DOMAIN}{uri} 308
+	}
+	handle {
+		reverse_proxy site:80
+	}
 }
 
 {$APP_DOMAIN} {

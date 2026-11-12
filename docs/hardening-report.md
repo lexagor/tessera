@@ -21,7 +21,7 @@ is not included.
 | Broker redirects/egress | Implemented | `netguard.rs`; no redirects, strict-allowlist DNS checks |
 | DB runtime role | Implemented | `postgres-init/001-app-role.sh`; production superuser startup refusal |
 | API statement/lock timeouts | Implemented | `apps/api/src/db.ts` |
-| Broker RLS script | Available, deployment step | `infra/sql/rls.sql`, `docs/rls.md`, `rls_postgres` test |
+| Broker RLS | Verified locally | `infra/sql/rls.sql`, `docs/rls.md`, `rls_postgres` test, app-role query check |
 | Control-plane RLS | Not implemented | Documented as application-enforced; do not claim otherwise |
 | Scheduler leader | Implemented | Redis lease via `apps/broker/src/scheduler.rs` |
 | Graceful shutdown | Implemented | API SIGTERM drain; broker graceful axum shutdown |
@@ -31,8 +31,9 @@ is not included.
 | Containers | Implemented baseline | non-root API/static Caddy, cap drops, read-only app containers, limits, digest-pinned bases |
 | Helm | Implemented baseline | read-only rootfs, seccomp, no broker Ingress, version `0.1.3` |
 | Actions SHA pinning | Implemented | All workflow `uses:` refs pinned to commit SHAs |
+| `cargo-deny` | Implemented and run | `deny.toml`, `security.yml` cargo-deny job, all checks pass |
 | Dependency review | Implemented | `dependency-review-action` runs on pull requests |
-| Image scanning / cargo deny | Not implemented | Docker daemon unavailable; base images are digest-pinned, but no scanner/cargo-deny yet |
+| Image scanning | CI implemented, not run locally | Buildx + Trivy job for API and broker; no local Docker daemon |
 | npm/PyPI provenance | Not implemented | Release workflow still uses token-gated publishing if configured |
 | Live OIDC/KMS/pen test | Not started | External dependency |
 
@@ -44,6 +45,9 @@ is not included.
 - Redis limiter: allow/allow/deny verified against local Redis.
 - Postgres init role: created and verified as `NOSUPERUSER NOBYPASSRLS`.
 - Backup: logical dump created from local Postgres; restore into a fresh database restored 10 migrations.
+- PITR: local WAL archiving + base backup restored to a target timestamp; the post-target row was absent.
+- Multi-replica: two brokers handled 20 concurrent authorizes with a verified 20-entry chain and elected one scheduler leader; two APIs shared the Redis auth limit and delivered one webhook exactly once.
+- Helm chart rendered successfully with `helm template` (3 manifests, no Ingress).
 - Caddy production config validates.
 - Production compose config validates with a complete secret set.
 - `pnpm install --frozen-lockfile` passes.
@@ -52,19 +56,22 @@ is not included.
 
 1. Live OIDC provider behavior (Okta/Entra/Auth0), account linking, and logout are validated
    only against the mock OIDC server. Run a real tenant before external publication.
-2. Broker RLS is available but must be applied after the first broker migration. Control-plane
-   tables remain application-enforced.
-3. Docker images were not built here (no Docker daemon); image scanning and non-root runtime
-   verification remain to be run in CI/host.
-4. `cargo deny`, image scanning, npm provenance, and PyPI trusted publishing remain P2 work.
-   GitHub Actions are now pinned to commit SHAs and dependency review runs on PRs.
-5. Backup/PITR is documented and logical restore was drilled; WAL archiving/offsite retention
-   and a two-replica load test remain operational validation.
+2. Broker RLS is verified locally, but must still be applied in each target deployment after
+   the first broker migration. Control-plane tables remain application-enforced.
+3. Docker images were not built here (no Docker daemon); non-root runtime verification and
+   image scanning must run in CI or on the target host.
+4. Image scanning is wired into CI but was not run here; npm provenance and PyPI trusted
+   publishing remain P2 work. GitHub Actions are pinned, dependency review runs on PRs, and
+   `cargo-deny` passes locally.
+5. Real offsite retention and measured restore timing remain operational validation; the local
+   logical restore and PITR drills passed.
 6. Generated galleries/archives are at-least-once; webhook consumers must be idempotent.
+7. `paste 1.0.15` is unmaintained transitively through `cel-interpreter`; `cargo-deny` records
+   `RUSTSEC-2024-0436` as an accepted risk until the policy engine dependency changes.
 
 ## Claim boundaries
 
 Safe wording: “production configuration is fail-closed; auth, session, SSRF, webhook, and
-database-role hardening are implemented; broker RLS is available and documented.” Do not claim
+database-role hardening are implemented; broker RLS is verified locally and documented.” Do not claim
 SOC 2, a completed external pen test, control-plane RLS, live IdP/KMS validation, or immutable
 storage.

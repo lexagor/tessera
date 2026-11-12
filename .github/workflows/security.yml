@@ -52,6 +52,52 @@ jobs:
       - name: Audit production dependencies (critical)
         run: pnpm audit --prod --audit-level critical
 
+  cargo-deny:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: EmbarkStudios/cargo-deny-action@3c6349835b2b7b196a839186cb8b78e02f7b5f25 # v2
+        with:
+          manifest-path: apps/broker/Cargo.toml
+          command: check
+          command-arguments: all
+
+  image-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3
+      - name: Build API image
+        uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6
+        with:
+          context: .
+          file: infra/docker/Dockerfile.api
+          load: true
+          tags: tessera-api:scan
+      - name: Scan API image
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          image-ref: tessera-api:scan
+          format: table
+          exit-code: "1"
+          ignore-unfixed: true
+          severity: CRITICAL
+      - name: Build broker image
+        uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6
+        with:
+          context: .
+          file: infra/docker/Dockerfile.broker
+          load: true
+          tags: tessera-broker:scan
+      - name: Scan broker image
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          image-ref: tessera-broker:scan
+          format: table
+          exit-code: "1"
+          ignore-unfixed: true
+          severity: CRITICAL
+
   dependency-review:
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest

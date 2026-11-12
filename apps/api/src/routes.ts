@@ -14,6 +14,7 @@ import { z } from "zod";
 
 import { audit } from "./audit.js";
 import {
+  allowAuthorityMint,
   authorityConfigured,
   mintAuthorityToken,
   verifyAuthorityToken,
@@ -575,6 +576,14 @@ routes.post("/v1/authority-tokens", requireRole("owner", "admin", "member"), asy
   }
   const environment = await currentEnvironment(c, s);
   if (!environment) return fail(c, 404, "not_found", "Create an environment first");
+  if (!allowAuthorityMint(`user:${s.user.id}`, env.TESSERA_AUTHORITY_MINT_PER_MINUTE)) {
+    return fail(
+      c,
+      429,
+      "rate_limited",
+      "Too many authority tokens issued; retry in a minute.",
+    );
+  }
   const body = z
     .object({
       agentId: z.string().min(1).max(128),
@@ -588,6 +597,7 @@ routes.post("/v1/authority-tokens", requireRole("owner", "admin", "member"), asy
     orgId: s.org.id,
     environmentId: environment.id,
     agentId: body.data.agentId,
+    tenant: environment.broker_tenant,
     ttlSeconds: body.data.ttlSeconds,
   });
   await audit({
@@ -729,6 +739,7 @@ routes.post("/v1/authorize", async (c) => {
         orgId: auth.environment.org_id,
         environmentId: auth.environment.id,
         agentId: parsed.data.agentId,
+        tenant: auth.environment.broker_tenant,
       });
       authorizeBody = {
         ...authorizeBody,
@@ -741,6 +752,7 @@ routes.post("/v1/authorize", async (c) => {
         return fail(c, 400, "invalid_request", "This agent key requires authorityToken.");
       }
       verifyAuthorityToken(parsed.data.authorityToken, {
+        tenant: auth.environment.broker_tenant,
         orgId: auth.environment.org_id,
         environmentId: auth.environment.id,
         agentId: parsed.data.agentId,

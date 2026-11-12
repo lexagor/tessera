@@ -207,14 +207,25 @@ recordable without breaking the linear chain.
 caller presents and records the `verificationMethod`.
 
 - With `TESSERA_AUTHORITY_HMAC_SECRET` configured, the broker verifies an HS256
-  `authorityToken` JWT, requires `sub`/`exp`, rejects tokens with an expiry beyond 24 hours or
-  an `iat` in the future, and records `verificationMethod: "hmac-jwt"`. The Tessera control
-  plane mints these tokens from an OIDC-authenticated session: owner-bound agent keys get one
-  automatically per authorize call, and `POST /v1/authority-tokens` provides an explicit
-  per-call token. `TESSERA_AUTHORITY_REQUIRE_TOKEN=1` rejects calls without a token. The
-  token's `sub`, `jti`/`authority_ref`, and `principal_type` override the caller-asserted
-  principal. Mint these tokens short-lived (minutes); the broker caps the accepted expiry at
-  24 hours.
+  `authorityToken` JWT, requires `iss`/`aud`/`sub`/`exp`/`jti`/`tenant`/`agent_id`, and
+  records `verificationMethod: "hmac-jwt"`. The token must be issued by
+  `TESSERA_AUTHORITY_ISSUER` (default `tessera-api`) for
+  `TESSERA_AUTHORITY_AUDIENCE` (default `tessera-broker`), and its `tenant` and `agent_id`
+  must match the broker request. Tokens with an expiry beyond 24 hours or an `iat` in the
+  future are rejected. The token's `sub`, `jti`/`authority_ref`, and `principal_type`
+  override the caller-asserted principal. `TESSERA_AUTHORITY_REQUIRE_TOKEN=1` rejects calls
+  without a token.
+- The broker keeps a `jti` replay cache for the token lifetime. Reusing a token is rejected
+  even within its TTL.
+- Key rotation uses a key id (`kid`). `TESSERA_AUTHORITY_KID` identifies the active key;
+  `TESSERA_AUTHORITY_HMAC_SECRET_PREVIOUS` plus `TESSERA_AUTHORITY_PREVIOUS_KID` keep
+  in-flight tokens valid during a rotation window. Remove the previous secret after the
+  maximum token TTL.
+- The Tessera control plane mints these tokens from an OIDC-authenticated session: owner-bound
+  agent keys get one automatically per authorize call, and `POST /v1/authority-tokens`
+  provides an explicit per-call token. Mint these tokens short-lived (minutes); the broker caps
+  the accepted expiry at 24 hours. Tokens minted before the scoped-claim hardening lack
+  `tenant`/`agent_id` and must be re-minted.
 - Without a configured secret, the method is `user_id` (a caller-asserted binding); the receipt
   proves what the broker recorded, not that an IdP authenticated it. Do not claim IdP
   verification unless the deployment actually performs it.

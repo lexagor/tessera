@@ -170,7 +170,10 @@ test("OIDC login creates a session and mints an OIDC-bound authority token", { s
     body: JSON.stringify({ name: "OIDC Test" }),
   });
   assert.equal(environmentResponse.status, 201);
-  const environment = (await environmentResponse.json()) as { id: string };
+  const environment = (await environmentResponse.json()) as {
+    id: string;
+    broker_tenant: string;
+  };
 
   const tokenResponse = await app.request(
     `/v1/authority-tokens?environmentId=${encodeURIComponent(environment.id)}`,
@@ -183,12 +186,14 @@ test("OIDC login creates a session and mints an OIDC-bound authority token", { s
   assert.equal(tokenResponse.status, 200);
   const minted = (await tokenResponse.json()) as { token: string };
   const claims = verifyAuthorityToken(minted.token, {
+    tenant: environment.broker_tenant,
     orgId: sessionBody.org.id,
     environmentId: environment.id,
     agentId: "oidc-agent",
   });
   assert.equal(claims.sub, sessionBody.user.id);
   assert.equal(claims.authority_ref, `oidc:${sub}`);
+  assert.equal(claims.tenant, environment.broker_tenant);
 
   await db()`DELETE FROM orgs WHERE id = ${sessionBody.org.id}`;
   await closeDb();

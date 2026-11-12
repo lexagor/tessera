@@ -10,8 +10,7 @@ fn app(public_per_minute: u32, trusted: Vec<String>) -> axum::Router {
     let service = Arc::new(tessera_broker::authorize::AuthorizeService {
         policies: Arc::new(tessera_broker::policy::InMemoryPolicyStore::new()),
         issuers: Arc::new(tessera_broker::issuers::IssuerRegistry::new()),
-        authority_hmac_secret: None,
-        authority_require_token: false,
+        authority: Default::default(),
         signer: Arc::new(
             tessera_broker::receipt::ReceiptSigner::from_hex_or_random(
                 Some("0x59c6995e998f97a5a0044966f0945389dc9e86dae88c7a8412f4603b6b78690d"),

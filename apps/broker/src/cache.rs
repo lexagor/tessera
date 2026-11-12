@@ -15,6 +15,13 @@ use crate::error::BrokerError;
 pub trait Cache: Send + Sync {
     async fn get(&self, key: &str) -> Result<Option<String>, BrokerError>;
     async fn put(&self, key: &str, value: &str, ttl_secs: u64) -> Result<(), BrokerError>;
+    /// Insert only when absent. Returns `true` when this caller inserted the value.
+    async fn put_if_absent(
+        &self,
+        key: &str,
+        value: &str,
+        ttl_secs: u64,
+    ) -> Result<bool, BrokerError>;
     async fn delete(&self, key: &str) -> Result<(), BrokerError>;
     async fn clear(&self) -> Result<(), BrokerError>;
 }
@@ -90,6 +97,38 @@ impl Cache for MemoryCache {
         Ok(())
     }
 
+    async fn put_if_absent(
+        &self,
+        key: &str,
+        value: &str,
+        ttl_secs: u64,
+    ) -> Result<bool, BrokerError> {
+        let mut map = self
+            .map
+            .lock()
+            .map_err(|_| BrokerError::Internal("cache poisoned".into()))?;
+        let now = now_secs();
+        if let Some((_, expires_at)) = map.get(key) {
+            if *expires_at > now {
+                return Ok(false);
+            }
+            map.remove(key);
+        }
+        if map.len() >= self.max_entries {
+            map.retain(|_, (_, expires_at)| *expires_at > now);
+            if map.len() >= self.max_entries {
+                return Err(BrokerError::Internal("replay cache is at capacity".into()));
+            }
+        }
+        let expires_at = if ttl_secs == 0 {
+            u64::MAX
+        } else {
+            now + ttl_secs
+        };
+        map.insert(key.to_string(), (value.to_string(), expires_at));
+        Ok(true)
+    }
+
     async fn delete(&self, key: &str) -> Result<(), BrokerError> {
         self.map
             .lock()
@@ -142,6 +181,25 @@ impl Cache for RedisCache {
         Ok(())
     }
 
+    async fn put_if_absent(
+        &self,
+        key: &str,
+        value: &str,
+        ttl_secs: u64,
+    ) -> Result<bool, BrokerError> {
+        let mut conn = self.manager.clone();
+        let result: Option<String> = redis::cmd("SET")
+            .arg(key)
+            .arg(value)
+            .arg("EX")
+            .arg(ttl_secs.max(1))
+            .arg("NX")
+            .query_async(&mut conn)
+            .await
+            .map_err(map)?;
+        Ok(result.is_some())
+    }
+
     async fn delete(&self, key: &str) -> Result<(), BrokerError> {
         use redis::AsyncCommands;
         let mut conn = self.manager.clone();
@@ -175,6 +233,14 @@ mod tests {
         cache.put("b", "2", 60).await.unwrap();
         cache.clear().await.unwrap();
         assert!(cache.get("a").await.unwrap().is_none());
+    }
+
+    #[tokio::test]
+    async fn put_if_absent_is_exclusive() {
+        let cache = MemoryCache::new();
+        assert!(cache.put_if_absent("k", "1", 60).await.unwrap());
+        assert!(!cache.put_if_absent("k", "2", 60).await.unwrap());
+        assert_eq!(cache.get("k").await.unwrap().as_deref(), Some("1"));
     }
 
     #[tokio::test]

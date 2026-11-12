@@ -66,21 +66,75 @@ pub async fn build_service(cfg: &BrokerConfig) -> Result<Arc<AuthorizeService>, 
         None
     };
 
-    let authority_hmac_secret = std::env::var("TESSERA_AUTHORITY_HMAC_SECRET")
-        .ok()
-        .filter(|value| !value.is_empty());
-    if let Some(secret) = &authority_hmac_secret {
-        if secret.len() < 32 {
-            return Err(BrokerError::Invalid(
-                "TESSERA_AUTHORITY_HMAC_SECRET must be at least 32 bytes".into(),
-            ));
-        }
-    }
     let authority_require_token = crate::config::demo_allow_from(
         std::env::var("TESSERA_AUTHORITY_REQUIRE_TOKEN")
             .ok()
             .as_deref(),
     );
+    let authority_kid = std::env::var("TESSERA_AUTHORITY_KID")
+        .ok()
+        .filter(|value| !value.trim().is_empty())
+        .unwrap_or_else(|| "v1".to_string());
+    let previous_kid = std::env::var("TESSERA_AUTHORITY_PREVIOUS_KID")
+        .ok()
+        .filter(|value| !value.trim().is_empty())
+        .unwrap_or_else(|| "v0".to_string());
+    if authority_kid.len() > 64 || previous_kid.len() > 64 {
+        return Err(BrokerError::Invalid(
+            "authority key ids must be 1..=64 bytes".into(),
+        ));
+    }
+    let mut authority_keys = Vec::new();
+    if let Some(secret) = std::env::var("TESSERA_AUTHORITY_HMAC_SECRET")
+        .ok()
+        .filter(|value| !value.is_empty())
+    {
+        if secret.len() < 32 {
+            return Err(BrokerError::Invalid(
+                "TESSERA_AUTHORITY_HMAC_SECRET must be at least 32 bytes".into(),
+            ));
+        }
+        authority_keys.push(crate::authority::AuthorityKey {
+            kid: authority_kid.clone(),
+            secret,
+        });
+    }
+    if let Some(secret) = std::env::var("TESSERA_AUTHORITY_HMAC_SECRET_PREVIOUS")
+        .ok()
+        .filter(|value| !value.is_empty())
+    {
+        if secret.len() < 32 {
+            return Err(BrokerError::Invalid(
+                "TESSERA_AUTHORITY_HMAC_SECRET_PREVIOUS must be at least 32 bytes".into(),
+            ));
+        }
+        if previous_kid == authority_kid {
+            return Err(BrokerError::Invalid(
+                "TESSERA_AUTHORITY_PREVIOUS_KID must differ from TESSERA_AUTHORITY_KID".into(),
+            ));
+        }
+        authority_keys.push(crate::authority::AuthorityKey {
+            kid: previous_kid,
+            secret,
+        });
+    }
+    let authority_replay: Arc<dyn Cache> = match &cfg.redis_url {
+        Some(url) => Arc::new(RedisCache::connect(url).await?),
+        None => Arc::new(MemoryCache::with_capacity(100_000)),
+    };
+    let authority = crate::authority::AuthorityVerifier {
+        keys: authority_keys,
+        issuer: std::env::var("TESSERA_AUTHORITY_ISSUER")
+            .ok()
+            .filter(|value| !value.trim().is_empty())
+            .unwrap_or_else(|| "tessera-api".to_string()),
+        audience: std::env::var("TESSERA_AUTHORITY_AUDIENCE")
+            .ok()
+            .filter(|value| !value.trim().is_empty())
+            .unwrap_or_else(|| "tessera-broker".to_string()),
+        require_token: authority_require_token,
+        replay: authority_replay,
+    };
 
     let secrets = match &cfg.tenant_secret_enc_key {
         Some(key) => Some(Arc::new(crate::secrets::Envelope::from_hex(key)?)),
@@ -232,8 +286,7 @@ pub async fn build_service(cfg: &BrokerConfig) -> Result<Arc<AuthorizeService>, 
         policies,
         issuers: Arc::new(issuers),
         signer,
-        authority_hmac_secret,
-        authority_require_token,
+        authority,
         chain,
         telemetry,
         revocations,

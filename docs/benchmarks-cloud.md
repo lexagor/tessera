@@ -27,10 +27,11 @@ export DATABASE_URL=postgres://...
 export BROKER_PORT=8787
 export TESSERA_DEMO_ALLOW=0
 export TESSERA_AUTHORITY_HMAC_SECRET="$(openssl rand -hex 32)"
-export TESSERA_AUTHORITY_REQUIRE_TOKEN=1
+# Broker-only benchmark: isolate chain/DB/KMS latency. Authority-token verification is
+# exercised separately with one agent and a minted token, or through the API e2e tests.
+export TESSERA_AUTHORITY_REQUIRE_TOKEN=0
 export KMS_SIGNER_URL=https://kms-bridge.internal/sign
 export KMS_SIGNER_ADDRESS=0x...
-export TESSERA_AUTHORITY_TOKEN=... # from POST /v1/authority-tokens; or set REQUIRE=0 below
 export STRIPE_API_BASE=http://mock-stripe:12111
 export STRIPE_RESTRICTED_KEYS="charges_create=rk_test_cloud,refunds_create=rk_test_cloud"
 export RUST_LOG=tessera_broker=warn
@@ -47,21 +48,26 @@ cargo build --release
 # Same-agent chain contention
 BENCH_REQUESTS=2000 BENCH_CONCURRENCY=32 BENCH_AGENTS=1 \
 TESSERA_ENDPOINT=https://broker-bench.example TESSERA_API_KEY=... \
-TESSERA_AUTHORITY_TOKEN=... pnpm bench:concurrency
+pnpm bench:concurrency
 
 # Multiple independent agents
 BENCH_REQUESTS=4000 BENCH_CONCURRENCY=64 BENCH_AGENTS=32 \
 TESSERA_ENDPOINT=https://broker-bench.example TESSERA_API_KEY=... \
-TESSERA_AUTHORITY_TOKEN=... pnpm bench:concurrency
+pnpm bench:concurrency
 
 # HTTP latency baseline
 BENCH_REQUESTS=1000 BENCH_CONCURRENCY=8 \
 TESSERA_ENDPOINT=https://broker-bench.example TESSERA_API_KEY=... \
-TESSERA_AUTHORITY_TOKEN=... pnpm bench:http
+pnpm bench:http
 
 # Offline verification on the load generator
 pnpm bench:verify
 ```
+
+To measure authority verification overhead, use one agent with
+`TESSERA_AUTHORITY_REQUIRE_TOKEN=1`, mint a token with `POST /v1/authority-tokens` for that
+agent, and pass it as `TESSERA_AUTHORITY_TOKEN` to `bench:concurrency`. A single token cannot
+cover the 32-agent run because the broker now checks tenant/agent scope and `jti` replay.
 
 For each run, record the JSON output and check:
 

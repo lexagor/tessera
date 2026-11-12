@@ -92,7 +92,11 @@ test("human authority: owner-bound and per-call tokens reach the broker", { skip
   await migrate();
   const { app } = await import("../src/index.js");
   const authModule = await import("../src/auth.js");
-  const { verifyAuthorityToken } = await import("../src/authority.js");
+  const { allowAuthorityMint, verifyAuthorityToken } = await import("../src/authority.js");
+  const mintKey = `mint-test-${Date.now()}`;
+  assert.equal(allowAuthorityMint(mintKey, 2), true);
+  assert.equal(allowAuthorityMint(mintKey, 2), true);
+  assert.equal(allowAuthorityMint(mintKey, 2), false);
 
   const user = await authModule.findOrCreateUser({
     email: `authority-${Date.now()}@example.com`,
@@ -109,7 +113,7 @@ test("human authority: owner-bound and per-call tokens reach the broker", { skip
     body: JSON.stringify({ name: `authority-${Date.now()}` }),
   });
   assert.equal(envCreated.status, 201);
-  const environment = (await envCreated.json()) as { id: string };
+  const environment = (await envCreated.json()) as { id: string; broker_tenant: string };
 
   const ownerKeyCreated = await app.request("/v1/agent-keys", {
     method: "POST",
@@ -148,6 +152,7 @@ test("human authority: owner-bound and per-call tokens reach the broker", { skip
   assert.ok(lastAuthorizeBody?.authorityToken);
   assert.equal(lastAuthorizeBody?.userId, user.id);
   const ownerClaims = verifyAuthorityToken(lastAuthorizeBody!.authorityToken, {
+    tenant: environment.broker_tenant,
     orgId: org.id,
     environmentId: environment.id,
     agentId: "authority-agent",
@@ -155,6 +160,21 @@ test("human authority: owner-bound and per-call tokens reach the broker", { skip
   assert.equal(ownerClaims.sub, user.id);
   assert.equal(ownerClaims.authority_ref, `oidc:${user.oidc_subject}`);
   assert.equal(ownerClaims.environment_id, environment.id);
+  assert.equal(ownerClaims.tenant, environment.broker_tenant);
+  const header = JSON.parse(
+    Buffer.from(lastAuthorizeBody!.authorityToken.split(".")[0]!, "base64url").toString("utf8"),
+  ) as { kid?: string };
+  assert.equal(header.kid, "v1");
+  assert.throws(
+    () =>
+      verifyAuthorityToken(lastAuthorizeBody!.authorityToken, {
+        tenant: "other-tenant",
+        orgId: org.id,
+        environmentId: environment.id,
+        agentId: "authority-agent",
+      }),
+    /different tenant/,
+  );
 
   const tokenKeyCreated = await app.request("/v1/agent-keys", {
     method: "POST",

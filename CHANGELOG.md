@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased
+
+### Security
+
+- Authority tokens now carry and validate `tenant`/`agent_id` scope, enforce `iss`/`aud`,
+  require a `jti`, and reject replay through a Redis-or-memory cache.
+- Added a `kid` keyring with optional previous-secret overlap for safe HMAC rotation.
+- Added a per-user rate limit to `POST /v1/authority-tokens`.
+
 ## 0.1.3 — 2026-11-12
 
 ### Fixed

@@ -18,7 +18,7 @@ trusting Tessera or the vendor.
 | Credentials | Short-lived, scoped, `argsHash`-bound; broker-held grants for Stripe |
 | Evidence | EIP-712 signed authorization + linked outcome records; broker-observed proxy outcomes; hash chains |
 | Verification | Offline verifier for v1/v2 receipts, action pairs, chains, and Merkle proofs |
-| Human authority | OIDC session can bind an agent key; the API mints short-lived HS256 tokens and the broker records `verificationMethod: hmac-jwt` |
+| Human authority | OIDC session can bind an agent key; the API mints short-lived HS256 tokens; the broker verifies issuer/audience, tenant/agent scope, expiry, and replay, then records `hmac-jwt` |
 | Tenancy | Tenant-scoped broker stores; Postgres RLS available for shared databases |
 | Secrets | Provider secrets stay in the broker; Stripe grants envelope-encrypted at rest |
 | Keys | Per-environment broker keys encrypted in the control plane; agent keys hashed |
@@ -51,6 +51,9 @@ account. Revoking the link does not alter the underlying records.
   OIDC/JWKS authority-token verification is the next step beyond the current API-minted HS256
   mode; live Okta/Entra/Auth0 validation is still required before claiming a specific IdP.
 - SAML/SCIM, approvals, and multi-region HA are post-pilot work.
+- The authority-token replay cache is Redis-backed when `REDIS_URL` is set; without Redis it
+  is per-process, so multi-replica deployments must configure Redis for cross-replica replay
+  protection.
 - The control plane is deployed on a single VPS for the first design partners.
 
 ## Subprocessors and infrastructure

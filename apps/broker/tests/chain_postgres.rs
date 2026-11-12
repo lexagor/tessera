@@ -58,8 +58,7 @@ fn service(store: PostgresChainStore) -> Arc<AuthorizeService> {
     Arc::new(AuthorizeService {
         policies: Arc::new(InMemoryPolicyStore::new()),
         issuers: Arc::new(issuers),
-        authority_hmac_secret: None,
-        authority_require_token: false,
+        authority: Default::default(),
         signer,
         chain: Arc::new(store),
         telemetry: Arc::new(tessera_broker::telemetry::MemoryTelemetryStore::new()),

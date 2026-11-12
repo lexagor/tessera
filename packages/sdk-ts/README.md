@@ -1,13 +1,13 @@
-# @tessera/sdk-ts
+# @tessera-verify/sdk-ts
 
 Broker ephemeral credentials for agent tool calls.
 
 ```bash
-npm install @tessera/sdk-ts
+npm install @tessera-verify/sdk-ts
 ```
 
 ```ts
-import { createClient, wrapFn } from "@tessera/sdk-ts";
+import { createClient, wrapFn } from "@tessera-verify/sdk-ts";
 
 const tessera = createClient({
   endpoint: "https://api.tessera.example",

@@ -4,7 +4,7 @@ MCP middleware that authorizes every `tools/call` through Tessera and injects th
 credential. Broker-held grants are observed and recorded by the broker.
 
 ```ts
-import { createClient } from "@tessera/sdk-ts";
+import { createClient } from "@tessera-verify/sdk-ts";
 import { wrapMcpDispatcher } from "@tessera/mcp-adapter";
 
 const dispatch = wrapMcpDispatcher(client, server.dispatch, {

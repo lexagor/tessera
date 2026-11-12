@@ -15,28 +15,25 @@ Keep the strategy/fundraise/interview docs out of the public tree (see `.gitigno
 
 ## 2. npm packages
 
-The `@tessera-verify` scope must exist for `receipt-schema` and `verify`. The remaining SDK and
-adapter packages still use `@tessera`; rename them before publishing those. Build and dry-run
-first:
+The `@tessera-verify` scope must exist. `receipt-schema`, `verify`, `sdk-ts`, and `langchain`
+are published under it; `mcp-adapter` and `agent-receipts` remain internal until renamed. Build
+and dry-run first:
 
 ```bash
 pnpm install
 pnpm --filter @tessera-verify/receipt-schema build
 pnpm --filter @tessera-verify/receipt-schema publish --dry-run --no-git-checks --access public
-pnpm --filter @tessera/sdk-ts build
-pnpm --filter @tessera/sdk-ts publish --dry-run --no-git-checks --access public
+pnpm --filter @tessera-verify/sdk-ts build
+pnpm --filter @tessera-verify/sdk-ts publish --dry-run --no-git-checks --access public
 pnpm --filter @tessera-verify/verify build
 pnpm --filter @tessera-verify/verify publish --dry-run --no-git-checks --access public
-pnpm --filter @tessera/mcp-adapter build
-pnpm --filter @tessera/mcp-adapter publish --dry-run --no-git-checks --access public
-pnpm --filter @tessera/langchain build
-pnpm --filter @tessera/langchain publish --dry-run --no-git-checks --access public
-pnpm --filter @tessera/agent-receipts build
-pnpm --filter @tessera/agent-receipts publish --dry-run --no-git-checks --access public
+pnpm --filter @tessera-verify/langchain build
+pnpm --filter @tessera-verify/langchain publish --dry-run --no-git-checks --access public
 ```
 
-Publish `@tessera-verify/receipt-schema` first. The tag workflow (`.github/workflows/release.yml`)
-publishes all packages and the Python SDK when a `v*` tag is pushed.
+Publish in order: `receipt-schema`, `verify`, `sdk-ts`, `langchain`. The tag workflow
+(`.github/workflows/release.yml`) stages them when a `v*` tag is pushed; approve the staged
+versions with 2FA from npmjs.com or `npm stage approve <stage-id>`.
 
 ## 3. Verifier
 

@@ -67,10 +67,10 @@ cd apps/broker
 TEST_DATABASE_URL=postgres://user@127.0.0.1:5432/tessera_test cargo test
 cargo clippy --all-targets -- -D warnings && cargo fmt --check
 
-pnpm --filter @tessera-verify/receipt-schema test && pnpm --filter @tessera/sdk-ts test
+pnpm --filter @tessera-verify/receipt-schema test && pnpm --filter @tessera-verify/sdk-ts test
 pnpm --filter @tessera-verify/verify test
 pnpm --filter @tessera/mcp-adapter test
-pnpm --filter @tessera/langchain test
+pnpm --filter @tessera-verify/langchain test
 pnpm --filter @tessera/agent-receipts test
 TEST_DATABASE_URL=postgres://user@127.0.0.1:5432/tessera_test pnpm --filter @tessera/api test
 pnpm --filter @tessera/portal test

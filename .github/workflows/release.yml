@@ -1,0 +1,54 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  npm:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          registry-url: https://registry.npmjs.org
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Use staged-publishing capable npm
+        run: npm install --global npm@11.16.0
+      - name: Build and pack
+        run: |
+          mkdir -p /tmp/tessera-stage
+          pnpm --filter @tessera-verify/receipt-schema build
+          pnpm --filter @tessera-verify/verify build
+          pnpm --filter @tessera-verify/sdk-ts build
+          pnpm --filter @tessera-verify/langchain build
+          pnpm -C packages/receipt-schema pack --pack-destination /tmp/tessera-stage
+          pnpm -C packages/verifier pack --pack-destination /tmp/tessera-stage
+          pnpm -C packages/sdk-ts pack --pack-destination /tmp/tessera-stage
+          pnpm -C packages/langchain pack --pack-destination /tmp/tessera-stage
+      - name: Stage receipt schema
+        run: npm stage publish /tmp/tessera-stage/tessera-verify-receipt-schema-*.tgz --tag latest --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - name: Stage verifier
+        run: npm stage publish /tmp/tessera-stage/tessera-verify-verify-*.tgz --tag latest --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - name: Stage SDK
+        run: npm stage publish /tmp/tessera-stage/tessera-verify-sdk-ts-*.tgz --tag latest --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - name: Stage LangChain adapter
+        run: npm stage publish /tmp/tessera-stage/tessera-verify-langchain-*.tgz --tag latest --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

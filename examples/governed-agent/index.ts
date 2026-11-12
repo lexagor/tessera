@@ -10,7 +10,7 @@
  *   BROKER_PORT=8787 TESSERA_DEMO_ALLOW=1 tessera-broker &
  *   TESSERA_API_KEY=tsk_demo_local pnpm start
  */
-import { createClient, hashResult, type EphemeralCredential } from "@tessera/sdk-ts";
+import { createClient, hashResult, type EphemeralCredential } from "@tessera-verify/sdk-ts";
 
 const tessera = createClient({
   endpoint: process.env.TESSERA_ENDPOINT ?? "http://localhost:8787",

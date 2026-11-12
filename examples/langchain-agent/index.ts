@@ -7,8 +7,8 @@
 import { DynamicStructuredTool } from "@langchain/core/tools";
 import { z } from "zod";
 
-import { wrapLangChainTool } from "@tessera/langchain";
-import { createClient } from "@tessera/sdk-ts";
+import { wrapLangChainTool } from "@tessera-verify/langchain";
+import { createClient } from "@tessera-verify/sdk-ts";
 
 const tessera = createClient({
   endpoint: process.env.TESSERA_ENDPOINT ?? "http://localhost:8787",

@@ -19,7 +19,7 @@
   },
   "dependencies": {
     "@tessera-verify/receipt-schema": "workspace:*",
-    "@tessera/sdk-ts": "workspace:*"
+    "@tessera-verify/sdk-ts": "workspace:*"
   },
   "devDependencies": {
     "typescript": "^5.6.3"

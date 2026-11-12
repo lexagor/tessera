@@ -1,14 +1,13 @@
 # Publishing
 
-How to release the SDKs and verifier. `receipt-schema` is a dependency of `sdk-ts` and must
-be published first; `langchain` and `mcp-adapter` depend on `sdk-ts` (CI does this automatically
-on tag).
+How to release the SDKs and verifier. `receipt-schema` is a dependency of `sdk-ts`, `verify`,
+and `langchain`; publish it first (the release workflow does this automatically on tag).
+`mcp-adapter` and `agent-receipts` remain internal until they are moved under the publishable
+scope.
 
 ## Prerequisites
 
-- An npm org that owns the scope used by each package. The receipt schema and verifier are
-  published under `@tessera-verify`; the SDK/adapters still use `@tessera` and must be renamed
-  before their release.
+- An npm org that owns the `@tessera-verify` scope.
 - Repository secrets: `NPM_TOKEN` and `PYPI_TOKEN`.
 - Versions bumped in `packages/*/package.json` and `packages/sdk-py/pyproject.toml`.
 
@@ -17,19 +16,17 @@ on tag).
 ```bash
 pnpm install
 pnpm typecheck
-pnpm --filter @tessera-verify/receipt-schema test && pnpm --filter @tessera/sdk-ts test
+pnpm --filter @tessera-verify/receipt-schema test && pnpm --filter @tessera-verify/sdk-ts test
 
 # dry run to inspect the tarball contents
 pnpm --filter @tessera-verify/receipt-schema publish --dry-run --no-git-checks --access public
-pnpm --filter @tessera/sdk-ts publish --dry-run --no-git-checks --access public
+pnpm --filter @tessera-verify/sdk-ts publish --dry-run --no-git-checks --access public
 pnpm --filter @tessera-verify/verify publish --dry-run --no-git-checks --access public
-pnpm --filter @tessera/mcp-adapter publish --dry-run --no-git-checks --access public
-pnpm --filter @tessera/langchain publish --dry-run --no-git-checks --access public
-pnpm --filter @tessera/agent-receipts publish --dry-run --no-git-checks --access public
+pnpm --filter @tessera-verify/langchain publish --dry-run --no-git-checks --access public
 ```
 
-`pnpm publish` rewrites the `workspace:*` dependency on `@tessera-verify/receipt-schema` to the
-published version, so `receipt-schema` must exist at that version before `sdk-ts` is published.
+`pnpm publish` rewrites `workspace:*` dependencies to the published versions, so publish in
+this order: `receipt-schema`, `verify`, `sdk-ts`, `langchain`.
 
 ## Python / PyPI
 
@@ -45,12 +42,19 @@ twine upload packages/sdk-py/dist/*
 Pushing a `v*` tag runs `.github/workflows/release.yml`:
 
 ```bash
-git tag v0.1.0 && git push origin v0.1.0
+git tag v0.1.1 && git push origin v0.1.1
 ```
 
-It publishes `@tessera-verify/receipt-schema`, `@tessera/sdk-ts`, `@tessera-verify/verify`,
-`@tessera/mcp-adapter`, `@tessera/langchain`, and `@tessera/agent-receipts` to npm, and the
-Python package to PyPI. A CycloneDX SBOM is produced by `sbom.yml`.
+It stages `@tessera-verify/receipt-schema`, `@tessera-verify/verify`,
+`@tessera-verify/sdk-ts`, and `@tessera-verify/langchain` in the npm staged-publishing queue.
+A maintainer must approve the staged versions with 2FA:
+
+```bash
+npm stage list
+npm stage approve <stage-id>
+```
+
+The Python SDK remains separately released through PyPI.
 
 ## Checklist
 

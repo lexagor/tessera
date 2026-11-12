@@ -52,6 +52,9 @@ Legend: **impl** = primary implementation; **tests** = suites that exercise it.
 | 42 | Proxy outcomes are broker-observed and linked to their authorization after later actions | `authorize.rs` (`proxy_scoped`, `record_with_source`), `issuers/stripe.rs` (`bind`), `receipt.rs` (`authorizationReceiptId`, `outcome.source`) | `proxy_e2e::proxy_records_a_broker_observed_outcome`, `proxy_e2e::late_proxy_outcome_links_to_its_authorization`, `authorize_e2e::record_uses_indexed_lookups`, `chain_postgres::postgres_chain_*` |
 | 43 | Authority transitions are signed and hash-linked | `authorize.rs` (`revoke`, `append_ledger_event`), `key_events.rs`, `http.rs` (`/v1/transitions`) | `authorize_e2e::revocation_appends_a_signed_authority_transition`, `authorize_e2e::http_step_up_*`, `key_events::tests::*` |
 | 44 | Agent Receipts / W3C VC export is signed and standards-shaped | `packages/agent-receipts`, `apps/api` (`/v1/actions/:id/agent-receipt`) | `agent-receipts/test/*`, `apps/api/test/routes.test.ts` |
+| 45 | KMS/HSM signing failure fails closed with no unsigned fallback | `signer.rs` (`HttpKmsSigner`), `receipt.rs` | `kms_signer::kms_server_error_does_not_sign`, `kms_signer::kms_malformed_signature_does_not_sign`, `kms_signer::kms_timeout_is_bounded_and_fails_closed` |
+| 46 | Provider transport timeout is bounded and fail-closed | `proxy.rs`, `authorize.rs` (`proxy_scoped`) | `proxy_e2e::proxy_provider_timeout_fails_closed` |
+| 47 | API plan limit blocks before broker/KMS work | `apps/api/src/routes.ts` (`/v1/authorize`) | `apps/api/test/routes.test.ts` (plan-limit assertion) |
 | 15 | Supply-chain / release hygiene | `.github/workflows/security.yml`, `sbom.yml`, `release.yml` | CI (gitleaks, cargo/npm audit, CycloneDX SBOM) |
 
 ## Fuzz coverage

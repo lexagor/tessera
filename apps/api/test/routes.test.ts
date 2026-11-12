@@ -571,6 +571,28 @@ test("control plane routes: auth, actions, evidence, billing, webhooks", { skip:
   assert.equal((await app.request(`/v1/public/verify/${token}`)).status, 200);
   assert.equal((await app.request(`/v1/verification-links/${linkBody.id}`, { method: "DELETE", headers: auth })).status, 200);
 
+  await db()`UPDATE orgs SET plan = 'developer' WHERE id = ${meBody.org.id}`;
+  await db()`
+    INSERT INTO usage_daily (org_id, environment_id, day, actions, allowed, denied)
+    VALUES (${meBody.org.id}, ${environment.id}, current_date, 1000, 999, 1)
+    ON CONFLICT (org_id, environment_id, day) DO UPDATE SET
+      actions = EXCLUDED.actions, allowed = EXCLUDED.allowed, denied = EXCLUDED.denied
+  `;
+  const overLimit = await app.request("/v1/authorize", {
+    method: "POST",
+    headers: { "content-type": "application/json", "x-api-key": key.key },
+    body: JSON.stringify({
+      agentId: "billing-agent",
+      userId: "user_1",
+      tool: "stripe.refunds.create",
+      intent: "refund",
+      args: { charge: "ch_1" },
+    }),
+  });
+  assert.equal(overLimit.status, 402);
+  assert.equal(((await overLimit.json()) as { error: { code: string } }).error.code, "plan_limit_exceeded");
+  await db()`UPDATE orgs SET plan = 'enterprise' WHERE id = ${meBody.org.id}`;
+
   assert.equal(
     (await app.request(`/v1/agent-keys/${key.id}`, { method: "DELETE", headers: auth })).status,
     200,

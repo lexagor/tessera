@@ -9,6 +9,7 @@ import {
   createSession,
   destroySession,
   findMembership,
+  findOidcUser,
   oidcCookieName,
   oidcCookieOptions,
   requireSession,
@@ -129,12 +130,13 @@ authRoutes.get("/auth/callback", async (c) => {
   const domainAllowed =
     allowedDomains.length > 0 &&
     allowedDomains.some((domain) => email.endsWith(`@${domain}`));
+  const existing = await findOidcUser({ issuer: config.issuer, subject });
   let bootstrapAllowed = false;
-  if (env.BOOTSTRAP_EMAIL?.toLowerCase() === email) {
+  if (!existing && env.BOOTSTRAP_EMAIL?.toLowerCase() === email) {
     const users = await db()`SELECT 1 FROM users LIMIT 1`;
     bootstrapAllowed = users.length === 0;
   }
-  if (invite.length === 0 && !domainAllowed && !bootstrapAllowed) {
+  if (!existing && invite.length === 0 && !domainAllowed && !bootstrapAllowed) {
     return c.json({ error: "This email is not invited to this workspace" }, 403);
   }
   let user: Awaited<ReturnType<typeof upsertOidcUser>>;

@@ -1,0 +1,9 @@
+[project]
+name = "tessera-pydantic-ai-example"
+version = "0.1.0"
+description = "PydanticAI tool example with Tessera brokering"
+requires-python = ">=3.10"
+dependencies = [
+  "pydantic-ai>=0.0.30",
+  "tessera-verify>=0.1.2",
+]

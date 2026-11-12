@@ -64,8 +64,11 @@ apps/site     marketing, docs, pricing, trust center
   SHA-256 hashes with a display prefix; raw keys are shown once.
 - **Broker:** internal only. The control plane holds one broker key per environment,
   encrypted with `CONTROL_PLANE_ENC_KEY`; the broker is not exposed publicly.
-- **Authority tokens:** the broker can verify tenant-minted HS256 JWTs
-  (`TESSERA_AUTHORITY_HMAC_SECRET`), binding the delegating principal to v2 records.
+- **Authority tokens:** the control plane mints short-lived HS256 JWTs for authenticated OIDC
+  sessions (`TESSERA_AUTHORITY_HMAC_SECRET`). Agent keys can be owner-bound (the API mints per
+  request) or token-delegated (the agent supplies a per-call token from
+  `POST /v1/authority-tokens`). The broker verifies the token and records
+  `verificationMethod: "hmac-jwt"`, binding the delegating principal to v2 records.
 
 ## Webhooks
 
@@ -77,8 +80,9 @@ Deliveries are persisted, retried with backoff, and signed with HMAC-SHA256 over
 ## Control-plane data
 
 Postgres tables: `orgs`, `users`, `memberships`, `invites`, `sessions`, `environments`,
-`agents`, `agent_keys`, `actions`, `usage_daily`, `verification_links`, `evidence_packs`,
-`audit_log`, and billing tables added with the billing phase.
+`agents`, `agent_keys` (including `delegation_mode` and `delegated_user_id`), `actions`,
+`usage_daily`, `verification_links`, `evidence_packs`, `audit_log`, and billing tables added
+with the billing phase.
 
 The control plane is a read model over broker evidence, not a replacement for it. Receipts and
 chains remain authoritative in the broker; `actions` is rebuildable from broker chains.

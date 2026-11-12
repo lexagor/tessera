@@ -43,6 +43,7 @@ export class TesseraClient {
   async authorize(input: AuthorizeInput, options?: CallOptions): Promise<AuthorizeResult> {
     const principal = input.principal ?? this.config.principal;
     const agentMeta = input.agentMeta ?? this.config.agentMeta;
+    const authorityToken = input.authorityToken ?? this.config.authorityToken;
     const res = await fetch(`${this.config.endpoint}/v1/authorize`, {
       method: "POST",
       headers: this.mutationHeaders(options),
@@ -58,7 +59,7 @@ export class TesseraClient {
         ...(input.requestedScopes ? { requestedScopes: input.requestedScopes } : {}),
         ...(input.riskClass ? { riskClass: input.riskClass } : {}),
         ...(input.declaredPurpose ? { declaredPurpose: input.declaredPurpose } : {}),
-        ...(input.authorityToken ? { authorityToken: input.authorityToken } : {}),
+        ...(authorityToken ? { authorityToken } : {}),
       }),
     });
     if (!res.ok) throw new Error(`tessera authorize failed: ${res.status}`);

@@ -92,7 +92,7 @@ function renderTrust(
     signer: expectedSigner(),
   });
   trustPanel.hidden = false;
-  trustSummary.textContent = view.summary;
+  trustSummary.textContent = `${view.enforcement.label}. ${view.enforcement.detail} ${view.summary}`;
   trustFlow.innerHTML = view.entities
     .map(
       (entity, index) => `<div class="trust-step ${entity.state}">

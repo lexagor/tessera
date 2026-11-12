@@ -45,7 +45,9 @@ produces for each.
   executed correctly.
 - The evidence pack maps records to controls; it is not a certification or legal opinion.
 - SOC 2 Type I/II and a third-party pen test are on the roadmap, not current claims.
-- The v2 `principal` binding is caller-attested by default. With an authority HMAC secret
-  configured, the broker verifies a tenant-minted HS256 `authorityToken` and records
-  `verificationMethod: "hmac-jwt"`. OIDC/JWKS verification is the next step; the
-  `verificationMethod` field always records which mode was used.
+- The v2 `principal` binding is caller-attested unless an authority token is present. With an
+  authority HMAC secret configured, the API derives short-lived HS256 tokens from the
+  OIDC-authenticated session (owner-bound agent keys) or an explicit per-call token; the broker
+  verifies the token and records `verificationMethod: "hmac-jwt"`. The `verificationMethod`
+  field always records which mode was used. Direct broker-side OIDC/JWKS verification and live
+  IdP validation are not claimed yet.

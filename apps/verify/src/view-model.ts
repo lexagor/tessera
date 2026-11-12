@@ -9,11 +9,18 @@ export interface TrustEntity {
   state: "valid" | "warning" | "invalid" | "missing";
 }
 
+export interface EnforcementView {
+  level: "Level 1" | "Level 2" | "Caller-asserted";
+  label: string;
+  detail: string;
+}
+
 export interface TrustView {
   entities: TrustEntity[];
   summary: string;
   decision: string;
   outcome: string;
+  enforcement: EnforcementView;
 }
 
 type LooseReceipt = Record<string, any>;
@@ -143,11 +150,37 @@ export function buildTrustView(input: {
   }
   const decision = String(authorization.authorization?.decision ?? "unknown");
   const outcomeStatus = String(outcomeRef.status ?? "not recorded");
+  const brokerObserved = outcomeRef.source === "broker_observed";
+  const brokerHeld = credential.credentialType === "broker_grant" || Boolean(credential.thumbprint);
+  const enforcement: EnforcementView = brokerObserved
+    ? {
+        level: "Level 1",
+        label: "Level 1 · broker-proxied",
+        detail: "The broker forwarded the call and signed the observed outcome.",
+      }
+    : brokerHeld
+      ? {
+          level: "Level 1",
+          label: "Level 1 · broker-held grant",
+          detail: "The provider credential stayed in the broker; no observed outcome is included.",
+        }
+      : credential.issuer
+        ? {
+            level: "Level 2",
+            label: "Level 2 · scoped credential",
+            detail: "The broker authorized a provider-scoped credential; the outcome is caller-reported.",
+          }
+        : {
+            level: "Caller-asserted",
+            label: "Caller-asserted authority",
+            detail: "The principal and outcome are not backed by a verified authority token.",
+          };
   return {
     entities,
-    summary: `${entities[3]?.title ?? "The agent"} acted for ${entities[0]?.title ?? "a principal"} through ${entities[4]?.title ?? "a tool"}.`,
+    summary: `${enforcement.label}. ${entities[3]?.title ?? "The agent"} acted for ${entities[0]?.title ?? "a principal"} through ${entities[4]?.title ?? "a tool"}.`,
     decision,
     outcome: outcomeStatus,
+    enforcement,
   };
 }
 

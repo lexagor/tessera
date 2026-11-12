@@ -89,4 +89,4 @@ Fintech, dev-tool, and vertical-agent companies are the best first fits.
 5. How do you revoke access today if a key leaks?
 6. What would make this a must-have rather than a nice-to-have?
 
-**Contact:** partners@tessera.dev
+**Contact:** partners@thetessera.xyz

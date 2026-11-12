@@ -197,6 +197,40 @@ async fn postgres_chain_authorize_record_persist_and_verify() {
 }
 
 #[tokio::test]
+async fn postgres_chain_handles_same_agent_concurrency() {
+    let Some(url) = db_url() else {
+        eprintln!("skipping postgres test: TEST_DATABASE_URL not set");
+        return;
+    };
+    let _guard = DB_LOCK.lock().await;
+
+    let store = PostgresChainStore::new(&url).unwrap();
+    store.migrate().await.unwrap();
+    store.truncate().await.unwrap();
+    let svc = service(store);
+
+    let mut handles = Vec::new();
+    for i in 0..48i64 {
+        let svc = svc.clone();
+        handles.push(tokio::spawn(async move {
+            svc.authorize("acme", request("concurrent", 100 + i))
+                .await
+                .unwrap();
+        }));
+    }
+    for handle in handles {
+        handle.await.unwrap();
+    }
+
+    assert_eq!(
+        svc.chain.len("acme", "concurrent").await.unwrap(),
+        48,
+        "every concurrent authorization should append exactly once"
+    );
+    assert!(svc.verify_chain("acme", "concurrent").await.unwrap());
+}
+
+#[tokio::test]
 async fn postgres_policy_crud() {
     let Some(url) = db_url() else {
         eprintln!("skipping postgres test: TEST_DATABASE_URL not set");

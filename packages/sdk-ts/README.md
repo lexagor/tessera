@@ -10,7 +10,7 @@ npm install @tessera-verify/sdk-ts
 import { createClient, wrapFn } from "@tessera-verify/sdk-ts";
 
 const tessera = createClient({
-  endpoint: "https://api.tessera.example",
+  endpoint: "https://app.thetessera.xyz",
   apiKey: process.env.TESSERA_API_KEY!,
   agentId: "billing-agent",
   userId: "user_42",
@@ -34,3 +34,8 @@ const refund = wrapFn(
 
 For broker-held grants, the broker records the outcome it observes; the SDK does not
 self-report it. Direct credentials still call `record()` after execution.
+
+If an agent key uses per-call delegation, pass the short-lived token from
+`POST /v1/authority-tokens` as `authorityToken` in the client config or in `wrapFn` metadata.
+Owner-bound agent keys are minted automatically by the control plane; do not pass a token for
+those keys.

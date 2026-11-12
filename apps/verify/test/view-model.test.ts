@@ -23,6 +23,7 @@ test("builds the chain-of-trust entities from a signed receipt", () => {
   assert.equal(view.entities.find((entity) => entity.id === "agent")?.title, "billing-agent");
   assert.equal(view.entities.find((entity) => entity.id === "tool")?.title, "stripe.refunds.create");
   assert.equal(view.entities.find((entity) => entity.id === "signature")?.state, "valid");
+  assert.equal(view.enforcement.level, "Level 1");
   assert.match(view.summary, /billing-agent/);
 });
 

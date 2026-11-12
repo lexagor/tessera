@@ -16,6 +16,7 @@
     "test": "turbo run test",
     "clean": "turbo run clean && rm -rf node_modules",
     "bench:http": "node scripts/bench-http.mjs",
+    "bench:concurrency": "node scripts/bench-concurrency.mjs",
     "bench:verify": "pnpm --filter @tessera-verify/verify bench"
   },
   "devDependencies": {

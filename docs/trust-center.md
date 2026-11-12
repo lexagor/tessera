@@ -18,7 +18,7 @@ trusting Tessera or the vendor.
 | Credentials | Short-lived, scoped, `argsHash`-bound; broker-held grants for Stripe |
 | Evidence | EIP-712 signed authorization + linked outcome records; broker-observed proxy outcomes; hash chains |
 | Verification | Offline verifier for v1/v2 receipts, action pairs, chains, and Merkle proofs |
-| Human authority | Optional HS256 authority-token verification; `verificationMethod` recorded |
+| Human authority | OIDC session can bind an agent key; the API mints short-lived HS256 tokens and the broker records `verificationMethod: hmac-jwt` |
 | Tenancy | Tenant-scoped broker stores; Postgres RLS available for shared databases |
 | Secrets | Provider secrets stay in the broker; Stripe grants envelope-encrypted at rest |
 | Keys | Per-environment broker keys encrypted in the control plane; agent keys hashed |
@@ -47,7 +47,9 @@ account. Revoking the link does not alter the underlying records.
 ## Current limitations
 
 - SOC 2 Type I/II and a third-party pen test are on the roadmap, not current claims.
-- OIDC/JWKS authority verification is the next step beyond the current HS256 mode.
+- OIDC session login is implemented and tested against a mock issuer. Direct broker-side
+  OIDC/JWKS authority-token verification is the next step beyond the current API-minted HS256
+  mode; live Okta/Entra/Auth0 validation is still required before claiming a specific IdP.
 - SAML/SCIM, approvals, and multi-region HA are post-pilot work.
 - The control plane is deployed on a single VPS for the first design partners.
 
@@ -60,4 +62,4 @@ account. Revoking the link does not alter the underlying records.
 
 ## Contact
 
-Security questions: `security@tessera.dev`
+Security questions: `security@thetessera.xyz`

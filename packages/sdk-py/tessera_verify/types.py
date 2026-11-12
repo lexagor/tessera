@@ -33,6 +33,7 @@ class TesseraConfig:
     default_ttl_seconds: int = 30
     principal: PrincipalInput | None = None
     agent_meta: AgentMetadataInput | None = None
+    authority_token: str | None = None
     timeout_seconds: float = 30.0
 
 

@@ -55,6 +55,7 @@ Legend: **impl** = primary implementation; **tests** = suites that exercise it.
 | 45 | KMS/HSM signing failure fails closed with no unsigned fallback | `signer.rs` (`HttpKmsSigner`), `receipt.rs` | `kms_signer::kms_server_error_does_not_sign`, `kms_signer::kms_malformed_signature_does_not_sign`, `kms_signer::kms_timeout_is_bounded_and_fails_closed` |
 | 46 | Provider transport timeout is bounded and fail-closed | `proxy.rs`, `authorize.rs` (`proxy_scoped`) | `proxy_e2e::proxy_provider_timeout_fails_closed` |
 | 47 | API plan limit blocks before broker/KMS work | `apps/api/src/routes.ts` (`/v1/authorize`) | `apps/api/test/routes.test.ts` (plan-limit assertion) |
+| 48 | Delegating human is bound from the OIDC session; owner/per-call tokens reach the broker | `apps/api/src/authority.ts`, `apps/api/src/routes.ts`, `apps/broker/src/authorize.rs` | `apps/api/test/authority.test.ts`, `apps/api/test/oidc.test.ts`, `authorize_e2e::verifies_hmac_authority_tokens` |
 | 15 | Supply-chain / release hygiene | `.github/workflows/security.yml`, `sbom.yml`, `release.yml` | CI (gitleaks, cargo/npm audit, CycloneDX SBOM) |
 
 ## Fuzz coverage

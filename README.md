@@ -2,6 +2,8 @@
 
 > Proof of action for AI agents.
 
+[thetessera.xyz](https://thetessera.xyz) · [docs](https://thetessera.xyz/docs/)
+
 Tessera enforces what an agent may do, then binds the agent, the delegating human, the intent,
 the policy, the tool definition, the credential, and the outcome into a signed action record.
 A third party can verify that record offline — without trusting Tessera, the agent vendor, or
@@ -32,14 +34,28 @@ adapters, broker-observed proxy outcomes, authority transitions, revocation, KMS
 signing, quotas, and 300+ tests. The control plane (`apps/api`) and tenant portal (`apps/portal`)
 cover OIDC sessions, environments, agent keys, actions, integrations, evidence packs, reviewer
 reports and share links, verification links, authority transitions, analytics, usage, and audit.
-Agent Receipts v0.5.0 export, LangChain tool wrapping, and the MCP adapter are implemented.
-Remaining hosted/distribution pieces are OIDC provider validation, Stripe billing launch,
-Python SDK publication, and public package/domain rollout. Pre-revenue; recruiting design
-partners.
+Agent Receipts v0.5 specification export, LangChain tool wrapping, and the MCP adapter are
+implemented. Agent keys can be owner-bound to an OIDC-authenticated human or use a short-lived
+per-call authority token; the broker records `verificationMethod: hmac-jwt` and either mode is
+covered by tests. Remaining hosted/distribution pieces are live Okta/Entra/Auth0 validation,
+Stripe billing launch, Python SDK publication, MCP adapter publication, and public domain
+rollout. Pre-revenue; recruiting design partners.
 
-## Published packages
+## Packages
+
+Registry state:
+
+- `@tessera-verify/receipt-schema`, `verify`, `sdk-ts`, and `langchain` are live on npm at
+  **0.1.1**.
+- The **0.1.2** npm tarballs are built and attached to the GitHub Release. Publishing them
+  requires npm 2FA and is pending.
+- `@tessera-verify/mcp-adapter` is packaged in the 0.1.2 release and pending its first npm
+  publication.
+- `tessera-verify` (Python, import `tessera_verify`) is prepared in `packages/sdk-py`; PyPI
+  publication is pending a project token.
 
 ```bash
+npm install @tessera-verify/receipt-schema
 npm install @tessera-verify/verify
 npm install @tessera-verify/sdk-ts
 npm install @tessera-verify/langchain
@@ -49,7 +65,6 @@ npm install @tessera-verify/langchain
 - `@tessera-verify/verify` — independent verifier and `tessera-verify` CLI
 - `@tessera-verify/sdk-ts` — agent SDK
 - `@tessera-verify/langchain` — LangChain tool wrapper
-- `packages/sdk-py` — Python SDK, distributed as `tessera-verify` (import `tessera_verify`)
 
 ## Performance
 
@@ -121,6 +136,7 @@ Full control plane + portal + verifier (local dev auth, demo broker mode):
 docker compose -f infra/docker/docker-compose.yml up --build
 # portal:   http://localhost:8080
 # verifier: http://localhost:8080/verify/
+# site:     http://localhost:8081/docs/
 ```
 
 With Postgres/Redis (production stores):
@@ -130,6 +146,12 @@ docker compose -f infra/docker/docker-compose.yml up
 ```
 
 Kubernetes: `infra/k8s/helm/tessera` (see its README).
+
+## Demo
+
+See [`docs/demo-script.md`](docs/demo-script.md) for the 45-second recording script covering
+the policy decision, human authority binding, denial, verification, tamper detection, and
+evidence pack.
 
 ## Repository layout
 
@@ -151,13 +173,17 @@ packages/langchain  LangChain tool wrapper
 packages/agent-receipts  Agent Receipts v0.5.0 / W3C VC export
 contracts/receipts Foundry anchor contract
 infra/docker       VPS-ready compose
-examples/          Runnable agent examples
+examples/          Runnable agent examples, including Vercel AI SDK and PydanticAI
 docs/              Architecture, threat model, receipt spec, controls, RFCs
 ```
 
 ## Documentation
 
-- [`BENCHMARKS.md`](BENCHMARKS.md) — reproducible broker, HTTP, and verifier benchmarks
+- [`CHANGELOG.md`](CHANGELOG.md) — release history
+- [`BENCHMARKS.md`](BENCHMARKS.md) — reproducible broker, HTTP, concurrency, and verifier benchmarks
+- [`docs/benchmarks-cloud.md`](docs/benchmarks-cloud.md) — cloud/KMS benchmark runbook
+- [`examples/vercel-ai-agent`](examples/vercel-ai-agent) — Vercel AI SDK tool wrapper example
+- [`examples/pydantic-ai-agent`](examples/pydantic-ai-agent) — PydanticAI tool wrapper example
 - [`docs/proof-of-action.md`](docs/proof-of-action.md) — positioning, ICP, pricing, objections
 - [`docs/receipt-spec.md`](docs/receipt-spec.md) — receipt schema and chain
 - [`docs/architecture.md`](docs/architecture.md) — system design
@@ -173,6 +199,7 @@ docs/              Architecture, threat model, receipt spec, controls, RFCs
 - [`docs/analytics.md`](docs/analytics.md) — analytics definitions, alerts, search, and shortcuts
 - [`docs/evidence-packs.md`](docs/evidence-packs.md) — framework coverage, reviewer reports, and share links
 - [`docs/distribution.md`](docs/distribution.md) — public repo, npm packages, and verifier rollout
+- [`docs/demo-script.md`](docs/demo-script.md) — product demo recording sequence
 - [`docs/billing.md`](docs/billing.md) — plans, usage limits, and Stripe billing
 - [`docs/rls.md`](docs/rls.md) — Postgres row-level security (defense in depth)
 - [`docs/golden-path.md`](docs/golden-path.md) — full loop against real providers

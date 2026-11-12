@@ -49,6 +49,11 @@ refund = wrap_proxy(
 refund({"charge": "ch_test", "amount": 50})
 ```
 
+If an agent key uses per-call delegation, set `authority_token` in `TesseraConfig` or pass it to
+`wrap(..., authority_token=...)` / `wrap_proxy(..., authority_token=...)` with a short-lived
+value from `POST /v1/authority-tokens`. Owner-bound keys are minted automatically by the
+control plane.
+
 The client also exposes `proxy`, `revoke`, `verify_receipt`, `verify_chain`, `anchor`,
 `submit_anchor`, and `propose_policy`. See [`docs/publishing.md`](../../docs/publishing.md) for
 the `tessera-verify` PyPI release flow.

@@ -77,4 +77,4 @@ VPC/HSM/DPA. Not per seat.
 - **Investors:** pre-seed to reach repeatable paid pilots; the model targets ~$550k ARR by
   year two.
 
-**Contact:** founders@tessera.dev
+**Contact:** founders@thetessera.xyz

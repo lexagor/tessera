@@ -66,6 +66,35 @@ database and set `TESSERA_ENDPOINT=http://127.0.0.1:<port>`.
 These runs include the HTTP client (Node `fetch`) and loopback overhead, so they are
 end-to-end client-observed numbers, not pure server-side timings.
 
+## Concurrency and chain integrity
+
+Run the same-agent concurrency probe against a Postgres-backed broker:
+
+```bash
+BENCH_REQUESTS=1000 BENCH_CONCURRENCY=32 BENCH_AGENTS=1 \
+TESSERA_ENDPOINT=http://127.0.0.1:8787 TESSERA_API_KEY=... \
+pnpm bench:concurrency
+```
+
+The script reports status codes, p50/p95/p99, and checks each affected chain with
+`GET /v1/chain/:agent`. Use `BENCH_AGENTS=32` to test independent agent chains and
+`BENCH_VERIFY_CHAINS=0` to skip verification. See
+[`docs/benchmarks-cloud.md`](docs/benchmarks-cloud.md) for the cloud/KMS runbook.
+
+**Local Postgres broker, same agent, 240 requests, concurrency 24:**
+
+| Metric | Result |
+|---|---:|
+| Throughput | 500.9 req/s |
+| p50 | 44.98 ms |
+| p95 | 50.46 ms |
+| p99 | 66.66 ms |
+| Errors | 0 |
+| Chain length / verified | 240 / true |
+
+This run exercises per-agent chain serialization. Higher same-agent concurrency increases
+queueing by design; independent agents run in parallel.
+
 ## Offline verification
 
 Fixture: signed v2 receipt from `packages/receipt-schema/fixtures/receipt-v2-signed.json`.

@@ -105,6 +105,7 @@ export function KeysPage() {
                 <th>Prefix</th>
                 <th>Created</th>
                 <th>Last used</th>
+                <th>Authority</th>
                 <th>Status</th>
                 <th />
               </tr>
@@ -116,6 +117,18 @@ export function KeysPage() {
                   <td className="tf-mono">{key.prefix}…</td>
                   <td className="tf-muted">{formatDate(key.created_at)}</td>
                   <td className="tf-muted">{formatDate(key.last_used_at)}</td>
+                  <td>
+                    <Badge tone={key.delegation_mode === "caller" ? "warn" : "ok"}>
+                      {key.delegation_mode === "owner"
+                        ? "owner-bound"
+                        : key.delegation_mode === "token"
+                          ? "per-call token"
+                          : "caller-asserted"}
+                    </Badge>
+                    {key.delegated_email ? (
+                      <div className="tf-muted" style={{ marginTop: 4 }}>{key.delegated_email}</div>
+                    ) : null}
+                  </td>
                   <td>
                     <Badge tone={key.revoked_at ? "bad" : "ok"}>
                       {key.revoked_at ? "revoked" : "active"}

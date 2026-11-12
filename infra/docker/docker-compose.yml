@@ -37,6 +37,8 @@ services:
       BROKER_SIGNING_KEY: ${BROKER_SIGNING_KEY:-0x59c6995e998f97a5a0044966f0945389dc9e86dae88c7a8412f4603b6b78690d}
       TENANT_SECRET_ENC_KEY: ${TENANT_SECRET_ENC_KEY:-0x1111111111111111111111111111111111111111111111111111111111111111}
       TESSERA_ADMIN_TOKEN: ${TESSERA_ADMIN_TOKEN:-dev-admin-token}
+      TESSERA_AUTHORITY_HMAC_SECRET: ${TESSERA_AUTHORITY_HMAC_SECRET:-tessera-dev-authority-secret-32-bytes-minimum}
+      TESSERA_AUTHORITY_REQUIRE_TOKEN: ${TESSERA_AUTHORITY_REQUIRE_TOKEN:-0}
     depends_on:
       postgres:
         condition: service_healthy
@@ -63,6 +65,8 @@ services:
       OIDC_REDIRECT_URI: ${OIDC_REDIRECT_URI:-}
       OIDC_ALLOWED_DOMAINS: ${OIDC_ALLOWED_DOMAINS:-}
       CONTROL_PLANE_ENC_KEY: ${CONTROL_PLANE_ENC_KEY:-0x2222222222222222222222222222222222222222222222222222222222222222}
+      TESSERA_AUTHORITY_HMAC_SECRET: ${TESSERA_AUTHORITY_HMAC_SECRET:-tessera-dev-authority-secret-32-bytes-minimum}
+      TESSERA_AUTHORITY_TOKEN_TTL_SECONDS: ${TESSERA_AUTHORITY_TOKEN_TTL_SECONDS:-300}
       AGENT_RECEIPT_ED25519_KEY: ${AGENT_RECEIPT_ED25519_KEY:-}
       AGENT_RECEIPT_ISSUER_DID: ${AGENT_RECEIPT_ISSUER_DID:-}
       AGENT_RECEIPT_TSA_URL: ${AGENT_RECEIPT_TSA_URL:-}
@@ -96,6 +100,14 @@ services:
       api:
         condition: service_started
 
+  site:
+    build:
+      context: ../..
+      dockerfile: infra/docker/Dockerfile.site
+    restart: unless-stopped
+    ports:
+      - "${SITE_PORT:-8081}:80"
+
   caddy:
     image: caddy:2-alpine
     restart: unless-stopped
@@ -107,6 +119,7 @@ services:
       - api
       - portal
       - verify
+      - site
 
 volumes:
   pgdata:

@@ -13,6 +13,11 @@ import { getCookie } from "hono/cookie";
 import { z } from "zod";
 
 import { audit } from "./audit.js";
+import {
+  authorityConfigured,
+  mintAuthorityToken,
+  verifyAuthorityToken,
+} from "./authority.js";
 import { persistAction, persistOutcome } from "./actions.js";
 import { buildAnalytics } from "./analytics.js";
 import { buildNotifications } from "./notifications.js";
@@ -182,7 +187,7 @@ routes.get("/v1/public/evidence/:token", async (c) => {
     downloadUrl: `/v1/public/evidence/${encodeURIComponent(c.req.param("token"))}/download`,
     reportUrl: `/v1/public/evidence/${encodeURIComponent(c.req.param("token"))}/report`,
     verifyUrl: verifyBaseUrl,
-    securityContact: "security@tessera.dev",
+    securityContact: "security@thetessera.xyz",
   });
 });
 
@@ -455,9 +460,13 @@ routes.get("/v1/agent-keys", async (c) => {
   const environment = await currentEnvironment(c, s);
   if (!environment) return fail(c, 404, "not_found", "No environment yet");
   const rows = await db()`
-    SELECT id, name, prefix, created_at, last_used_at, revoked_at, expires_at
-      FROM agent_keys WHERE environment_id = ${environment.id}
-     ORDER BY created_at DESC
+    SELECT k.id, k.name, k.prefix, k.created_at, k.last_used_at, k.revoked_at,
+           k.expires_at, k.delegation_mode, k.delegated_user_id,
+           u.email AS delegated_email, u.name AS delegated_name
+      FROM agent_keys k
+      LEFT JOIN users u ON u.id = k.delegated_user_id
+     WHERE k.environment_id = ${environment.id}
+     ORDER BY k.created_at DESC
   `;
   return c.json({ items: rows });
 });
@@ -470,24 +479,43 @@ routes.post("/v1/agent-keys", requireRole("owner", "admin", "member"), async (c)
     .object({
       name: z.string().min(1).max(64),
       expiresInDays: z.coerce.number().int().min(1).max(365).optional(),
+      delegationMode: z.enum(["caller", "owner", "token"]).optional(),
     })
     .safeParse(await requestBody(c));
   if (!body.success) return fail(c, 400, "invalid_request", "Key name is required");
+  const delegationMode =
+    body.data.delegationMode ?? (authorityConfigured() ? "owner" : "caller");
+  if (delegationMode !== "caller" && !authorityConfigured()) {
+    return fail(
+      c,
+      503,
+      "authority_not_configured",
+      "Set TESSERA_AUTHORITY_HMAC_SECRET before creating delegated agent keys.",
+    );
+  }
   const generated = newAgentKey();
   const id = uuid();
   const expiresAt = body.data.expiresInDays
     ? new Date(Date.now() + body.data.expiresInDays * 86_400_000).toISOString()
     : null;
   await db()`
-    INSERT INTO agent_keys (id, environment_id, name, prefix, key_hash, expires_at)
-    VALUES (${id}, ${environment.id}, ${body.data.name}, ${generated.prefix}, ${generated.hash}, ${expiresAt})
+    INSERT INTO agent_keys
+      (id, environment_id, name, prefix, key_hash, expires_at, delegation_mode, delegated_user_id)
+    VALUES
+      (${id}, ${environment.id}, ${body.data.name}, ${generated.prefix}, ${generated.hash},
+       ${expiresAt}, ${delegationMode}, ${delegationMode === "caller" ? null : s.user.id})
   `;
   await audit({
     orgId: s.org.id,
     actorUserId: s.user.id,
     action: "agent_key.created",
     target: id,
-    details: { name: body.data.name, environmentId: environment.id },
+    details: {
+      name: body.data.name,
+      environmentId: environment.id,
+      delegationMode,
+      delegatedTo: delegationMode === "caller" ? null : s.user.email,
+    },
   });
   void emitWebhook(s.org.id, "agent_key.created", {
     agentKeyId: id,
@@ -502,6 +530,8 @@ routes.post("/v1/agent-keys", requireRole("owner", "admin", "member"), async (c)
       prefix: generated.prefix,
       key: generated.key,
       expiresAt,
+      delegationMode,
+      delegatedTo: delegationMode === "caller" ? null : s.user.email,
       notice: "Store this key now; it will not be shown again.",
     },
     201,
@@ -532,6 +562,53 @@ routes.delete("/v1/agent-keys/:id", requireRole("owner", "admin"), async (c) => 
 });
 
 // ── Agent hot path (API-key auth) ───────────────────────────────────────────
+
+routes.post("/v1/authority-tokens", requireRole("owner", "admin", "member"), async (c) => {
+  const s = session(c);
+  if (!authorityConfigured()) {
+    return fail(
+      c,
+      503,
+      "authority_not_configured",
+      "Set TESSERA_AUTHORITY_HMAC_SECRET to issue delegation tokens.",
+    );
+  }
+  const environment = await currentEnvironment(c, s);
+  if (!environment) return fail(c, 404, "not_found", "Create an environment first");
+  const body = z
+    .object({
+      agentId: z.string().min(1).max(128),
+      ttlSeconds: z.coerce.number().int().min(30).max(86_400).optional(),
+    })
+    .safeParse(await requestBody(c));
+  if (!body.success) return fail(c, 400, "invalid_request", "agentId is required");
+  const minted = mintAuthorityToken({
+    userId: s.user.id,
+    oidcSubject: s.user.oidc_subject,
+    orgId: s.org.id,
+    environmentId: environment.id,
+    agentId: body.data.agentId,
+    ttlSeconds: body.data.ttlSeconds,
+  });
+  await audit({
+    orgId: s.org.id,
+    actorUserId: s.user.id,
+    action: "authority.token_issued",
+    target: minted.claims.jti,
+    details: {
+      environmentId: environment.id,
+      agentId: body.data.agentId,
+      expiresAt: minted.expiresAt,
+    },
+  });
+  return c.json({
+    token: minted.token,
+    tokenType: "Bearer",
+    expiresAt: minted.expiresAt,
+    claims: minted.claims,
+    usage: "Pass this value as authorityToken on POST /v1/authorize.",
+  });
+});
 
 const authorizeSchema = z
   .object({
@@ -570,8 +647,12 @@ async function agentContext(c: any) {
   if (!raw) return null;
   const rows = await db()`
     SELECT k.id, k.environment_id, k.scopes, k.expires_at, k.revoked_at,
+           k.delegation_mode, k.delegated_user_id,
+           u.email AS delegated_email, u.name AS delegated_name, u.oidc_subject,
            e.id AS env_id, e.org_id, e.name, e.slug, e.broker_tenant, e.broker_key_enc
-      FROM agent_keys k JOIN environments e ON e.id = k.environment_id
+      FROM agent_keys k
+      JOIN environments e ON e.id = k.environment_id
+      LEFT JOIN users u ON u.id = k.delegated_user_id
      WHERE k.key_hash = ${sha256(raw)} LIMIT 1
   `;
   const row = rows[0];
@@ -581,6 +662,15 @@ async function agentContext(c: any) {
   return {
     keyId: row.id as string,
     scopes: (row.scopes as Record<string, unknown>) ?? {},
+    delegationMode: String(row.delegation_mode ?? "caller") as "caller" | "owner" | "token",
+    delegatedUser: row.delegated_user_id
+      ? {
+          id: row.delegated_user_id as string,
+          email: row.delegated_email as string,
+          name: (row.delegated_name as string | null) ?? null,
+          oidcSubject: (row.oidc_subject as string | null) ?? null,
+        }
+      : null,
     environment: {
       id: row.env_id as string,
       org_id: row.org_id as string,
@@ -611,9 +701,62 @@ routes.post("/v1/authorize", async (c) => {
       `The ${plan.name} plan includes ${plan.actionsPerMonth.toLocaleString()} actions per month. Upgrade to continue.`,
     );
   }
+  let authorizeBody: Record<string, unknown> = { ...parsed.data };
+  try {
+    if (auth.delegationMode === "owner") {
+      if (parsed.data.authorityToken) {
+        return fail(
+          c,
+          400,
+          "invalid_request",
+          "Owner-bound agent keys must not supply authorityToken.",
+        );
+      }
+      if (!auth.delegatedUser) {
+        return fail(c, 409, "conflict", "This agent key has no delegated user.");
+      }
+      if (!authorityConfigured()) {
+        return fail(
+          c,
+          503,
+          "authority_not_configured",
+          "Set TESSERA_AUTHORITY_HMAC_SECRET to use owner-bound agent keys.",
+        );
+      }
+      const minted = mintAuthorityToken({
+        userId: auth.delegatedUser.id,
+        oidcSubject: auth.delegatedUser.oidcSubject,
+        orgId: auth.environment.org_id,
+        environmentId: auth.environment.id,
+        agentId: parsed.data.agentId,
+      });
+      authorizeBody = {
+        ...authorizeBody,
+        userId: auth.delegatedUser.id,
+        authorityToken: minted.token,
+      };
+      delete authorizeBody.principal;
+    } else if (auth.delegationMode === "token") {
+      if (!parsed.data.authorityToken) {
+        return fail(c, 400, "invalid_request", "This agent key requires authorityToken.");
+      }
+      verifyAuthorityToken(parsed.data.authorityToken, {
+        orgId: auth.environment.org_id,
+        environmentId: auth.environment.id,
+        agentId: parsed.data.agentId,
+      });
+    }
+  } catch (error) {
+    return fail(
+      c,
+      401,
+      "invalid_authority",
+      error instanceof Error ? error.message : "Invalid authority token",
+    );
+  }
   const idempotencyKey = c.req.header("idempotency-key");
   try {
-    const response = await broker.authorize(auth.environment, parsed.data, idempotencyKey);
+    const response = await broker.authorize(auth.environment, authorizeBody, idempotencyKey);
     await persistAction(auth.environment, response);
     return c.json(response);
   } catch (error) {

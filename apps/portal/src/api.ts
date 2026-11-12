@@ -78,6 +78,10 @@ export interface AgentKey {
   last_used_at: string | null;
   revoked_at: string | null;
   expires_at: string | null;
+  delegation_mode: "caller" | "owner" | "token";
+  delegated_user_id: string | null;
+  delegated_email: string | null;
+  delegated_name: string | null;
 }
 
 export class ApiError extends Error {

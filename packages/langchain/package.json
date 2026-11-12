@@ -1,6 +1,6 @@
 {
   "name": "@tessera-verify/langchain",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "LangChain tool wrapper that brokers each invocation through Tessera",
   "license": "Apache-2.0",
   "type": "module",
@@ -35,7 +35,7 @@
     "url": "git+https://github.com/lexagor/tessera.git",
     "directory": "packages/langchain"
   },
-  "homepage": "https://github.com/lexagor/tessera#readme",
+  "homepage": "https://thetessera.xyz",
   "bugs": {
     "url": "https://github.com/lexagor/tessera/issues"
   },

@@ -46,13 +46,15 @@ The package is published as `tessera-verify`; consumers use `import tessera_veri
 Pushing a `v*` tag runs `.github/workflows/release.yml`:
 
 ```bash
-git tag v0.1.1 && git push origin v0.1.1
+git tag v0.1.2 && git push origin v0.1.2
 ```
 
-It stages `@tessera-verify/receipt-schema`, `@tessera-verify/verify`,
-`@tessera-verify/sdk-ts`, `@tessera-verify/langchain`, and `@tessera-verify/mcp-adapter` in the
-npm staged-publishing queue, and publishes `tessera-verify` to PyPI.
-A maintainer must approve the staged versions with 2FA:
+It builds npm tarballs and Python distributions, creates a GitHub Release with checksums, stages
+`@tessera-verify/receipt-schema`, `@tessera-verify/verify`, `@tessera-verify/sdk-ts`,
+`@tessera-verify/langchain`, and `@tessera-verify/mcp-adapter` in the npm staged-publishing queue,
+and publishes `tessera-verify` to PyPI when `PYPI_TOKEN` is configured. Publishing steps are
+skipped when the corresponding repository secret is absent, so a release can be cut before
+external credentials are provisioned. A maintainer must approve the staged npm versions with 2FA:
 
 ```bash
 npm stage list
@@ -66,6 +68,7 @@ The Python SDK is a separate wheel (`tessera-verify`) built from `packages/sdk-p
 - [ ] Versions bumped consistently (TS + Python + tag).
 - [ ] `pnpm typecheck`, `pnpm test`, `cargo test`, `forge test` green.
 - [ ] `--dry-run`/`twine check` inspected.
-- [ ] Changelog/release notes drafted.
+- [ ] Changelog/release notes updated (`CHANGELOG.md`).
+- [ ] GitHub Release contains npm tarballs, Python wheel/sdist, verifier CLI, and `SHA256SUMS`.
 - [ ] `SECURITY.md` and `LICENSE` present in the package tarball (`files` includes `dist`;
       add `LICENSE`/`README` to `files` if publishing standalone).

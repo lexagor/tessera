@@ -136,5 +136,5 @@ outbound timeouts, and constant-time API-key comparison. See `controls-matrix.md
 
 ## 8. Contacts
 
-- Security reports: `security@tessera.dev` (see [SECURITY.md](../SECURITY.md)).
+- Security reports: `security@thetessera.xyz` (see [SECURITY.md](../SECURITY.md)).
 - Provide the commit SHA under review; reproducible via the commands above.

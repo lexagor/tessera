@@ -8,18 +8,23 @@ docker compose -f infra/docker/docker-compose.yml up --build
 
 - Portal: `http://localhost:8080`
 - Verifier: `http://localhost:8080/verify/`
+- Site + docs: `http://localhost:8081/`
 - API: `http://localhost:8080/v1` (same origin as the portal)
 - The local stack uses dev auth + broker demo mode. The broker is not exposed publicly.
 
 ## Single-VPS production
 
-1. Copy `.env.example` to `.env` and set:
-   - `DOMAIN`, `ACME_EMAIL`
+1. Set these environment variables (or put them in an operator-managed `.env`):
+   - `SITE_DOMAIN=thetessera.xyz`, `APP_DOMAIN=app.thetessera.xyz`,
+     `VERIFY_DOMAIN=verify.thetessera.xyz`, `ACME_EMAIL`
    - `AUTH_DEV_MODE=0`, `TESSERA_DEMO_ALLOW=0`, `BROKER_DEMO_ALLOW=0`
-   - `PUBLIC_BASE_URL=https://$DOMAIN`, `VERIFY_BASE_URL=https://$DOMAIN`
-   - `OIDC_ISSUER`, `OIDC_CLIENT_ID`, `OIDC_CLIENT_SECRET`, `OIDC_REDIRECT_URI`
+   - `PUBLIC_BASE_URL=https://app.thetessera.xyz`,
+     `VERIFY_BASE_URL=https://verify.thetessera.xyz`
+   - `OIDC_ISSUER`, `OIDC_CLIENT_ID`, `OIDC_CLIENT_SECRET`,
+     `OIDC_REDIRECT_URI=https://app.thetessera.xyz/auth/callback`
    - `CONTROL_PLANE_ENC_KEY`, `TENANT_SECRET_ENC_KEY`, `BROKER_SIGNING_KEY`
    - `BROKER_ADMIN_KEY`, `BROKER_ADMIN_TOKEN`
+   - `TESSERA_AUTHORITY_HMAC_SECRET` (at least 32 bytes)
    - Optional: `AGENT_RECEIPT_ED25519_KEY`, `AGENT_RECEIPT_ISSUER_DID`,
      `AGENT_RECEIPT_TSA_URL`
 2. Bootstrap the broker admin key once (see `TESSERA_BOOTSTRAP_TENANT` in the broker env).
@@ -30,9 +35,11 @@ docker compose -f infra/docker/docker-compose.yml \
   -f infra/docker/docker-compose.prod.yml up -d --build
 ```
 
-Caddy obtains TLS automatically for `$DOMAIN`. The broker and internal services have no host
-ports; only Caddy is public. Evidence packs are stored in the `evidence` volume by default;
-point `EVIDENCE_DIR` at S3-compatible storage in the next phase.
+Caddy obtains TLS automatically for all three domains and routes:
+`$SITE_DOMAIN` → site/docs, `$APP_DOMAIN` → portal + API, `$VERIFY_DOMAIN` → verifier.
+The broker and internal services have no host ports; only Caddy is public. Evidence packs are
+stored in the `evidence` volume by default; point `EVIDENCE_DIR` at S3-compatible storage in
+the next phase.
 
 ## Operational notes
 
@@ -40,4 +47,8 @@ point `EVIDENCE_DIR` at S3-compatible storage in the next phase.
 - Keep `pgdata` and `evidence` backed up.
 - Rotate `CONTROL_PLANE_ENC_KEY` only with a re-encryption migration; rotating it without one
   makes stored broker keys unreadable.
+- Changing `TESSERA_AUTHORITY_HMAC_SECRET` invalidates outstanding authority tokens. Rotate it
+  together with a short overlap window if agents use per-call tokens.
+- `TESSERA_AUTHORITY_REQUIRE_TOKEN=1` is set in the production overlay. Create agent keys after
+  the secret is configured so they are owner-bound; migrate old caller-asserted keys explicitly.
 - Do not run the local dev stack in production: it enables dev auth and broker demo mode.

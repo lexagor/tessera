@@ -207,12 +207,14 @@ recordable without breaking the linear chain.
 caller presents and records the `verificationMethod`.
 
 - With `TESSERA_AUTHORITY_HMAC_SECRET` configured, the broker verifies an HS256
-  `authorityToken` JWT minted by the tenant backend, requires `sub`/`exp`, rejects tokens with
-  an expiry beyond 24 hours or an `iat` in the future, and records
-  `verificationMethod: "hmac-jwt"`. `TESSERA_AUTHORITY_REQUIRE_TOKEN=1` rejects calls without a
-  token. The token's `sub`, `jti`/`authority_ref`, and `principal_type` override the
-  caller-asserted principal. Mint these tokens short-lived (minutes) in the tenant backend;
-  the broker caps the accepted expiry at 24 hours.
+  `authorityToken` JWT, requires `sub`/`exp`, rejects tokens with an expiry beyond 24 hours or
+  an `iat` in the future, and records `verificationMethod: "hmac-jwt"`. The Tessera control
+  plane mints these tokens from an OIDC-authenticated session: owner-bound agent keys get one
+  automatically per authorize call, and `POST /v1/authority-tokens` provides an explicit
+  per-call token. `TESSERA_AUTHORITY_REQUIRE_TOKEN=1` rejects calls without a token. The
+  token's `sub`, `jti`/`authority_ref`, and `principal_type` override the caller-asserted
+  principal. Mint these tokens short-lived (minutes); the broker caps the accepted expiry at
+  24 hours.
 - Without a configured secret, the method is `user_id` (a caller-asserted binding); the receipt
   proves what the broker recorded, not that an IdP authenticated it. Do not claim IdP
   verification unless the deployment actually performs it.

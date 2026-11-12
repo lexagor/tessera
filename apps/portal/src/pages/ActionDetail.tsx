@@ -77,6 +77,15 @@ export function ActionDetailPage() {
   const outcomeStatus = outcomeRef?.status ?? action.outcomeStatus ?? "pending";
   const outcomeSource = outcomeRef?.source ?? "not recorded";
   const signer = action.verification?.recovered;
+  const enforcement = denied
+    ? { tone: "bad" as const, label: "Policy denied" }
+    : outcomeSource === "broker_observed"
+      ? { tone: "ok" as const, label: "Level 1 · broker-observed" }
+      : credential?.credentialType === "broker_grant"
+        ? { tone: "ok" as const, label: "Level 1 · broker-held" }
+        : credential
+          ? { tone: "warn" as const, label: "Level 2 · scoped credential" }
+          : { tone: "warn" as const, label: "Caller-asserted authority" };
 
   const timeline = [
     {
@@ -131,6 +140,7 @@ export function ActionDetailPage() {
         subtitle={`${action.agentId} · ${formatDate(action.createdAt)}`}
         actions={
           <>
+            <Badge tone={enforcement.tone}>{enforcement.label}</Badge>
             <Link className="tf-btn ghost" to="/actions">Back to actions</Link>
             <a className="tf-btn ghost" href={`/v1/actions/${encodeURIComponent(actionId)}/agent-receipt`}>
               Agent Receipt

@@ -1,6 +1,6 @@
 {
   "name": "@tessera-verify/verify",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Independent verifier for Tessera v1 and v2 action records",
   "license": "Apache-2.0",
   "type": "module",
@@ -39,7 +39,7 @@
     "url": "git+https://github.com/lexagor/tessera.git",
     "directory": "packages/verifier"
   },
-  "homepage": "https://github.com/lexagor/tessera#readme",
+  "homepage": "https://thetessera.xyz",
   "bugs": {
     "url": "https://github.com/lexagor/tessera/issues"
   },

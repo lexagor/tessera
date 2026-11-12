@@ -21,6 +21,22 @@ the provider boundary, what it can only record, and what it cannot prove.
 | Anchored Merkle root | External chain transaction | — | — | — | — | A batch existed with a given root by the anchor time; it does not prove semantic correctness of the provider call |
 | Control plane | Org/environment scoping | — | — | — | Session/API-key revocation | The requested tenant scope was authorized by the API; control-plane tables are not currently under Postgres RLS |
 
+## Enforcement levels
+
+Use these labels in reviews and demos. They describe the evidence path, not a certification.
+
+- **Level 1 — broker-proxied / argument-bound / broker-observed:** the broker holds the provider
+  credential, re-checks the exact `argsHash` at execution time, forwards one request, and signs
+  the observed response. Example: Stripe broker-held grant via `/v1/proxy`.
+- **Level 2 — scoped credential / caller-reported:** the broker authorizes issuance of a
+  provider-scoped credential and signs the authorization plus the agent-reported outcome. It
+  does not observe the provider call or prove the exact argument use. Examples: AWS STS, GitHub
+  installation tokens, OAuth bearer credentials, LangChain and MCP direct-bearer paths.
+- **Caller-asserted authority:** the principal in the receipt is supplied by the caller rather
+  than derived from a verified authority token. The record proves what the broker recorded, not
+  who delegated it. With `TESSERA_AUTHORITY_HMAC_SECRET` configured, owner-bound agent keys
+  produce `verificationMethod: "hmac-jwt"` records instead.
+
 ## Important nuances
 
 - **Argument binding is a provider path property, not a property of every credential.** Only the
@@ -54,6 +70,8 @@ the provider boundary, what it can only record, and what it cannot prove.
 - Idempotency and request binding: `apps/broker/src/http.rs`, `apps/broker/tests/authorize_e2e.rs`
 - Revocation: `apps/broker/src/revocation.rs`, `apps/broker/src/authorize.rs`, `apps/broker/tests/authorize_e2e.rs`
 - Receipt integrity: `apps/broker/src/receipt.rs`, `apps/broker/tests/verify.rs`, `packages/verifier`
+- Human authority binding: `apps/api/src/authority.ts`, `apps/api/src/routes.ts`,
+  `apps/api/test/authority.test.ts`, `apps/api/test/oidc.test.ts`, `apps/broker/tests/authorize_e2e.rs`
 - Cross-tenant API isolation: `apps/api/test/tenant-isolation.test.ts` (actions, reviews, evidence, keys, integrations, analytics, notifications, search)
 - Broker RLS: `infra/sql/rls.sql`, `apps/broker/tests/rls_postgres.rs`
 - KMS/HSM bridge: `apps/broker/src/signer.rs`, `apps/broker/tests/kms_signer.rs`

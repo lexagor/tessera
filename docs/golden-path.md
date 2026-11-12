@@ -113,6 +113,7 @@ the tx hash (`https://sepolia.basescan.org/tx/0x…`).
 | `TESSERA_DEMO_ALLOW` | `1` accepts `x-tessera-tenant` without a key (demos only) |
 | `TESSERA_DEMO_KEY` | plaintext key seeded for tenant `default` in demo mode |
 | `TESSERA_ADMIN_TOKEN` | authorizes API-key management |
+| `TESSERA_AUTHORITY_HMAC_SECRET` | verifies short-lived HS256 authority tokens (owner-bound or per-call delegation) |
 | `STRIPE_RESTRICTED_KEYS`, `STRIPE_API_BASE` | Stripe proxy |
 | `GITHUB_APP_ID`, `GITHUB_APP_PRIVATE_KEY`, `GITHUB_API_BASE` | GitHub issuer |
 | `CHAIN_ID`, `RPC_URL`, `ANCHOR_PK`, `RECEIPT_ANCHOR_ADDRESS` | on-chain anchoring |

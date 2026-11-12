@@ -1,4 +1,10 @@
-{$DOMAIN} {
+{$SITE_DOMAIN} {
+	encode gzip
+	tls {$ACME_EMAIL}
+	reverse_proxy site:80
+}
+
+{$APP_DOMAIN} {
 	encode gzip
 	tls {$ACME_EMAIL}
 
@@ -14,13 +20,19 @@
 	handle /healthz {
 		reverse_proxy api:8788
 	}
+	handle {
+		reverse_proxy portal:80
+	}
+}
+
+{$VERIFY_DOMAIN} {
+	encode gzip
+	tls {$ACME_EMAIL}
+
 	handle /verify/* {
 		reverse_proxy verify:80
 	}
-	handle /verify {
-		redir /verify/ 302
-	}
 	handle {
-		reverse_proxy portal:80
+		redir /verify/ 302
 	}
 }

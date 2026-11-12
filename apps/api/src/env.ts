@@ -18,6 +18,11 @@ const schema = z.object({
   VERIFY_BASE_URL: z.string().optional(),
   SESSION_COOKIE_NAME: z.string().default("tessera_session"),
   SESSION_TTL_DAYS: z.coerce.number().default(7),
+  TESSERA_AUTHORITY_HMAC_SECRET: z.preprocess(
+    (value) => (value === "" ? undefined : value),
+    z.string().min(32).optional(),
+  ),
+  TESSERA_AUTHORITY_TOKEN_TTL_SECONDS: z.coerce.number().int().min(30).max(86_400).default(300),
   CONTROL_PLANE_ENC_KEY: z.string().optional(),
   AGENT_RECEIPT_ED25519_KEY: z.string().optional(),
   AGENT_RECEIPT_ISSUER_DID: z.string().optional(),

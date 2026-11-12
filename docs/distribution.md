@@ -3,6 +3,17 @@
 The code is ready to publish; the repository owner must create the external accounts and
 run these commands. Do not commit `NPM_TOKEN`, `PYPI_TOKEN`, or any signing key.
 
+Current status:
+
+| Package | Version | Status |
+|---|---:|---|
+| `@tessera-verify/receipt-schema` | 0.1.1 live / 0.1.2 built | publish 0.1.2 with npm 2FA |
+| `@tessera-verify/verify` | 0.1.1 live / 0.1.2 built | publish 0.1.2 with npm 2FA |
+| `@tessera-verify/sdk-ts` | 0.1.1 live / 0.1.2 built | publish 0.1.2 with npm 2FA |
+| `@tessera-verify/langchain` | 0.1.1 live / 0.1.2 built | publish 0.1.2 with npm 2FA |
+| `@tessera-verify/mcp-adapter` | 0.1.2 built | first publish pending npm 2FA |
+| `tessera-verify` (Python) | 0.1.2 built | pending PyPI project/token |
+
 ## 1. Public repository
 
 ```bash
@@ -16,7 +27,7 @@ Keep the strategy/fundraise/interview docs out of the public tree (see `.gitigno
 ## 2. npm packages
 
 The `@tessera-verify` scope must exist. `receipt-schema`, `verify`, `sdk-ts`, and `langchain`
-are published under it; `mcp-adapter` is staged by the release workflow. `agent-receipts`
+are published under it; `mcp-adapter` is the new package in this release. `agent-receipts`
 remains internal until renamed. Build and dry-run first:
 
 ```bash
@@ -47,12 +58,15 @@ twine check packages/sdk-py/dist/*
 twine upload packages/sdk-py/dist/*
 ```
 
-The tag workflow also builds and publishes the wheel when `PYPI_TOKEN` is configured.
+The tag workflow builds the wheel and publishes it when `PYPI_TOKEN` is configured. Without the
+token, the release still builds and attaches the wheel as a GitHub Release artifact.
 
 ## 4. Verifier
 
-Deploy `apps/verify` behind TLS (Caddy/Nginx). Set `VERIFY_BASE_URL` in the API to the public
-origin so verification links point at it. The verifier is static and does not need a database.
+Deploy `apps/site` at `https://thetessera.xyz`, `apps/portal` + `apps/api` at
+`https://app.thetessera.xyz`, and `apps/verify` at `https://verify.thetessera.xyz` (or behind
+`/verify/` on the site origin). Set `VERIFY_BASE_URL` in the API to the verifier origin so
+verification links point at it. The verifier is static and does not need a database.
 
 ## 5. Agent Receipts export
 
@@ -62,7 +76,7 @@ Tessera receipt remains available.
 
 ## 6. Smoke checks
 
-- `curl https://<verifier>/` returns the verification page.
+- `curl https://verify.thetessera.xyz/verify/` returns the verification page.
 - `npm view @tessera-verify/verify version` matches the release.
 - A verification link from the portal resolves at `<verifier>/verify/<token>`.
 - The evidence pack and `GET /v1/transitions` show the same authority events.

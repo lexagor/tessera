@@ -153,7 +153,7 @@ class TesseraClient:
             "requestedScopes": payload.requested_scopes,
             "riskClass": payload.risk_class,
             "declaredPurpose": payload.declared_purpose,
-            "authorityToken": payload.authority_token,
+            "authorityToken": payload.authority_token or self._config.authority_token,
         }
         body.update({key: value for key, value in optional.items() if value is not None})
         data: dict[str, Any] = self._request(

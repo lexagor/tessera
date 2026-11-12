@@ -1,29 +1,40 @@
 # Production overlay: real TLS + domain + no dev defaults.
 #
-#   DOMAIN=app.example.com ACME_EMAIL=ops@example.com \
+#   SITE_DOMAIN=thetessera.xyz APP_DOMAIN=app.thetessera.xyz VERIFY_DOMAIN=verify.thetessera.xyz \
+#   ACME_EMAIL=ops@thetessera.xyz \
 #   AUTH_DEV_MODE=0 TESSERA_DEMO_ALLOW=0 BROKER_DEMO_ALLOW=0 \
-#   PUBLIC_BASE_URL=https://app.example.com VERIFY_BASE_URL=https://app.example.com \
 #   docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
 #
 # Required: OIDC_* values, CONTROL_PLANE_ENC_KEY, TENANT_SECRET_ENC_KEY,
-# BROKER_SIGNING_KEY, BROKER_ADMIN_KEY, BROKER_ADMIN_TOKEN.
+# BROKER_SIGNING_KEY, BROKER_ADMIN_KEY, BROKER_ADMIN_TOKEN,
+# TESSERA_AUTHORITY_HMAC_SECRET (at least 32 bytes).
 
 services:
   api:
     environment:
       AUTH_DEV_MODE: "0"
       ALLOW_PRIVATE_WEBHOOKS: "0"
+      PUBLIC_BASE_URL: ${PUBLIC_BASE_URL:-https://app.thetessera.xyz}
+      VERIFY_BASE_URL: ${VERIFY_BASE_URL:-https://verify.thetessera.xyz}
+      TESSERA_AUTHORITY_HMAC_SECRET: ${TESSERA_AUTHORITY_HMAC_SECRET:?set TESSERA_AUTHORITY_HMAC_SECRET}
 
   broker:
     environment:
       TESSERA_DEMO_ALLOW: "0"
+      TESSERA_AUTHORITY_HMAC_SECRET: ${TESSERA_AUTHORITY_HMAC_SECRET:?set TESSERA_AUTHORITY_HMAC_SECRET}
+      TESSERA_AUTHORITY_REQUIRE_TOKEN: "1"
+
+  site:
+    ports: !reset []
 
   caddy:
     ports: !override
       - "80:80"
       - "443:443"
     environment:
-      DOMAIN: ${DOMAIN}
+      SITE_DOMAIN: ${SITE_DOMAIN:-thetessera.xyz}
+      APP_DOMAIN: ${APP_DOMAIN:-app.thetessera.xyz}
+      VERIFY_DOMAIN: ${VERIFY_DOMAIN:-verify.thetessera.xyz}
       ACME_EMAIL: ${ACME_EMAIL}
     volumes: !override
       - ./Caddyfile.prod:/etc/caddy/Caddyfile:ro

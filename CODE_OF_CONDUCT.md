@@ -27,7 +27,7 @@ Examples of unacceptable behavior:
 ## Enforcement
 
 Instances of abusive, harassing, or otherwise unacceptable behavior may be reported to the
-project maintainers at `conduct@tessera.dev`. All complaints will be reviewed and
+project maintainers at `conduct@thetessera.xyz`. All complaints will be reviewed and
 investigated promptly and fairly.
 
 This Code of Conduct is adapted from the [Contributor Covenant](https://www.contributor-covenant.org),

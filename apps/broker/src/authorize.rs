@@ -148,6 +148,20 @@ pub struct RevokeOutcome {
     pub credential_revoked: Option<bool>,
 }
 
+fn agent_chain_lock(tenant: &str, agent: &str) -> Arc<tokio::sync::Mutex<()>> {
+    static LOCKS: std::sync::OnceLock<
+        std::sync::Mutex<std::collections::HashMap<String, Arc<tokio::sync::Mutex<()>>>>,
+    > = std::sync::OnceLock::new();
+    let locks = LOCKS.get_or_init(|| std::sync::Mutex::new(std::collections::HashMap::new()));
+    let mut guard = locks
+        .lock()
+        .unwrap_or_else(|poisoned| poisoned.into_inner());
+    guard
+        .entry(format!("{tenant}\0{agent}"))
+        .or_insert_with(|| Arc::new(tokio::sync::Mutex::new(())))
+        .clone()
+}
+
 #[derive(Clone)]
 pub struct AuthorizeService {
     pub policies: Arc<dyn PolicyStore>,
@@ -598,7 +612,9 @@ impl AuthorizeService {
         }
         validate_record_input(&req)?;
         let outcome_status = normalize_outcome_status(req.status.as_deref());
-        for _ in 0..16 {
+        let chain_lock = agent_chain_lock(tenant, &req.agent_id);
+        let _chain_guard = chain_lock.lock().await;
+        for attempt in 0..64 {
             // Indexed lookups: the chain is never materialized, so recording an outcome stays
             // cheap however long the chain grows.
             let authorization = self
@@ -710,6 +726,7 @@ impl AuthorizeService {
                     duplicate: false,
                 });
             }
+            tokio::time::sleep(std::time::Duration::from_millis(1 + (attempt % 5) as u64)).await;
         }
         Err(BrokerError::Internal(
             "receipt chain append contention".into(),
@@ -3059,7 +3076,9 @@ impl AuthorizeService {
         agent: &str,
         mut receipt: GrantReceipt,
     ) -> Result<ChainEntry, BrokerError> {
-        for _ in 0..16 {
+        let chain_lock = agent_chain_lock(tenant, agent);
+        let _chain_guard = chain_lock.lock().await;
+        for attempt in 0..64 {
             let head = self.chain.head_hash(tenant, agent).await?;
             receipt.prev = head;
             self.signer.sign(&mut receipt).await?;
@@ -3070,6 +3089,7 @@ impl AuthorizeService {
             if self.chain.append(tenant, agent, entry.clone()).await? == AppendOutcome::Appended {
                 return Ok(entry);
             }
+            tokio::time::sleep(std::time::Duration::from_millis(1 + (attempt % 5) as u64)).await;
         }
         Err(BrokerError::Internal(
             "receipt chain append contention".into(),

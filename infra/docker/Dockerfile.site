@@ -1,0 +1,15 @@
+# syntax=docker/dockerfile:1
+FROM node:22-alpine AS build
+RUN corepack enable
+WORKDIR /app
+COPY pnpm-workspace.yaml package.json pnpm-lock.yaml ./
+COPY apps/site/package.json apps/site/
+RUN pnpm install --filter @tessera/site... --frozen-lockfile=false
+COPY apps/site ./apps/site
+COPY docs ./docs
+RUN pnpm --filter @tessera/site build
+
+FROM caddy:2-alpine
+COPY --from=build /app/apps/site/dist /srv
+RUN printf ':80 {\n\troot * /srv\n\ttry_files {path} /index.html\n\tfile_server\n}\n' > /etc/caddy/Caddyfile
+EXPOSE 80

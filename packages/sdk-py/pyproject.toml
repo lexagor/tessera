@@ -1,6 +1,6 @@
 [project]
 name = "tessera-verify"
-version = "0.1.1"
+version = "0.1.2"
 description = "Tessera Python SDK — broker ephemeral credentials for agent tool calls"
 readme = "README.md"
 license = { text = "Apache-2.0" }
@@ -16,7 +16,7 @@ classifiers = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/lexagor/tessera"
+Homepage = "https://thetessera.xyz"
 Repository = "https://github.com/lexagor/tessera"
 Issues = "https://github.com/lexagor/tessera/issues"
 

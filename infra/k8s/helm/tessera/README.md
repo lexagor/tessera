@@ -8,7 +8,8 @@ kubectl create secret generic tessera-secrets \
   --from-literal=BROKER_SIGNING_KEY=0x... \
   --from-literal=DATABASE_URL=postgres://user:pass@host:5432/tessera \
   --from-literal=REDIS_URL=redis://host:6379 \
-  --from-literal=TESSERA_ADMIN_TOKEN=$(openssl rand -hex 24)
+  --from-literal=TESSERA_ADMIN_TOKEN=$(openssl rand -hex 24) \
+  --from-literal=TESSERA_AUTHORITY_HMAC_SECRET=$(openssl rand -hex 32)
 
 helm install tessera infra/k8s/helm/tessera \
   --set image.tag=0.6 \

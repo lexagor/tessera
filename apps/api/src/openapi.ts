@@ -22,8 +22,11 @@ export const openapi = {
       post: { summary: "Create an environment and broker tenant" },
     },
     "/v1/agent-keys": {
-      get: { summary: "List agent keys" },
-      post: { summary: "Create an agent API key" },
+      get: { summary: "List agent keys and their human delegation binding" },
+      post: { summary: "Create an agent API key (caller, owner-bound, or token-delegated)" },
+    },
+    "/v1/authority-tokens": {
+      post: { summary: "Mint a short-lived per-call authority token for an agent" },
     },
     "/v1/actions": {
       get: { summary: "Search actions with optional agent, tool, decision, outcome, and time filters" },

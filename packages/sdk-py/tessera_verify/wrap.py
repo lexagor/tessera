@@ -54,13 +54,20 @@ def wrap(
     tool: str,
     intent: str,
     fn: Callable[[dict[str, Any], EphemeralCredential], Any],
+    *,
+    authority_token: str | None = None,
 ) -> Callable[[dict[str, Any]], Any]:
     """Authorize, execute with the ephemeral credential, and record the outcome."""
 
     def brokered(args: dict[str, Any]) -> Any:
         idempotency_key = _idempotency_key()
         result = client.authorize(
-            AuthorizeInput(tool=tool, intent=intent, args=args),
+            AuthorizeInput(
+                tool=tool,
+                intent=intent,
+                args=args,
+                authority_token=authority_token,
+            ),
             idempotency_key=idempotency_key,
         )
         if result.decision != "allow" or result.credential is None:
@@ -99,13 +106,20 @@ def wrap_proxy(
     tool: str,
     intent: str,
     request: ProxyRequest,
+    *,
+    authority_token: str | None = None,
 ) -> Callable[[dict[str, Any]], ProxyResponse]:
     """Broker a broker-held grant and forward a proxy call; the broker observes the outcome."""
 
     def brokered(_args: dict[str, Any]) -> ProxyResponse:
         idempotency_key = _idempotency_key()
         result = client.authorize(
-            AuthorizeInput(tool=tool, intent=intent, args=_args),
+            AuthorizeInput(
+                tool=tool,
+                intent=intent,
+                args=_args,
+                authority_token=authority_token,
+            ),
             idempotency_key=idempotency_key,
         )
         if result.decision != "allow" or result.credential is None:

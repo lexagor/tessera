@@ -2,7 +2,7 @@
 
 ## Reporting a vulnerability
 
-Do **not** open a public issue. Email `security@tessera.dev` with:
+Do **not** open a public issue. Email `security@thetessera.xyz` with:
 - a description and impact,
 - reproduction steps or a proof of concept,
 - affected versions/components.

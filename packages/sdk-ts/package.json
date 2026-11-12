@@ -1,6 +1,6 @@
 {
   "name": "@tessera-verify/sdk-ts",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Tessera agent SDK \u2014 wrap any tool client to broker ephemeral credentials",
   "license": "Apache-2.0",
   "type": "module",
@@ -33,7 +33,7 @@
     "url": "git+https://github.com/lexagor/tessera.git",
     "directory": "packages/sdk-ts"
   },
-  "homepage": "https://github.com/lexagor/tessera#readme",
+  "homepage": "https://thetessera.xyz",
   "bugs": {
     "url": "https://github.com/lexagor/tessera/issues"
   },

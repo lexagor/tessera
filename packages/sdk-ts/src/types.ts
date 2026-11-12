@@ -29,6 +29,8 @@ export interface TesseraConfig {
   principal?: PrincipalInput;
   /** Optional default agent metadata sent with every authorize call. */
   agentMeta?: AgentMetadataInput;
+  /** Optional short-lived authority token for per-call delegation. */
+  authorityToken?: string;
 }
 
 export interface AuthorizeInput {

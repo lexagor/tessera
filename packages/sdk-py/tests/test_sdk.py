@@ -118,6 +118,38 @@ def test_authorize_parses_credential_and_action() -> None:
     assert result.credential.material["grantId"] == "grant_1"
 
 
+def test_authority_token_is_sent_from_config_and_wrapper() -> None:
+    broker = BrokerMock(material={"kind": "bearer", "token": "tok"})
+    configured = TesseraClient(
+        TesseraConfig(
+            endpoint="http://tessera.test",
+            api_key="tsk_test",
+            agent_id="billing-agent",
+            user_id="user_1",
+            authority_token="config-token",
+        ),
+        http_client=httpx.Client(
+            base_url="http://tessera.test",
+            headers={"authorization": "Bearer tsk_test"},
+            transport=httpx.MockTransport(broker.handler),
+        ),
+    )
+    configured.authorize(
+        AuthorizeInput(tool="stripe.refunds.create", intent="refund", args={"amount": 10})
+    )
+    assert broker.bodies[-1]["authorityToken"] == "config-token"
+
+    wrapped = wrap(
+        broker.client(),
+        "stripe.refunds.create",
+        "refund",
+        lambda args, credential: {"ok": args["amount"]},
+        authority_token="call-token",
+    )
+    wrapped({"amount": 10})
+    assert broker.bodies[-2]["authorityToken"] == "call-token"
+
+
 def test_proxy_sends_grant_and_returns_observed_outcome() -> None:
     broker = BrokerMock()
     response = broker.client().proxy(

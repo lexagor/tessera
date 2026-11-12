@@ -6,7 +6,7 @@
 | **Version** | 1.0 |
 | **Date** | 2026-09-15 |
 | **Target commit** | _fill in `git rev-parse HEAD` at submission_ |
-| **Primary contact** | security@tessera.dev |
+| **Primary contact** | security@thetessera.xyz |
 | **Repository** | _fill in during intake (public or NDA-gated mirror)_ |
 
 This brief is a complete engagement description. It defines scope, the properties that must

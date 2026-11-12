@@ -10,7 +10,7 @@ permissions:
   id-token: write
 
 jobs:
-  npm:
+  build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -20,59 +20,123 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-          registry-url: https://registry.npmjs.org
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - name: Use staged-publishing capable npm
-        run: npm install --global npm@11.16.0
-      - name: Build and pack
+      - name: Build npm packages
         run: |
-          mkdir -p /tmp/tessera-stage
           pnpm --filter @tessera-verify/receipt-schema build
           pnpm --filter @tessera-verify/verify build
           pnpm --filter @tessera-verify/sdk-ts build
           pnpm --filter @tessera-verify/langchain build
           pnpm --filter @tessera-verify/mcp-adapter build
+      - name: Pack npm packages
+        run: |
+          mkdir -p /tmp/tessera-stage
           pnpm -C packages/receipt-schema pack --pack-destination /tmp/tessera-stage
           pnpm -C packages/verifier pack --pack-destination /tmp/tessera-stage
           pnpm -C packages/sdk-ts pack --pack-destination /tmp/tessera-stage
           pnpm -C packages/langchain pack --pack-destination /tmp/tessera-stage
           pnpm -C packages/mcp-adapter pack --pack-destination /tmp/tessera-stage
-      - name: Stage receipt schema
-        run: npm stage publish /tmp/tessera-stage/tessera-verify-receipt-schema-*.tgz --tag latest --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-      - name: Stage verifier
-        run: npm stage publish /tmp/tessera-stage/tessera-verify-verify-*.tgz --tag latest --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-      - name: Stage SDK
-        run: npm stage publish /tmp/tessera-stage/tessera-verify-sdk-ts-*.tgz --tag latest --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-      - name: Stage LangChain adapter
-        run: npm stage publish /tmp/tessera-stage/tessera-verify-langchain-*.tgz --tag latest --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-      - name: Stage MCP adapter
-        run: npm stage publish /tmp/tessera-stage/tessera-verify-mcp-adapter-*.tgz --tag latest --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-
-  pypi:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: Build Python SDK
+      - name: Build Python package
         run: |
           python -m pip install --upgrade pip build twine
           python -m build packages/sdk-py
           twine check packages/sdk-py/dist/*
+      - uses: actions/upload-artifact@v4
+        with:
+          name: npm-tarballs
+          path: /tmp/tessera-stage/*.tgz
+      - uses: actions/upload-artifact@v4
+        with:
+          name: python-dist
+          path: packages/sdk-py/dist/*
+
+  npm:
+    needs: build
+    runs-on: ubuntu-latest
+    env:
+      NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: npm-tarballs
+          path: /tmp/tessera-stage
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          registry-url: https://registry.npmjs.org
+      - name: Use staged-publishing capable npm
+        run: npm install --global npm@11.16.0
+      - name: Stage receipt schema
+        if: ${{ env.NPM_TOKEN != '' }}
+        run: npm stage publish /tmp/tessera-stage/tessera-verify-receipt-schema-*.tgz --tag latest --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ env.NPM_TOKEN }}
+      - name: Stage verifier
+        if: ${{ env.NPM_TOKEN != '' }}
+        run: npm stage publish /tmp/tessera-stage/tessera-verify-verify-*.tgz --tag latest --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ env.NPM_TOKEN }}
+      - name: Stage SDK
+        if: ${{ env.NPM_TOKEN != '' }}
+        run: npm stage publish /tmp/tessera-stage/tessera-verify-sdk-ts-*.tgz --tag latest --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ env.NPM_TOKEN }}
+      - name: Stage LangChain adapter
+        if: ${{ env.NPM_TOKEN != '' }}
+        run: npm stage publish /tmp/tessera-stage/tessera-verify-langchain-*.tgz --tag latest --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ env.NPM_TOKEN }}
+      - name: Stage MCP adapter
+        if: ${{ env.NPM_TOKEN != '' }}
+        run: npm stage publish /tmp/tessera-stage/tessera-verify-mcp-adapter-*.tgz --tag latest --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ env.NPM_TOKEN }}
+
+  pypi:
+    needs: build
+    runs-on: ubuntu-latest
+    env:
+      PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: python-dist
+          path: packages/sdk-py/dist
       - name: Publish to PyPI
+        if: ${{ env.PYPI_TOKEN != '' }}
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           packages-dir: packages/sdk-py/dist/
-          password: ${{ secrets.PYPI_TOKEN }}
+          password: ${{ env.PYPI_TOKEN }}
+
+  github-release:
+    needs: [build, npm, pypi]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: npm-tarballs
+          path: release-assets
+      - uses: actions/download-artifact@v4
+        with:
+          name: python-dist
+          path: release-assets
+      - name: Generate checksums
+        run: |
+          cd release-assets
+          sha256sum *.tgz *.whl *.tar.gz > SHA256SUMS
+          cat SHA256SUMS
+      - name: Create or update GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1 \
+            || gh release create "$GITHUB_REF_NAME" --title "Tessera $GITHUB_REF_NAME" --generate-notes
+          gh release upload "$GITHUB_REF_NAME" release-assets/* --clobber

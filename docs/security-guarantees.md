@@ -44,7 +44,7 @@ the provider boundary, what it can only record, and what it cannot prove.
 - Idempotency and request binding: `apps/broker/src/http.rs`, `apps/broker/tests/authorize_e2e.rs`
 - Revocation: `apps/broker/src/revocation.rs`, `apps/broker/src/authorize.rs`, `apps/broker/tests/authorize_e2e.rs`
 - Receipt integrity: `apps/broker/src/receipt.rs`, `apps/broker/tests/verify.rs`, `packages/verifier`
-- Cross-tenant API isolation: `apps/api/test/tenant-isolation.test.ts` (planned/added in Sprint 1)
+- Cross-tenant API isolation: `apps/api/test/tenant-isolation.test.ts` (actions, reviews, evidence, keys, integrations, analytics, notifications, search)
 - Broker RLS: `infra/sql/rls.sql`, `apps/broker/tests/rls_postgres.rs`
 - KMS/HSM bridge: `apps/broker/src/signer.rs`, `apps/broker/tests/kms_signer.rs`
 

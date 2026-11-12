@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.1.3 — 2026-11-12
+
+### Fixed
+
+- Republished the npm packages from `pnpm pack` tarballs so `workspace:*` dependencies are
+  replaced with published versions. npm `0.1.2` packages are deprecated; install `0.1.3` or
+  later.
+- Documented the npm 2FA / bypass-token publishing path and the workspace-protocol packaging
+  pitfall.
+- Clarified that PyPI `tessera-verify==0.1.2` remains the current Python release.
+
 ## 0.1.2 — 2026-11-12
 
 ### Added

@@ -3,7 +3,7 @@ import { test } from "node:test";
 
 import { DynamicStructuredTool } from "@langchain/core/tools";
 import { z } from "zod";
-import type { TesseraClient } from "@tessera/sdk-ts";
+import type { TesseraClient } from "@tessera-verify/sdk-ts";
 
 import { wrapLangChainTool } from "../src/index.js";
 

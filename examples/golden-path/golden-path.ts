@@ -9,7 +9,7 @@
  * Every step is env-driven and degrades gracefully: unconfigured providers are skipped with
  * a clear message. See ../../docs/golden-path.md.
  */
-import { createClient, hashResult, type AuthorizeResult, type EphemeralCredential } from "@tessera/sdk-ts";
+import { createClient, hashResult, type AuthorizeResult, type EphemeralCredential } from "@tessera-verify/sdk-ts";
 
 const endpoint = process.env.TESSERA_ENDPOINT ?? "http://localhost:8787";
 const apiKey = process.env.TESSERA_API_KEY ?? "tsk_demo_local";

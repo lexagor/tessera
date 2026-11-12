@@ -1,6 +1,6 @@
 {
   "name": "@tessera-verify/verify",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Independent verifier for Tessera v1 and v2 action records",
   "license": "Apache-2.0",
   "type": "module",
@@ -32,5 +32,32 @@
     "@types/node": "^22.10.2",
     "tsx": "^4.19.2",
     "typescript": "^5.6.3"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lexagor/tessera.git",
+    "directory": "packages/verifier"
+  },
+  "homepage": "https://github.com/lexagor/tessera#readme",
+  "bugs": {
+    "url": "https://github.com/lexagor/tessera/issues"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "sideEffects": false,
+  "keywords": [
+    "tessera",
+    "agent",
+    "audit",
+    "verifier",
+    "verifiable-credentials",
+    "eip-712"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
   }
 }

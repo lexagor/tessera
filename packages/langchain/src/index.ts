@@ -8,7 +8,7 @@ import {
   type EphemeralCredential,
   type PrincipalInput,
   type TesseraClient,
-} from "@tessera/sdk-ts";
+} from "@tessera-verify/sdk-ts";
 
 export interface WrapLangChainOptions<T> {
   intent: string;

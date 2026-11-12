@@ -1,6 +1,6 @@
 {
-  "name": "@tessera/sdk-ts",
-  "version": "0.1.0",
+  "name": "@tessera-verify/sdk-ts",
+  "version": "0.1.1",
   "description": "Tessera agent SDK \u2014 wrap any tool client to broker ephemeral credentials",
   "license": "Apache-2.0",
   "type": "module",
@@ -27,5 +27,32 @@
     "@types/node": "^22.10.2",
     "tsx": "^4.19.2",
     "typescript": "^5.6.3"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lexagor/tessera.git",
+    "directory": "packages/sdk-ts"
+  },
+  "homepage": "https://github.com/lexagor/tessera#readme",
+  "bugs": {
+    "url": "https://github.com/lexagor/tessera/issues"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "sideEffects": false,
+  "keywords": [
+    "tessera",
+    "agent",
+    "sdk",
+    "credentials",
+    "audit",
+    "tool-calling"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
   }
 }

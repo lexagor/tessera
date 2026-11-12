@@ -7,7 +7,7 @@
  *
  * Status: scaffold.
  */
-import { createClient, hashResult } from "@tessera/sdk-ts";
+import { createClient, hashResult } from "@tessera-verify/sdk-ts";
 
 const tessera = createClient({
   endpoint: process.env.TESSERA_ENDPOINT ?? "http://localhost:8787",

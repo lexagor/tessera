@@ -1,16 +1,16 @@
-# @tessera/langchain
+# @tessera-verify/langchain
 
 Broker every LangChain tool invocation through Tessera: authorize the exact tool call, inject
 the scoped credential (or proxy a broker-held grant), and leave a signed outcome.
 
 ```bash
-npm install @tessera/langchain @tessera/sdk-ts
+npm install @tessera-verify/langchain @tessera-verify/sdk-ts
 ```
 
 ```ts
 import { DynamicStructuredTool } from "@langchain/core/tools";
 import { z } from "zod";
-import { wrapLangChainTool } from "@tessera/langchain";
+import { wrapLangChainTool } from "@tessera-verify/langchain";
 
 const lookup = new DynamicStructuredTool({
   name: "lookup_customer",

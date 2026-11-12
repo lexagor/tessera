@@ -1,13 +1,18 @@
 {
-  "name": "@tessera/langchain",
-  "version": "0.1.0",
+  "name": "@tessera-verify/langchain",
+  "version": "0.1.1",
   "description": "LangChain tool wrapper that brokers each invocation through Tessera",
   "license": "Apache-2.0",
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
-  "files": ["dist", "README.md"],
-  "publishConfig": { "access": "public" },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "typecheck": "tsc --noEmit",
@@ -17,12 +22,39 @@
   },
   "dependencies": {
     "@langchain/core": "^1.3.7",
-    "@tessera/sdk-ts": "workspace:*",
+    "@tessera-verify/sdk-ts": "workspace:*",
     "zod": "^3.24.1"
   },
   "devDependencies": {
     "@types/node": "^22.10.2",
     "tsx": "^4.19.2",
     "typescript": "^5.6.3"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lexagor/tessera.git",
+    "directory": "packages/langchain"
+  },
+  "homepage": "https://github.com/lexagor/tessera#readme",
+  "bugs": {
+    "url": "https://github.com/lexagor/tessera/issues"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "sideEffects": false,
+  "keywords": [
+    "tessera",
+    "langchain",
+    "agent",
+    "credentials",
+    "audit",
+    "tool-calling"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
   }
 }

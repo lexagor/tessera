@@ -6,7 +6,7 @@
  *
  * Status: scaffold.
  */
-import { createClient, wrapFn, type EphemeralCredential } from "@tessera/sdk-ts";
+import { createClient, wrapFn, type EphemeralCredential } from "@tessera-verify/sdk-ts";
 
 const tessera = createClient({
   endpoint: process.env.TESSERA_ENDPOINT ?? "http://localhost:8787",

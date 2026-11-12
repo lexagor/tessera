@@ -4,7 +4,7 @@ import type {
   EphemeralCredential,
   PrincipalInput,
   TesseraClient,
-} from "@tessera/sdk-ts";
+} from "@tessera-verify/sdk-ts";
 
 function hashResult(value: unknown): string {
   return keccak256Hex(canonicalize(value));

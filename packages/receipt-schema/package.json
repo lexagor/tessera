@@ -1,6 +1,6 @@
 {
   "name": "@tessera-verify/receipt-schema",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Receipt schema, hashing, and EIP-712 types for Tessera",
   "license": "Apache-2.0",
   "type": "module",
@@ -28,5 +28,33 @@
   },
   "publishConfig": {
     "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lexagor/tessera.git",
+    "directory": "packages/receipt-schema"
+  },
+  "homepage": "https://github.com/lexagor/tessera#readme",
+  "bugs": {
+    "url": "https://github.com/lexagor/tessera/issues"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "sideEffects": false,
+  "keywords": [
+    "tessera",
+    "agent",
+    "audit",
+    "receipt",
+    "verifiable-credentials",
+    "eip-712",
+    "json-schema"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
   }
 }

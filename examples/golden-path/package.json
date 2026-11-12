@@ -14,7 +14,7 @@
     "clean": "echo 'example: nothing to clean'"
   },
   "dependencies": {
-    "@tessera/sdk-ts": "workspace:*"
+    "@tessera-verify/sdk-ts": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "^22.10.2",

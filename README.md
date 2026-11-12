@@ -136,8 +136,7 @@ Kubernetes: `infra/k8s/helm/tessera` (see its README).
 apps/broker        Rust service: authorize + issue ephemeral credentials + signed records
 apps/api           TypeScript control plane (Hono): OIDC, tenancy, actions, evidence
 apps/portal        Vite + React tenant portal
-apps/dashboard     Legacy dev console (kept until portal parity)
-apps/verify        Public verifier: links, offline bundles
+apps/verify        Public verifier: links, offline bundles, tamper demo
 apps/site          Static landing page + docs site
 packages/sdk-ts    Drop-in TS SDK (wrap Stripe/GitHub/Slack/MCP clients)
 packages/sdk-py    Python SDK

@@ -23,21 +23,42 @@
         <div id="link-facts" class="row"></div>
       </section>
 
-      <section class="panel">
-        <div class="row">
-          <label>
-            Chain ID
-            <input id="chain-id" value="31337" inputmode="numeric" />
-          </label>
-          <label>
-            Verifying contract
-            <input id="contract" value="0x0000000000000000000000000000000000000000" spellcheck="false" />
-          </label>
-          <label>
-            Expected signer (optional)
-            <input id="expected-signer" placeholder="0x…" spellcheck="false" />
-          </label>
+      <section id="trust-panel" class="panel trust-panel" hidden>
+        <div class="trust-head">
+          <div>
+            <p class="eyebrow">Chain of trust</p>
+            <h2>What happened, on whose authority</h2>
+            <p id="trust-summary" class="lede"></p>
+          </div>
+          <button id="tamper" class="danger">Simulate tampering</button>
+          <button id="restore" hidden>Restore original</button>
         </div>
+        <div id="tamper-note" class="tamper-note" hidden></div>
+        <div id="trust-flow" class="trust-flow"></div>
+        <div class="trust-proof">
+          <strong>What this proves</strong>
+          <p>The broker signed this exact record and its link to the prior record. Changing one signed field invalidates the payload hash and signature. It does not prove the provider executed correctly or that the agent did not leak a credential.</p>
+        </div>
+      </section>
+
+      <section class="panel">
+        <details class="advanced">
+          <summary>Advanced: domain and expected signer</summary>
+          <div class="row">
+            <label>
+              Chain ID
+              <input id="chain-id" value="31337" inputmode="numeric" />
+            </label>
+            <label>
+              Verifying contract
+              <input id="contract" value="0x0000000000000000000000000000000000000000" spellcheck="false" />
+            </label>
+            <label>
+              Expected signer (optional)
+              <input id="expected-signer" placeholder="0x…" spellcheck="false" />
+            </label>
+          </div>
+        </details>
         <label class="file">
           <span>Load a JSON file</span>
           <input id="file" type="file" accept="application/json,.json" />

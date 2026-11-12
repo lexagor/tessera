@@ -43,10 +43,15 @@ tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 uuid = { version = "1", features = ["v4", "serde"] }
 
 [dev-dependencies]
+criterion = "0.5"
 jsonwebtoken = "9"
 sqlx = { version = "0.8", default-features = false, features = ["runtime-tokio", "tls-rustls", "postgres", "json", "chrono"] }
 tokio-test = "0.4"
 tower = { version = "0.5", features = ["util"] }
+
+[[bench]]
+name = "crypto"
+harness = false
 
 # ── Artifact-size policy ─────────────────────────────────────────────────────
 # Rust debug builds are by far the largest thing on disk here: on macOS the default

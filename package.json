@@ -14,7 +14,9 @@
     "lint": "turbo run lint",
     "typecheck": "turbo run typecheck",
     "test": "turbo run test",
-    "clean": "turbo run clean && rm -rf node_modules"
+    "clean": "turbo run clean && rm -rf node_modules",
+    "bench:http": "node scripts/bench-http.mjs",
+    "bench:verify": "pnpm --filter @tessera-verify/verify bench"
   },
   "devDependencies": {
     "turbo": "^2.3.3",

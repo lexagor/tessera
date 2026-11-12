@@ -12,7 +12,8 @@
     "typecheck": "tsc --noEmit",
     "lint": "echo 'lint not configured'",
     "test": "node --import tsx --test test/*.test.ts",
-    "clean": "rm -rf dist"
+    "clean": "rm -rf dist",
+    "seed:demo": "tsx scripts/seed-demo.ts"
   },
   "dependencies": {
     "@hono/node-server": "^1.13.7",

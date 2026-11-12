@@ -27,6 +27,13 @@ trusting Tessera or the vendor.
 | Standards | Agent Receipts v0.5.0 / W3C VC export with Ed25519 proof and optional RFC 3161 timestamp |
 | API hardening | Request limits, timeouts, rate limits, no-store/nosniff headers, sanitized errors |
 
+## Reviewer evidence
+
+Evidence packs include a reviewer report that maps signed action records to SOC 2, ISO 42001,
+EU AI Act, NIST AI RMF, and DORA controls. A workspace owner can create a time-limited reviewer
+link that lets an auditor read the report and download the signed archive without a Tessera
+account. Revoking the link does not alter the underlying records.
+
 ## Data handling
 
 - Raw tool arguments are not stored; receipts carry canonical hashes.

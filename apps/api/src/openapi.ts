@@ -30,6 +30,15 @@ export const openapi = {
     "/v1/actions/{actionId}/agent-receipt": {
       get: { summary: "Export an Agent Receipts v0.5.0 W3C credential" },
     },
+    "/v1/actions/{actionId}/review": {
+      post: { summary: "Send an action to the human review queue" },
+    },
+    "/v1/reviews": {
+      get: { summary: "List action reviews" },
+    },
+    "/v1/reviews/{id}/decision": {
+      post: { summary: "Approve or reject a pending action review" },
+    },
     "/v1/transitions": {
       get: { summary: "Signed authority transition ledger for the environment" },
       post: { summary: "Record a signed authority transition" },
@@ -47,11 +56,29 @@ export const openapi = {
       put: { summary: "Upsert a policy version" },
       delete: { summary: "Delete a policy" },
     },
+    "/v1/evidence/readiness": {
+      get: { summary: "Evidence readiness, framework coverage, and gaps" },
+    },
     "/v1/evidence-packs": {
       get: { summary: "List evidence packs" },
-      post: { summary: "Build an evidence pack" },
+      post: { summary: "Build an evidence pack with a reviewer summary" },
     },
+    "/v1/evidence-packs/{id}": { get: { summary: "Evidence pack detail and reviewer summary" } },
     "/v1/evidence-packs/{id}/download": { get: { summary: "Download an evidence pack" } },
+    "/v1/evidence-packs/{id}/report": { get: { summary: "Download the reviewer report" } },
+    "/v1/evidence-packs/{id}/share": {
+      post: { summary: "Create a bearer reviewer link" },
+      delete: { summary: "Revoke the reviewer link" },
+    },
+    "/v1/public/evidence/{token}": {
+      get: { summary: "Public evidence pack summary (no session)" },
+    },
+    "/v1/public/evidence/{token}/download": {
+      get: { summary: "Public evidence archive download" },
+    },
+    "/v1/public/evidence/{token}/report": {
+      get: { summary: "Public reviewer report" },
+    },
     "/v1/audit": { get: { summary: "Recent control-plane audit events" } },
     "/v1/verification-links": {
       get: { summary: "List verification links" },

@@ -14,6 +14,31 @@ use serde_json::Value;
 use crate::canonical;
 use crate::error::BrokerError;
 
+/// Rollout posture for a policy. Shadow modes evaluate the policy but let the action
+/// proceed with an advisory reason so operators can validate it against real traffic.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
+#[serde(rename_all = "lowercase")]
+pub enum PolicyMode {
+    Monitor,
+    Recommend,
+    #[default]
+    Enforce,
+}
+
+impl PolicyMode {
+    pub fn as_str(self) -> &'static str {
+        match self {
+            Self::Monitor => "monitor",
+            Self::Recommend => "recommend",
+            Self::Enforce => "enforce",
+        }
+    }
+
+    pub fn is_enforce(&self) -> bool {
+        *self == Self::Enforce
+    }
+}
+
 /// A named resource granted to an agent, e.g. `stripe:refunds.create` or `aws:s3:GetObject`.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ResourceGrant {
@@ -55,6 +80,9 @@ pub struct Policy {
     /// Allow the request if a grant matches but constraint evaluation errors. Default false.
     #[serde(default)]
     pub fail_open: bool,
+    /// Monitor/recommend are shadow modes: evaluate, but allow with an advisory reason.
+    #[serde(default, skip_serializing_if = "PolicyMode::is_enforce")]
+    pub mode: PolicyMode,
     /// Operational limits for calls allowed by this policy. Always narrowed by the
     /// broker-wide ceilings (see `AuthorizeService::max_ttl_seconds`).
     #[serde(default)]
@@ -260,6 +288,7 @@ pub fn demo_policy() -> Policy {
             condition: None,
         }],
         fail_open: false,
+        mode: PolicyMode::Enforce,
         limits: PolicyLimits::default(),
     }
 }
@@ -285,7 +314,7 @@ pub fn evaluate(policies: &[Policy], ctx: &PolicyContext) -> PolicyResult {
                     };
                 }
                 Err(reason) => {
-                    if policy.fail_open {
+                    if policy.fail_open || !policy.mode.is_enforce() {
                         return PolicyResult {
                             allow: true,
                             policy_id: policy.id.clone(),
@@ -293,7 +322,11 @@ pub fn evaluate(policies: &[Policy], ctx: &PolicyContext) -> PolicyResult {
                             policy_hash: Some(policy.content_hash()),
                             resource: ctx.resource.clone(),
                             anomaly_score: 1.0,
-                            reason: format!("fail-open despite: {reason}"),
+                            reason: if policy.fail_open {
+                                format!("fail-open despite: {reason}")
+                            } else {
+                                format!("{} (advisory): {reason}", policy.mode.as_str())
+                            },
                             limits: policy.limits.clone(),
                         };
                     }
@@ -542,8 +575,44 @@ mod tests {
             name: "t".into(),
             grants,
             fail_open: false,
+            mode: PolicyMode::Enforce,
             limits: Default::default(),
         }
+    }
+
+    #[test]
+    fn shadow_modes_allow_with_an_advisory_reason() {
+        let mut monitor = policy(vec![ResourceGrant {
+            resource: "stripe:refunds.create".into(),
+            constraints: vec![Constraint::MaxNumber {
+                field: "amount".into(),
+                value: 10.0,
+            }],
+            condition: None,
+        }]);
+        monitor.mode = PolicyMode::Monitor;
+        let result = evaluate(
+            &[monitor],
+            &ctx("stripe:refunds.create", json!({"amount": 100})),
+        );
+        assert!(result.allow);
+        assert!(result.reason.contains("monitor (advisory)"));
+
+        let mut recommend = policy(vec![ResourceGrant {
+            resource: "stripe:refunds.create".into(),
+            constraints: vec![Constraint::MaxNumber {
+                field: "amount".into(),
+                value: 10.0,
+            }],
+            condition: None,
+        }]);
+        recommend.mode = PolicyMode::Recommend;
+        let result = evaluate(
+            &[recommend],
+            &ctx("stripe:refunds.create", json!({"amount": 100})),
+        );
+        assert!(result.allow);
+        assert!(result.reason.contains("recommend (advisory)"));
     }
 
     #[test]

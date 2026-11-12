@@ -32,6 +32,12 @@ import {
 } from "./crypto.js";
 import { db } from "./db.js";
 import { env, verifyBaseUrl } from "./env.js";
+import {
+  buildEvidenceSummary,
+  normalizeEvidenceFilters,
+  type EvidencePackSummary,
+} from "./evidence.js";
+import { renderEvidenceReport } from "./evidence-report.js";
 import type { Environment, SessionContext } from "./types.js";
 import { WEBHOOK_EVENTS, createWebhookEndpoint, emitWebhook } from "./webhooks.js";
 import { environmentCount, monthlyActionCount, planFor } from "./plans.js";
@@ -121,6 +127,92 @@ routes.get("/v1/public/verify/:token", async (c) => {
     signer,
     verification,
     records: { authorization, outcome },
+  });
+});
+
+// ── Public evidence reviewer links ──────────────────────────────────────────
+
+async function sharedEvidencePack(token: string): Promise<Record<string, any> | null> {
+  const rows = await db()`
+    SELECT ep.id, ep.status, ep.object_key, ep.summary, ep.created_at, ep.expires_at,
+           ep.share_expires_at, e.name AS environment_name, o.name AS org_name
+      FROM evidence_packs ep
+      JOIN environments e ON e.id = ep.environment_id
+      JOIN orgs o ON o.id = ep.org_id
+     WHERE ep.share_token_hash = ${sha256(token)}
+       AND ep.share_expires_at IS NOT NULL
+       AND ep.share_expires_at > now()
+       AND ep.status = 'ready'
+     LIMIT 1
+  `;
+  return (rows[0] as Record<string, any> | undefined) ?? null;
+}
+
+routes.get("/v1/public/evidence/:token", async (c) => {
+  const pack = await sharedEvidencePack(c.req.param("token"));
+  if (!pack) return fail(c, 404, "not_found", "Reviewer link is invalid or expired");
+  const summary = pack.summary as EvidencePackSummary;
+  if (!summary || summary.version !== 1) {
+    return fail(c, 409, "rebuild_required", "This pack predates reviewer reports; rebuild it");
+  }
+  c.header("x-robots-tag", "noindex");
+  return c.json({
+    pack: {
+      id: pack.id,
+      createdAt: pack.created_at,
+      expiresAt: pack.expires_at,
+      shareExpiresAt: pack.share_expires_at,
+      summary,
+    },
+    org: { name: pack.org_name },
+    environment: { name: pack.environment_name },
+    downloadUrl: `/v1/public/evidence/${encodeURIComponent(c.req.param("token"))}/download`,
+    reportUrl: `/v1/public/evidence/${encodeURIComponent(c.req.param("token"))}/report`,
+    verifyUrl: verifyBaseUrl,
+    securityContact: "security@tessera.dev",
+  });
+});
+
+routes.get("/v1/public/evidence/:token/download", async (c) => {
+  const pack = await sharedEvidencePack(c.req.param("token"));
+  if (!pack?.object_key) return fail(c, 404, "not_found", "Reviewer link is invalid or expired");
+  const root = resolve(env.EVIDENCE_DIR);
+  const filePath = resolve(pack.object_key as string);
+  if (!filePath.startsWith(`${root}/`)) {
+    return fail(c, 404, "not_found", "Evidence pack not found");
+  }
+  const file = await readFile(filePath);
+  return new Response(file, {
+    status: 200,
+    headers: {
+      "content-type": "application/gzip",
+      "content-disposition": `attachment; filename="tessera-evidence-${pack.id}.tar.gz"`,
+      "cache-control": "no-store",
+      "x-robots-tag": "noindex",
+    },
+  });
+});
+
+routes.get("/v1/public/evidence/:token/report", async (c) => {
+  const pack = await sharedEvidencePack(c.req.param("token"));
+  if (!pack) return fail(c, 404, "not_found", "Reviewer link is invalid or expired");
+  const summary = pack.summary as EvidencePackSummary;
+  if (!summary || summary.version !== 1) {
+    return fail(c, 409, "rebuild_required", "This pack predates reviewer reports; rebuild it");
+  }
+  const html = renderEvidenceReport(summary, {
+    id: String(pack.id),
+    createdAt: String(pack.created_at),
+    expiresAt: pack.expires_at ? String(pack.expires_at) : null,
+  });
+  return new Response(html, {
+    status: 200,
+    headers: {
+      "content-type": "text/html; charset=utf-8",
+      "content-disposition": `attachment; filename="tessera-evidence-${pack.id}.html"`,
+      "cache-control": "no-store",
+      "x-robots-tag": "noindex",
+    },
   });
 });
 
@@ -727,6 +819,10 @@ routes.get("/v1/actions/:actionId", async (c) => {
   `;
   const action = rows[0];
   if (!action) return fail(c, 404, "not_found", "Action not found");
+  const reviewRows = await db()`
+    SELECT id, status, reason, resolution_note, created_at, resolved_at
+      FROM action_reviews WHERE action_id = ${action.action_id as string} LIMIT 1
+  `;
   let verification: Awaited<ReturnType<typeof broker.verifyRecord>> | null = null;
   const payload = action.payload as { authorization?: any; outcome?: any };
   if (payload.authorization) {
@@ -743,6 +839,7 @@ routes.get("/v1/actions/:actionId", async (c) => {
     ...actionSummary(action),
     verified: verification?.valid ?? action.verified,
     payload: action.payload,
+    review: reviewRows[0] ?? null,
     verification,
   });
 });
@@ -939,6 +1036,88 @@ routes.delete("/v1/policies/:id", requireRole("owner", "admin"), async (c) => {
   }
 });
 
+// ── Reviews ────────────────────────────────────────────────────────────────
+
+routes.post("/v1/actions/:actionId/review", requireRole("owner", "admin", "member"), async (c) => {
+  const s = session(c);
+  const body = z
+    .object({ reason: z.string().max(512).optional() })
+    .safeParse(await requestBody(c));
+  if (!body.success) return fail(c, 400, "invalid_request", "Invalid review request");
+  const rows = await db()`
+    SELECT action_id, environment_id, agent_id, tool, decision, outcome_status
+      FROM actions WHERE action_id = ${c.req.param("actionId")} AND org_id = ${s.org.id}
+  `;
+  const action = rows[0];
+  if (!action) return fail(c, 404, "not_found", "Action not found");
+  const id = uuid();
+  try {
+    await db()`
+      INSERT INTO action_reviews (id, org_id, environment_id, action_id, reason, requested_by)
+      VALUES (${id}, ${s.org.id}, ${action.environment_id as string}, ${action.action_id as string}, ${body.data.reason ?? null}, ${s.user.id})
+    `;
+  } catch (error) {
+    if (typeof error === "object" && error && "code" in error && error.code === "23505") {
+      return fail(c, 409, "conflict", "This action is already in the review queue");
+    }
+    throw error;
+  }
+  await audit({
+    orgId: s.org.id,
+    actorUserId: s.user.id,
+    action: "action.review_requested",
+    target: action.action_id as string,
+    details: { reason: body.data.reason ?? null },
+  });
+  return c.json({ id, actionId: action.action_id, status: "pending" }, 201);
+});
+
+routes.get("/v1/reviews", async (c) => {
+  const s = session(c);
+  const status = c.req.query("status") ?? "pending";
+  if (!["pending", "approved", "rejected", "all"].includes(status)) {
+    return fail(c, 400, "invalid_request", "Invalid review status");
+  }
+  const rows = await db()`
+    SELECT r.id, r.action_id, r.status, r.reason, r.resolution_note, r.created_at, r.resolved_at,
+           a.agent_id, a.principal_id, a.tool, a.decision, a.outcome_status, a.created_at AS action_created_at
+      FROM action_reviews r JOIN actions a ON a.action_id = r.action_id
+     WHERE r.org_id = ${s.org.id}
+       AND (${status} = 'all' OR r.status = ${status})
+     ORDER BY r.created_at DESC LIMIT 100
+  `;
+  return c.json({ items: rows });
+});
+
+routes.post("/v1/reviews/:id/decision", requireRole("owner", "admin"), async (c) => {
+  const s = session(c);
+  const body = z
+    .object({
+      decision: z.enum(["approve", "reject"]),
+      note: z.string().max(512).optional(),
+    })
+    .safeParse(await requestBody(c));
+  if (!body.success) return fail(c, 400, "invalid_request", "decision must be approve or reject");
+  const rows = await db()`
+    UPDATE action_reviews
+       SET status = ${body.data.decision === "approve" ? "approved" : "rejected"},
+           resolution_note = ${body.data.note ?? null},
+           resolved_by = ${s.user.id},
+           resolved_at = now()
+     WHERE id = ${c.req.param("id")} AND org_id = ${s.org.id} AND status = 'pending'
+    RETURNING id, action_id, status, resolved_at
+  `;
+  if (!rows[0]) return fail(c, 404, "not_found", "Pending review not found");
+  await audit({
+    orgId: s.org.id,
+    actorUserId: s.user.id,
+    action: `action.review_${body.data.decision === "approve" ? "approved" : "rejected"}`,
+    target: rows[0].action_id as string,
+    details: { reviewId: rows[0].id, note: body.data.note ?? null },
+  });
+  return c.json(rows[0]);
+});
+
 // ── Authority transitions ──────────────────────────────────────────────────
 
 routes.get("/v1/transitions", async (c) => {
@@ -1006,17 +1185,44 @@ routes.post("/v1/transitions", requireRole("owner", "admin"), async (c) => {
 
 // ── Evidence packs ─────────────────────────────────────────────────────────
 
+routes.get("/v1/evidence/readiness", async (c) => {
+  const s = session(c);
+  const environment = await currentEnvironment(c, s);
+  if (!environment) return fail(c, 404, "not_found", "Create an environment first");
+  const frameworks = c.req.query("frameworks")?.split(",").filter(Boolean);
+  try {
+    const filters = normalizeEvidenceFilters({
+      frameworks,
+      since: c.req.query("since"),
+      until: c.req.query("until"),
+      agentId: c.req.query("agentId"),
+    });
+    return c.json(await buildEvidenceSummary(s.org.name, environment, filters));
+  } catch (error) {
+    return fail(c, 400, "invalid_request", error instanceof Error ? error.message : "Invalid evidence scope");
+  }
+});
+
 routes.get("/v1/evidence-packs", async (c) => {
   const s = session(c);
   const environment = await currentEnvironment(c, s);
   if (!environment) return c.json({ items: [] });
   const rows = await db()`
-    SELECT id, environment_id, status, filters, created_at, expires_at
+    SELECT id, environment_id, status, filters, summary, created_at, expires_at, share_expires_at
       FROM evidence_packs
      WHERE org_id = ${s.org.id} AND environment_id = ${environment.id}
      ORDER BY created_at DESC LIMIT 50
   `;
-  return c.json({ items: rows });
+  return c.json({
+    items: rows.map((row) => ({
+      ...row,
+      hasShare: Boolean(
+        row.share_expires_at && new Date(row.share_expires_at as string) > new Date(),
+      ),
+      downloadUrl: `/v1/evidence-packs/${row.id}/download`,
+      reportUrl: `/v1/evidence-packs/${row.id}/report`,
+    })),
+  });
 });
 
 routes.post("/v1/evidence-packs", requireRole("owner", "admin", "member"), async (c) => {
@@ -1024,6 +1230,17 @@ routes.post("/v1/evidence-packs", requireRole("owner", "admin", "member"), async
   const environment = await currentEnvironment(c, s);
   if (!environment) return fail(c, 404, "not_found", "Create an environment first");
   const id = uuid();
+  let filters;
+  let summary: EvidencePackSummary;
+  try {
+    filters = normalizeEvidenceFilters(await requestBody(c));
+    if (filters.agentId) {
+      return fail(c, 400, "invalid_request", "Agent-scoped packs are not supported; the signed archive is environment-wide");
+    }
+    summary = await buildEvidenceSummary(s.org.name, environment, filters, { plannedPack: true });
+  } catch (error) {
+    return fail(c, 400, "invalid_request", error instanceof Error ? error.message : "Invalid evidence scope");
+  }
   try {
     const archive = await broker.exportTenantArchive(environment);
     const directory = resolve(env.EVIDENCE_DIR);
@@ -1031,15 +1248,21 @@ routes.post("/v1/evidence-packs", requireRole("owner", "admin", "member"), async
     const objectKey = join(directory, `${id}.tar.gz`);
     await writeFile(objectKey, archive);
     await db()`
-      INSERT INTO evidence_packs (id, org_id, environment_id, status, object_key, filters, created_by)
-      VALUES (${id}, ${s.org.id}, ${environment.id}, 'ready', ${objectKey}, ${db().json({})}, ${s.user.id})
+      INSERT INTO evidence_packs (id, org_id, environment_id, status, object_key, filters, summary, created_by)
+      VALUES (${id}, ${s.org.id}, ${environment.id}, 'ready', ${objectKey}, ${db().json(filters as never)}, ${db().json(summary as never)}, ${s.user.id})
     `;
     await audit({
       orgId: s.org.id,
       actorUserId: s.user.id,
       action: "evidence_pack.created",
       target: id,
-      details: { environmentId: environment.id, bytes: archive.byteLength },
+      details: {
+        environmentId: environment.id,
+        bytes: archive.byteLength,
+        frameworks: filters.frameworks,
+        since: filters.since,
+        until: filters.until,
+      },
     });
     void emitWebhook(s.org.id, "evidence_pack.created", {
       evidencePackId: id,
@@ -1051,14 +1274,16 @@ routes.post("/v1/evidence-packs", requireRole("owner", "admin", "member"), async
         id,
         status: "ready",
         bytes: archive.byteLength,
+        summary,
         downloadUrl: `/v1/evidence-packs/${id}/download`,
+        reportUrl: `/v1/evidence-packs/${id}/report`,
       },
       201,
     );
   } catch (error) {
     await db()`
-      INSERT INTO evidence_packs (id, org_id, environment_id, status, filters, created_by)
-      VALUES (${id}, ${s.org.id}, ${environment.id}, 'failed', ${db().json({})}, ${s.user.id})
+      INSERT INTO evidence_packs (id, org_id, environment_id, status, filters, summary, created_by)
+      VALUES (${id}, ${s.org.id}, ${environment.id}, 'failed', ${db().json(filters as never)}, ${db().json(summary as never)}, ${s.user.id})
     `;
     return fail(
       c,
@@ -1067,6 +1292,101 @@ routes.post("/v1/evidence-packs", requireRole("owner", "admin", "member"), async
       error instanceof Error ? error.message : "Could not export evidence",
     );
   }
+});
+
+routes.get("/v1/evidence-packs/:id", async (c) => {
+  const s = session(c);
+  const rows = await db()`
+    SELECT id, environment_id, status, filters, summary, created_at, expires_at, share_expires_at
+      FROM evidence_packs
+     WHERE id = ${c.req.param("id")} AND org_id = ${s.org.id}
+  `;
+  const pack = rows[0];
+  if (!pack) return fail(c, 404, "not_found", "Evidence pack not found");
+  return c.json({
+    ...pack,
+    hasShare: Boolean(
+      pack.share_expires_at && new Date(pack.share_expires_at as string) > new Date(),
+    ),
+    downloadUrl: `/v1/evidence-packs/${pack.id}/download`,
+    reportUrl: `/v1/evidence-packs/${pack.id}/report`,
+  });
+});
+
+routes.get("/v1/evidence-packs/:id/report", async (c) => {
+  const s = session(c);
+  const rows = await db()`
+    SELECT id, summary, created_at, expires_at, status
+      FROM evidence_packs
+     WHERE id = ${c.req.param("id")} AND org_id = ${s.org.id}
+  `;
+  const pack = rows[0];
+  if (!pack || pack.status !== "ready") return fail(c, 404, "not_found", "Evidence pack not found");
+  const summary = pack.summary as EvidencePackSummary;
+  if (!summary || summary.version !== 1) {
+    return fail(c, 409, "rebuild_required", "This pack predates reviewer reports; rebuild it");
+  }
+  const html = renderEvidenceReport(summary, {
+    id: String(pack.id),
+    createdAt: String(pack.created_at),
+    expiresAt: pack.expires_at ? String(pack.expires_at) : null,
+  });
+  return new Response(html, {
+    status: 200,
+    headers: {
+      "content-type": "text/html; charset=utf-8",
+      "content-disposition": `attachment; filename="tessera-evidence-${pack.id}.html"`,
+      "cache-control": "no-store",
+    },
+  });
+});
+
+routes.post("/v1/evidence-packs/:id/share", requireRole("owner", "admin", "member"), async (c) => {
+  const s = session(c);
+  const body = z
+    .object({ expiresInDays: z.number().int().min(1).max(90).optional() })
+    .safeParse(await requestBody(c));
+  if (!body.success) return fail(c, 400, "invalid_request", "expiresInDays must be between 1 and 90");
+  const rows = await db()`
+    SELECT id, status FROM evidence_packs WHERE id = ${c.req.param("id")} AND org_id = ${s.org.id}
+  `;
+  const pack = rows[0];
+  if (!pack || pack.status !== "ready") return fail(c, 404, "not_found", "Evidence pack not found");
+  const token = randomToken(32);
+  const expiresAt = new Date(Date.now() + (body.data.expiresInDays ?? 30) * 86_400_000);
+  await db()`
+    UPDATE evidence_packs
+       SET share_token_hash = ${sha256(token)}, share_expires_at = ${expiresAt.toISOString()}
+     WHERE id = ${c.req.param("id")} AND org_id = ${s.org.id}
+  `;
+  await audit({
+    orgId: s.org.id,
+    actorUserId: s.user.id,
+    action: "evidence_pack.shared",
+    target: c.req.param("id"),
+    details: { expiresAt: expiresAt.toISOString() },
+  });
+  return c.json({
+    url: `${env.PUBLIC_BASE_URL.replace(/\/$/, "")}/evidence/share/${token}`,
+    expiresAt: expiresAt.toISOString(),
+  });
+});
+
+routes.delete("/v1/evidence-packs/:id/share", requireRole("owner", "admin", "member"), async (c) => {
+  const s = session(c);
+  const result = await db()`
+    UPDATE evidence_packs
+       SET share_token_hash = NULL, share_expires_at = NULL
+     WHERE id = ${c.req.param("id")} AND org_id = ${s.org.id}
+  `;
+  await audit({
+    orgId: s.org.id,
+    actorUserId: s.user.id,
+    action: "evidence_pack.share_revoked",
+    target: c.req.param("id"),
+    details: {},
+  });
+  return c.json({ revoked: result.count > 0 });
 });
 
 routes.get("/v1/evidence-packs/:id/download", async (c) => {

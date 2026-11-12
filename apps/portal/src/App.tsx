@@ -4,18 +4,24 @@ import { Link, NavLink, Navigate, Route, Routes, useLocation } from "react-route
 
 import { getMe, logout, type Me } from "./api";
 import { ActionsPage } from "./pages/Actions";
+import { DesignsPage } from "./pages/Designs";
 import { ActionDetailPage } from "./pages/ActionDetail";
 import { AgentsPage } from "./pages/Agents";
+import { AgentDetailPage } from "./pages/AgentDetail";
 import { EvidencePage } from "./pages/Evidence";
+import { EvidenceDetailPage } from "./pages/EvidenceDetail";
 import { TransitionsPage } from "./pages/Transitions";
 import { InvitePage } from "./pages/Invite";
 import { KeysPage } from "./pages/Keys";
 import { LoginPage } from "./pages/Login";
 import { OverviewPage } from "./pages/Overview";
 import { PoliciesPage } from "./pages/Policies";
+import { PublicEvidencePage } from "./pages/PublicEvidence";
 import { PublicVerifyPage } from "./pages/PublicVerify";
+import { ReviewsPage } from "./pages/Reviews";
 import { SettingsPage } from "./pages/Settings";
 import { TeamPage } from "./pages/Team";
+import { applyDesign, DESIGNS, readDesign, type DesignId, type DesignMode } from "./design";
 
 interface Workspace {
   me: Me;
@@ -33,6 +39,8 @@ export function useWorkspace(): Workspace {
 }
 
 export function App() {
+  const [designState, setDesignState] = useState(readDesign);
+  const { design, mode } = designState;
   const meQuery = useQuery({ queryKey: ["me"], queryFn: getMe, retry: false });
   const [environmentId, setEnvironmentIdState] = useState(
     () => localStorage.getItem("tessera.environment") ?? "",
@@ -40,6 +48,24 @@ export function App() {
   const location = useLocation();
   const publicVerify = location.pathname.startsWith("/verify/");
   const publicInvite = location.pathname.startsWith("/invite/");
+  const publicEvidence = location.pathname.startsWith("/evidence/share/");
+
+  useEffect(() => {
+    applyDesign(design, mode);
+  }, [design, mode]);
+
+  function selectDesign(id: DesignId) {
+    const option = DESIGNS.find((item) => item.id === id) ?? DESIGNS[0]!;
+    setDesignState({ design: id, mode: option.defaultMode });
+  }
+
+  function selectMode(next: DesignMode) {
+    setDesignState((current) => ({ ...current, mode: next }));
+  }
+
+  function applyDesignChoice(id: DesignId, nextMode: DesignMode) {
+    setDesignState({ design: id, mode: nextMode });
+  }
 
   useEffect(() => {
     if (!meQuery.data) return;
@@ -82,6 +108,14 @@ export function App() {
     );
   }
 
+  if (publicEvidence) {
+    return (
+      <Routes>
+        <Route path="/evidence/share/:token" element={<PublicEvidencePage />} />
+      </Routes>
+    );
+  }
+
   if (meQuery.isLoading) {
     return <div className="tf-login"><div className="tf-login-card">Loading…</div></div>;
   }
@@ -101,7 +135,9 @@ export function App() {
             <NavLink to="/actions">Actions</NavLink>
             <NavLink to="/agents">Agents</NavLink>
             <NavLink to="/evidence">Evidence</NavLink>
+            <NavLink to="/reviews">Reviews</NavLink>
             <NavLink to="/transitions">Transitions</NavLink>
+            <NavLink to="/designs">Designs</NavLink>
             <NavLink to="/policies">Policies</NavLink>
             <NavLink to="/keys">Agent keys</NavLink>
             <NavLink to="/team">Team</NavLink>
@@ -139,7 +175,29 @@ export function App() {
                 ))}
               </select>
             </div>
-            <div className="tf-actions">
+            <div className="tf-topbar-right">
+              <div className="tf-design-controls">
+                <label className="tf-muted" htmlFor="tf-design">Design</label>
+                <select
+                  id="tf-design"
+                  className="tf-select"
+                  value={design}
+                  onChange={(event) => selectDesign(event.target.value as DesignId)}
+                >
+                  {DESIGNS.map((option) => (
+                    <option key={option.id} value={option.id}>
+                      {option.name}
+                    </option>
+                  ))}
+                </select>
+                <button
+                  className="tf-btn ghost tf-theme-toggle"
+                  onClick={() => selectMode(mode === "dark" ? "light" : "dark")}
+                  aria-label={`Switch to ${mode === "dark" ? "light" : "dark"} mode`}
+                >
+                  {mode === "dark" ? "Light" : "Dark"}
+                </button>
+              </div>
               <span className="tf-muted">{workspace.me.user.email}</span>
             </div>
           </header>
@@ -149,8 +207,21 @@ export function App() {
               <Route path="/actions" element={<ActionsPage />} />
               <Route path="/actions/:actionId" element={<ActionDetailPage />} />
               <Route path="/agents" element={<AgentsPage />} />
+              <Route path="/agents/:agentId" element={<AgentDetailPage />} />
               <Route path="/evidence" element={<EvidencePage />} />
+              <Route path="/evidence/:packId" element={<EvidenceDetailPage />} />
+              <Route path="/reviews" element={<ReviewsPage />} />
               <Route path="/transitions" element={<TransitionsPage />} />
+              <Route
+                path="/designs"
+                element={
+                  <DesignsPage
+                    design={design}
+                    mode={mode}
+                    onApply={applyDesignChoice}
+                  />
+                }
+              />
               <Route path="/policies" element={<PoliciesPage />} />
               <Route path="/keys" element={<KeysPage />} />
               <Route path="/team" element={<TeamPage />} />

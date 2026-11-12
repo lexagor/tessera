@@ -13,7 +13,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
 use crate::error::BrokerError;
-use crate::policy::{Constraint, Policy, ResourceGrant};
+use crate::policy::{Constraint, Policy, PolicyMode, ResourceGrant};
 
 /// Distinct string values beyond this are left unconstrained (avoids brittle allowlists).
 pub const ALLOWLIST_MAX_VALUES: usize = 8;
@@ -249,6 +249,7 @@ pub fn propose(stats: &[FieldStat]) -> ProposedPolicy {
             name: "Proposed least-privilege policy".to_string(),
             grants,
             fail_open: false,
+            mode: PolicyMode::Enforce,
             limits: Default::default(),
         },
         evidence: stats.to_vec(),

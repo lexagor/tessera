@@ -24,11 +24,21 @@ export interface ActionSummary {
   verified: boolean | null;
 }
 
+export interface ActionReview {
+  id: string;
+  status: "pending" | "approved" | "rejected";
+  reason: string | null;
+  resolution_note: string | null;
+  created_at: string;
+  resolved_at: string | null;
+}
+
 export interface ActionDetail extends ActionSummary {
   payload: {
     authorization?: Record<string, unknown>;
     outcome?: Record<string, unknown> | null;
   };
+  review?: ActionReview | null;
   verification: {
     valid: boolean;
     errors: string[];

@@ -1,0 +1,64 @@
+[package]
+name = "tessera-broker"
+version = "0.0.0"
+edition = "2021"
+description = "Tessera Agent Action Broker: authorize + issue ephemeral credentials"
+license = "Apache-2.0"
+
+[lib]
+name = "tessera_broker"
+path = "src/lib.rs"
+
+[[bin]]
+name = "tessera-broker"
+path = "src/main.rs"
+
+[dependencies]
+anyhow = "1"
+async-trait = "0.1"
+axum = "0.7"
+base64 = "0.22"
+cel-interpreter = { version = "0.10.0", features = ["json"] }
+chacha20poly1305 = { version = "0.11.0", features = ["alloc"] }
+chrono = { version = "0.4", features = ["serde"] }
+flate2 = "1"
+hex = "0.4"
+hmac = "0.12"
+jsonwebtoken = "9"
+k256 = { version = "0.13", features = ["ecdsa"] }
+rand = "0.8"
+redis = { version = "1.7.0", features = ["tokio-comp", "connection-manager"] }
+reqwest = { version = "0.12", default-features = false, features = ["rustls-tls", "json"] }
+tar = "0.4"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+sha2 = "0.10"
+sha3 = "0.10"
+sqlx = { version = "0.8", default-features = false, features = ["runtime-tokio", "tls-rustls", "postgres", "json", "chrono"] }
+thiserror = "1"
+tokio = { version = "1", features = ["full"] }
+tower-http = { version = "0.7.1", features = ["limit", "timeout", "catch-panic", "set-header"] }
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+uuid = { version = "1", features = ["v4", "serde"] }
+
+[dev-dependencies]
+jsonwebtoken = "9"
+sqlx = { version = "0.8", default-features = false, features = ["runtime-tokio", "tls-rustls", "postgres", "json", "chrono"] }
+tokio-test = "0.4"
+tower = { version = "0.5", features = ["util"] }
+
+# ── Artifact-size policy ─────────────────────────────────────────────────────
+# Rust debug builds are by far the largest thing on disk here: on macOS the default
+# `split-debuginfo=unpacked` emits one DWARF-carrying object per codegen unit per
+# dependency (~370k object files for this crate's graph), which made `target/` ~37 GB.
+# Our own crate keeps file:line backtraces; dependencies carry no debug info.
+# No behavior change — see "Build artifacts & disk usage" in ../../CONTRIBUTING.md.
+[profile.dev]
+debug = "line-tables-only"
+
+[profile.dev.package."*"]
+debug = false
+
+[profile.dev.build-override]
+debug = false

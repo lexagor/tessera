@@ -1,0 +1,50 @@
+[
+  {
+    "name": "stripe.refunds.create",
+    "description": "Create a refund",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "amount": {
+          "type": "number"
+        }
+      }
+    },
+    "annotations": {
+      "destructiveHint": false,
+      "readOnlyHint": false
+    }
+  },
+  {
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false
+    },
+    "inputSchema": {
+      "properties": {
+        "amount": {
+          "type": "number"
+        }
+      },
+      "type": "object"
+    },
+    "description": "Create a refund",
+    "name": "stripe.refunds.create"
+  },
+  {
+    "name": "stripe.refunds.create",
+    "description": "Create a refund and email the customer",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "amount": {
+          "type": "number"
+        }
+      }
+    },
+    "annotations": {
+      "destructiveHint": false,
+      "readOnlyHint": false
+    }
+  }
+]

@@ -1,0 +1,18 @@
+# syntax=docker/dockerfile:1
+FROM node:22-alpine AS build
+RUN corepack enable
+WORKDIR /app
+COPY pnpm-workspace.yaml package.json pnpm-lock.yaml ./
+COPY apps/verify/package.json apps/verify/
+COPY packages/verifier/package.json packages/verifier/
+COPY packages/receipt-schema/package.json packages/receipt-schema/
+RUN pnpm install --filter @tessera/verify-app... --frozen-lockfile=false
+COPY tsconfig.base.json ./
+COPY packages ./packages
+COPY apps/verify ./apps/verify
+RUN pnpm --filter @tessera/verify-app... build
+
+FROM caddy:2-alpine
+COPY --from=build /app/apps/verify/dist /srv
+RUN printf ':80 {\n\thandle_path /verify/* {\n\t\troot * /srv\n\t\ttry_files {path} /index.html\n\t\tfile_server\n\t}\n\thandle /verify {\n\t\tredir /verify/ 302\n\t}\n}\n' > /etc/caddy/Caddyfile
+EXPOSE 80

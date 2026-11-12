@@ -1,0 +1,48 @@
+[package]
+name = "tessera-broker-fuzz"
+version = "0.0.0"
+publish = false
+edition = "2021"
+
+[package.metadata]
+cargo-fuzz = true
+
+[dependencies]
+libfuzzer-sys = "0.4"
+serde_json = "1"
+tessera-broker = { path = ".." }
+
+[[bin]]
+name = "canonical"
+path = "fuzz_targets/canonical.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "cel"
+path = "fuzz_targets/cel.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "merkle"
+path = "fuzz_targets/merkle.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "rlp"
+path = "fuzz_targets/rlp.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "receipt"
+path = "fuzz_targets/receipt.rs"
+test = false
+doc = false
+bench = false

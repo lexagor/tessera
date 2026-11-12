@@ -1,0 +1,50 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:tessera:receipt:v1",
+  "title": "Tessera Grant Receipt",
+  "type": "object",
+  "required": ["v", "tenant", "agent", "user", "intentHash", "authorization", "call", "grant", "ts", "nonce"],
+  "additionalProperties": false,
+  "properties": {
+    "v": { "const": 1 },
+    "tenant": { "type": "string" },
+    "agent": { "type": "string" },
+    "user": { "type": "string" },
+    "intentHash": { "type": "string", "pattern": "^0x[0-9a-f]{64}$" },
+    "authorization": {
+      "type": "object",
+      "required": ["decision", "policy", "policyVersion", "resource", "anomalyScore"],
+      "properties": {
+        "decision": { "enum": ["allow", "deny"] },
+        "policy": { "type": "string" },
+        "policyVersion": { "type": "integer", "minimum": 0 },
+        "resource": { "type": "string" },
+        "anomalyScore": { "type": "number", "minimum": 0, "maximum": 1 }
+      }
+    },
+    "call": {
+      "type": "object",
+      "required": ["tool", "argsHash"],
+      "properties": {
+        "tool": { "type": "string" },
+        "argsHash": { "type": "string", "pattern": "^0x[0-9a-f]{64}$" },
+        "resultHash": { "type": "string", "pattern": "^0x[0-9a-f]{64}$" },
+        "toolHash": { "type": "string", "pattern": "^0x[0-9a-f]{64}$" }
+      }
+    },
+    "grant": {
+      "type": "object",
+      "required": ["provider", "ttlS", "singleUse", "status"],
+      "properties": {
+        "provider": { "type": "string" },
+        "ttlS": { "type": "integer", "minimum": 1 },
+        "singleUse": { "type": "boolean" },
+        "status": { "enum": ["issued", "used", "expired", "revoked"] }
+      }
+    },
+    "ts": { "type": "string", "format": "date-time" },
+    "nonce": { "type": "string" },
+    "prev": { "type": ["string", "null"] },
+    "signature": { "type": ["string", "null"] }
+  }
+}

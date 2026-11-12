@@ -1,0 +1,14 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "jsx": "react-jsx",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "noEmit": true,
+    "baseUrl": ".",
+    "paths": {
+      "@tessera/ui": ["../../packages/ui/src/index.tsx"],
+      "@tessera/ui/styles.css": ["../../packages/ui/src/styles.css"]
+    }
+  },
+  "include": ["src"]
+}

@@ -1,0 +1,31 @@
+{
+  "name": "@tessera/sdk-ts",
+  "version": "0.1.0",
+  "description": "Tessera agent SDK \u2014 wrap any tool client to broker ephemeral credentials",
+  "license": "Apache-2.0",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc --noEmit",
+    "lint": "echo 'lint not configured'",
+    "test": "node --import tsx --test test/*.test.ts",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@tessera/receipt-schema": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "tsx": "^4.19.2",
+    "typescript": "^5.6.3"
+  }
+}

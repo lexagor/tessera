@@ -1,0 +1,58 @@
+image:
+  repository: ghcr.io/tessera/broker
+  tag: "0.6"
+  pullPolicy: IfNotPresent
+
+replicaCount: 2
+
+service:
+  type: ClusterIP
+  port: 8787
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    cpu: "1"
+    memory: 512Mi
+
+# Non-secret configuration. Secrets go in `existingSecret`.
+config:
+  BROKER_HOST: "0.0.0.0"
+  BROKER_PORT: "8787"
+  TESSERA_DEMO_ALLOW: "0"
+  CHAIN_ID: "84532"
+  RUST_LOG: "tessera_broker=info"
+  # Peers allowed to set X-Forwarded-For; use your ingress controller / proxy CIDRs.
+  TRUSTED_PROXIES: "10.0.0.0/8,172.16.0.0/12,192.168.0.0/16"
+  # Hard ceiling on credential lifetime, and data retention for terminal anchors.
+  DEFAULT_CREDENTIAL_TTL_SECONDS: "30"
+  MAX_CREDENTIAL_TTL_SECONDS: "3600"
+  RETENTION_DAYS: "90"
+  # Optional strict egress, e.g. "api.stripe.com,api.github.com,sts.us-east-1.amazonaws.com".
+  EGRESS_ALLOWLIST: ""
+  # Optional per-resource budgets, e.g. "stripe:refunds.create=10".
+  TOOL_RATE_LIMITS: ""
+  # Warn when a live chain outruns its last anchor by this many receipts (0 disables).
+  ANCHOR_GAP_THRESHOLD: "100"
+  # Scheduled tenant archives: mount a volume at this path for evidence retention.
+  # Leave empty to disable; archives are never pruned by the broker.
+  ARCHIVE_DIR: ""
+  ARCHIVE_INTERVAL_SECS: "3600"
+
+# Name of a Secret containing: BROKER_SIGNING_KEY, DATABASE_URL, REDIS_URL,
+# TESSERA_ADMIN_TOKEN, and any provider/issuer credentials.
+existingSecret: tessera-secrets
+
+ingress:
+  enabled: false
+  className: ""
+  host: tessera.example.com
+  tlsSecret: ""
+
+podAnnotations: {}
+
+nodeSelector: {}
+tolerations: []
+affinity: {}

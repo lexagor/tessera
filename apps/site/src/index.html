@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Tessera — Proof of action for AI agents</title>
+    <meta
+      name="description"
+      content="Tessera enforces what an AI agent may do and produces a signed, independently verifiable record of every action — binding the agent, the delegating human, the policy, the credential, and the outcome."
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body class="landing">
+    <header class="hero">
+      <div class="wrap">
+        <p class="eyebrow">Proof of action for AI agents</p>
+        <h1>Your enterprise buyer asked for proof.<br />Here it is.</h1>
+        <p class="lede">
+          Tessera enforces what your agent may do — then produces a signed record that binds
+          the agent, the delegating human, the policy, the credential, and the outcome. A third
+          party can verify it offline, without trusting you or us.
+        </p>
+        <div class="cta">
+          <a class="btn primary" href="docs/design-partner-program.html">Book a security review audit</a>
+          <a class="btn" href="docs/index.html">Read the docs</a>
+          <a class="btn ghost" href="docs/receipt-spec.html">Read the verifier spec</a>
+          <a class="btn ghost" href="docs/pricing.html">Pricing</a>
+        </div>
+        <pre class="hero-code"><code>const call = await tessera.authorize({
+  tool: "stripe.refunds.create",
+  intent: "refund a duplicate charge",
+  args: { charge: "ch_123", amount: 4200 },
+  principal: { id: "user_42", authorityRef: "oauth_grant_9f2" },
+});
+if (call.decision === "allow") {
+  await tessera.proxy({ grantId, argsHash: call.credential.argsHash, ... });
+  await tessera.record({ receiptId: call.receiptId, status: "success" });
+}</code></pre>
+      </div>
+    </header>
+
+    <main>
+      <section class="wrap">
+        <h2>Why security reviews stall</h2>
+        <div class="cards">
+          <div class="card">
+            <h3>Logs are self-asserted</h3>
+            <p>Anyone can edit a log. An enterprise reviewer cannot tell what the agent actually
+            did, on whose authority, or whether the record changed.</p>
+          </div>
+          <div class="card">
+            <h3>Identity is not proof</h3>
+            <p>IAM says which app an agent can reach. It does not bind the exact tool call, the
+            human delegation, the policy version, and the outcome.</p>
+          </div>
+          <div class="card">
+            <h3>Deals get stuck</h3>
+            <p>The buyer's security team asks for an audit trail and attribution. The vendor has
+            dashboards and logs, but nothing a third party can verify.</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="wrap">
+        <h2>Enforce, bind, verify, prove</h2>
+        <ol class="steps">
+          <li><strong>Enforce</strong> the declared intent against per-action policy and issue a
+            scoped credential — or a broker-held grant the agent never sees.</li>
+          <li><strong>Bind</strong> the agent, delegating human, intent, policy hash, tool
+            definition, arguments, credential thumbprint, and outcome into one signed record.</li>
+          <li><strong>Verify</strong> offline with the open-source verifier — no trust in the
+            vendor, no call back to our servers.</li>
+          <li><strong>Prove</strong> it with a verification page and an exportable evidence pack
+            mapped to SOC 2, ISO 42001, EU AI Act, FINRA, SEC 17a-4, and DORA.</li>
+        </ol>
+      </section>
+
+      <section class="wrap">
+        <h2>Verification, not another dashboard</h2>
+        <p class="lede">
+          A receipt binds the authorization decision and the outcome into one signature. Anyone
+          can recompute the hash, recover the signer, and check the chain.
+        </p>
+        <pre><code>POST /v1/verify/receipt
+{ "receipt": { /* the signed action record */ } }
+→ { "valid": true, "recovered": "0x7099…", "matchesExpected": true }</code></pre>
+      </section>
+
+      <section class="wrap">
+        <h2>Built like infrastructure</h2>
+        <div class="stats">
+          <div class="stat"><span>308</span><small>Rust tests</small></div>
+          <div class="stat"><span>3</span><small>provider adapters</small></div>
+          <div class="stat"><span>4</span><small>properties in one path</small></div>
+          <div class="stat"><span>offline</span><small>verification</small></div>
+        </div>
+        <p class="lede">
+          Per-call enforcement, scoped credential minting, intent/authority binding, and offline
+          verification — with KMS/HSM signing, tenant isolation, quotas, revocation, and an
+          open verifier.
+        </p>
+      </section>
+
+      <section class="wrap ctaband">
+        <h2>Unblock the deal with evidence, not promises.</h2>
+        <div class="cta">
+          <a class="btn primary" href="docs/design-partner-program.html">Design partner program</a>
+          <a class="btn" href="docs/one-pager.html">One-pager</a>
+        </div>
+      </section>
+    </main>
+
+    <footer class="wrap">
+      <p>Apache-2.0 · <a href="docs/index.html">Docs</a> · <a href="docs/pricing.html">Pricing</a> ·
+      <a href="docs/trust-center.html">Trust</a> · partners@tessera.dev</p>
+    </footer>
+  </body>
+</html>

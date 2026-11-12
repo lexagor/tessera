@@ -1,0 +1,26 @@
+{$DOMAIN} {
+	encode gzip
+	tls {$ACME_EMAIL}
+
+	handle /v1/* {
+		reverse_proxy api:8788
+	}
+	handle /auth/* {
+		reverse_proxy api:8788
+	}
+	handle /openapi.json {
+		reverse_proxy api:8788
+	}
+	handle /healthz {
+		reverse_proxy api:8788
+	}
+	handle /verify/* {
+		reverse_proxy verify:80
+	}
+	handle /verify {
+		redir /verify/ 302
+	}
+	handle {
+		reverse_proxy portal:80
+	}
+}

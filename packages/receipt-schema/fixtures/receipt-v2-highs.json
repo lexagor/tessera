@@ -1,0 +1,88 @@
+{
+  "domain": {
+    "chainId": 31337,
+    "verifyingContract": "0x0000000000000000000000000000000000000000"
+  },
+  "expectedSigner": "0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266",
+  "expectedPayloadHash": "0x29e332ed7b71d623480cfe6043fed84c307a036677206858c9e09694c0d26eb1",
+  "receipt": {
+    "v": 2,
+    "tenant": "acme",
+    "agent": "billing-agent",
+    "user": "user_42",
+    "intentHash": "0x1111111111111111111111111111111111111111111111111111111111111111",
+    "authorization": {
+      "decision": "allow",
+      "policy": "acme-refunds",
+      "policyVersion": 7,
+      "resource": "stripe:refunds.create",
+      "anomalyScore": 0,
+      "policyHash": "0x9999999999999999999999999999999999999999999999999999999999999999"
+    },
+    "call": {
+      "tool": "stripe.refunds.create",
+      "argsHash": "0x2222222222222222222222222222222222222222222222222222222222222222",
+      "resultHash": null,
+      "toolHash": "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    },
+    "grant": {
+      "provider": "stripe",
+      "ttlS": 30,
+      "singleUse": true,
+      "status": "issued"
+    },
+    "ts": "2026-11-06T12:00:00Z",
+    "nonce": "0x3333333333333333333333333333333333333333333333333333333333333333",
+    "prev": null,
+    "actionId": "action_v2_fixture",
+    "principal": {
+      "principalId": "user_42",
+      "principalType": "user",
+      "authorityRef": "oauth_grant_9f2",
+      "authorityHash": "0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "verifiedAt": "2026-11-06T11:59:00Z",
+      "verificationMethod": "oidc"
+    },
+    "agentMeta": {
+      "agentId": "billing-agent",
+      "agentVersion": "1.2.0",
+      "modelId": "gpt-5",
+      "operatorId": "acme",
+      "environment": "production"
+    },
+    "intent": {
+      "intentHash": "0x1111111111111111111111111111111111111111111111111111111111111111",
+      "requestedScopes": [
+        "refunds.create"
+      ],
+      "riskClass": "money-movement",
+      "declaredPurpose": "refund a duplicate charge"
+    },
+    "policy": {
+      "policyId": "acme-refunds",
+      "policyVersion": 7,
+      "policyHash": "0x9999999999999999999999999999999999999999999999999999999999999999",
+      "decision": "allow",
+      "reasonCode": "grant 'stripe:refunds.create' matched",
+      "evaluatedInputsHash": "0xcccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "evaluatorVersion": "tessera-policy-v1"
+    },
+    "credential": {
+      "issuer": "stripe",
+      "credentialType": "broker_grant",
+      "thumbprint": "0xdddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+      "scopes": [
+        "refunds.create"
+      ],
+      "ttlSeconds": 30,
+      "singleUse": true,
+      "issuanceId": "grant_fixture"
+    },
+    "attestation": {
+      "signerKeyId": "0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266",
+      "signatureAlg": "secp256k1-eip712",
+      "timestamp": "2026-11-06T12:00:00Z"
+    },
+    "signature": "0x5ad246fcdf811e4593e8b2d5982145f996f8915ebced4d3e7ae1d6bbffd1e2e7e5bc3a006f05a41bcd662c24ea10b7fd325053966a71a482013aa42d7445cad81c"
+  }
+}

@@ -1,0 +1,113 @@
+# Tessera local/dev stack.
+#
+# Caddy is the only public entry point. The broker stays on the internal network.
+# This stack enables dev auth + demo broker mode for local evaluation; use the
+# production overlay/runbook for real OIDC, stable secrets, and public TLS.
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: tessera
+      POSTGRES_PASSWORD: tessera
+      POSTGRES_DB: tessera
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U tessera"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+
+  broker:
+    build:
+      context: ../..
+      dockerfile: infra/docker/Dockerfile.broker
+    restart: unless-stopped
+    environment:
+      BROKER_PORT: "8787"
+      DATABASE_URL: postgres://tessera:tessera@postgres:5432/tessera
+      REDIS_URL: redis://redis:6379
+      TESSERA_DEMO_ALLOW: ${TESSERA_DEMO_ALLOW:-1}
+      BROKER_SIGNING_KEY: ${BROKER_SIGNING_KEY:-0x59c6995e998f97a5a0044966f0945389dc9e86dae88c7a8412f4603b6b78690d}
+      TENANT_SECRET_ENC_KEY: ${TENANT_SECRET_ENC_KEY:-0x1111111111111111111111111111111111111111111111111111111111111111}
+      TESSERA_ADMIN_TOKEN: ${TESSERA_ADMIN_TOKEN:-dev-admin-token}
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  api:
+    build:
+      context: ../..
+      dockerfile: infra/docker/Dockerfile.api
+    restart: unless-stopped
+    environment:
+      NODE_ENV: development
+      API_PORT: "8788"
+      DATABASE_URL: postgres://tessera:tessera@postgres:5432/tessera
+      BROKER_URL: http://broker:8787
+      BROKER_DEMO_ALLOW: ${BROKER_DEMO_ALLOW:-1}
+      BROKER_ADMIN_KEY: ${BROKER_ADMIN_KEY:-}
+      BROKER_ADMIN_TOKEN: ${BROKER_ADMIN_TOKEN:-dev-admin-token}
+      PUBLIC_BASE_URL: ${PUBLIC_BASE_URL:-http://localhost:8080}
+      VERIFY_BASE_URL: ${VERIFY_BASE_URL:-http://localhost:8080}
+      AUTH_DEV_MODE: ${AUTH_DEV_MODE:-1}
+      OIDC_ISSUER: ${OIDC_ISSUER:-}
+      OIDC_CLIENT_ID: ${OIDC_CLIENT_ID:-}
+      OIDC_CLIENT_SECRET: ${OIDC_CLIENT_SECRET:-}
+      OIDC_REDIRECT_URI: ${OIDC_REDIRECT_URI:-}
+      OIDC_ALLOWED_DOMAINS: ${OIDC_ALLOWED_DOMAINS:-}
+      CONTROL_PLANE_ENC_KEY: ${CONTROL_PLANE_ENC_KEY:-0x2222222222222222222222222222222222222222222222222222222222222222}
+      AGENT_RECEIPT_ED25519_KEY: ${AGENT_RECEIPT_ED25519_KEY:-}
+      AGENT_RECEIPT_ISSUER_DID: ${AGENT_RECEIPT_ISSUER_DID:-}
+      AGENT_RECEIPT_TSA_URL: ${AGENT_RECEIPT_TSA_URL:-}
+      EVIDENCE_DIR: /data/evidence
+      ALLOW_PRIVATE_WEBHOOKS: ${ALLOW_PRIVATE_WEBHOOKS:-1}
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY:-}
+      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET:-}
+      STRIPE_PRICE_TEAM: ${STRIPE_PRICE_TEAM:-}
+      STRIPE_PRICE_GROWTH: ${STRIPE_PRICE_GROWTH:-}
+      STRIPE_PORTAL_RETURN_URL: ${STRIPE_PORTAL_RETURN_URL:-}
+    volumes:
+      - evidence:/data/evidence
+    depends_on:
+      postgres:
+        condition: service_healthy
+      broker:
+        condition: service_started
+
+  portal:
+    build:
+      context: ../..
+      dockerfile: infra/docker/Dockerfile.portal
+    restart: unless-stopped
+
+  verify:
+    build:
+      context: ../..
+      dockerfile: infra/docker/Dockerfile.verify
+    restart: unless-stopped
+    depends_on:
+      api:
+        condition: service_started
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports:
+      - "${CADDY_PORT:-8080}:80"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+    depends_on:
+      - api
+      - portal
+      - verify
+
+volumes:
+  pgdata:
+  evidence:

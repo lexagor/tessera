@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 
 import { api } from "../api";
-import { Badge, Button, Card, EmptyState, ErrorBanner, PageHeader, formatDate } from "@tessera/ui";
+import { Badge, Button, Card, EmptyState, ErrorBanner, ErrorState, PageHeader, Skeleton, formatDate } from "@tessera/ui";
 
 interface Review {
   id: string;
@@ -80,7 +80,25 @@ export function ReviewsPage() {
           ))}
         </div>
 
-        {reviews.data?.items.length ? (
+        {reviews.isLoading ? (
+          <div className="tf-review-list">
+            {Array.from({ length: 3 }).map((_, index) => (
+              <div className="tf-review-item" key={index}>
+                <div className="tf-review-main">
+                  <Skeleton width="32%" height={14} />
+                  <Skeleton width="64%" height={10} style={{ marginTop: 10 }} />
+                  <Skeleton width="82%" height={10} style={{ marginTop: 10 }} />
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : reviews.isError ? (
+          <ErrorState
+            title="Reviews are unavailable"
+            message={reviews.error instanceof Error ? reviews.error.message : "Could not load the review queue."}
+            action={<Button onClick={() => reviews.refetch()}>Retry</Button>}
+          />
+        ) : reviews.data?.items.length ? (
           <div className="tf-review-list">
             {reviews.data.items.map((review) => (
               <div className="tf-review-item" key={review.id}>

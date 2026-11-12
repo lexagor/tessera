@@ -25,7 +25,18 @@ export const openapi = {
       get: { summary: "List agent keys" },
       post: { summary: "Create an agent API key" },
     },
-    "/v1/actions": { get: { summary: "Search actions" } },
+    "/v1/actions": {
+      get: { summary: "Search actions with optional agent, tool, decision, outcome, and time filters" },
+    },
+    "/v1/analytics": {
+      get: { summary: "Action trends, policy coverage, risk, heatmap, and time-to-verification" },
+    },
+    "/v1/notifications": {
+      get: { summary: "Derived alerts for reviews, failures, integrations, evidence, and keys" },
+    },
+    "/v1/search": {
+      get: { summary: "Search agents, actions, policies, and verification links" },
+    },
     "/v1/actions/{actionId}": { get: { summary: "Action detail and verification" } },
     "/v1/actions/{actionId}/agent-receipt": {
       get: { summary: "Export an Agent Receipts v0.5.0 W3C credential" },
@@ -44,6 +55,16 @@ export const openapi = {
       post: { summary: "Record a signed authority transition" },
     },
     "/v1/agents": { get: { summary: "Agent summaries for the active environment" } },
+    "/v1/integrations": {
+      get: { summary: "Integration coverage, provider catalog, and credential posture" },
+      post: { summary: "Connect a provider, create its first policy, and issue a test action" },
+    },
+    "/v1/integrations/{id}/test": {
+      post: { summary: "Test a provider connection and update its credential posture" },
+    },
+    "/v1/integrations/{id}/rotate": {
+      post: { summary: "Rotate the encrypted credential for a provider connection" },
+    },
     "/v1/usage": { get: { summary: "Usage and plan limits" } },
     "/v1/billing": { get: { summary: "Plan, subscription, and usage" } },
     "/v1/billing/checkout": { post: { summary: "Create a Stripe Checkout session" } },

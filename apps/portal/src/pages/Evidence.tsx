@@ -10,8 +10,10 @@ import {
   Card,
   EmptyState,
   ErrorBanner,
+  ErrorState,
   Modal,
   PageHeader,
+  Skeleton,
   formatDate,
 } from "@tessera/ui";
 import {
@@ -131,7 +133,21 @@ export function EvidencePage() {
           </div>
         </>
       ) : readiness.isLoading ? (
-        <Card>Loading evidence posture…</Card>
+        <div className="tf-stat-row">
+          {Array.from({ length: 4 }).map((_, index) => (
+            <Card key={index}>
+              <Skeleton width="42%" height={10} />
+              <Skeleton width="60%" height={28} style={{ marginTop: 12 }} />
+              <Skeleton width="76%" height={10} style={{ marginTop: 10 }} />
+            </Card>
+          ))}
+        </div>
+      ) : readiness.isError ? (
+        <ErrorState
+          title="Evidence posture is unavailable"
+          message={readiness.error instanceof Error ? readiness.error.message : "Could not load evidence readiness."}
+          action={<Button onClick={() => readiness.refetch()}>Retry</Button>}
+        />
       ) : (
         <Card>
           <EmptyState title="No evidence posture yet">

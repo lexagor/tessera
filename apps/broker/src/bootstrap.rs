@@ -113,6 +113,20 @@ pub async fn build_service(cfg: &BrokerConfig) -> Result<Arc<AuthorizeService>, 
         None if cfg.demo_allow => issuers.register(Arc::new(MockIssuer::new("stripe"))),
         None => {}
     }
+    if cfg.demo_allow {
+        // Demo coverage for providers whose production issuer is not wired yet. This keeps
+        // integration setup and end-to-end UI flows testable without pretending a live
+        // adapter exists.
+        for provider in ["slack", "zendesk", "openai", "anthropic", "langchain"] {
+            if !issuers
+                .providers()
+                .iter()
+                .any(|registered| registered == provider)
+            {
+                issuers.register(Arc::new(MockIssuer::new(provider)));
+            }
+        }
+    }
 
     let chain: Arc<dyn ChainStore> = match &cfg.database_url {
         Some(url) => Arc::new(PostgresChainStore::new(url)?),

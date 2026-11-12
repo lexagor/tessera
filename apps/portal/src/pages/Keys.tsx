@@ -10,7 +10,9 @@ import {
   CopyRow,
   EmptyState,
   ErrorBanner,
+  ErrorState,
   PageHeader,
+  SkeletonTable,
   formatDate,
 } from "@tessera/ui";
 
@@ -86,7 +88,16 @@ export function KeysPage() {
       </Card>
 
       <Card>
-        {keys.data?.items.length ? (
+        {keys.isLoading ? (
+          <SkeletonTable rows={4} columns={6} />
+        ) : keys.isError ? (
+          <ErrorState
+            title="Agent keys are unavailable"
+            message={keys.error instanceof Error ? keys.error.message : "Could not load agent keys."}
+            action={<Button onClick={() => keys.refetch()}>Retry</Button>}
+          />
+        ) : keys.data?.items.length ? (
+          <div className="tf-table-wrap">
           <table className="tf-table">
             <thead>
               <tr>
@@ -125,6 +136,7 @@ export function KeysPage() {
               ))}
             </tbody>
           </table>
+          </div>
         ) : (
           <EmptyState title="No agent keys yet">
             Create a key, then use it from the SDK or MCP adapter.

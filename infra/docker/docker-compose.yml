@@ -6,7 +6,7 @@
 
 services:
   postgres:
-    image: postgres:16-alpine
+    image: postgres:16-alpine@sha256:aa6cb33cf4c19c765cefcf48d96176258800870a9a1e930ad126200f9d825139
     restart: unless-stopped
     environment:
       POSTGRES_USER: tessera
@@ -21,7 +21,7 @@ services:
       retries: 10
 
   redis:
-    image: redis:7-alpine
+    image: redis:7-alpine@sha256:7f7d30b7fdd09467bac58198a1f166dd69789d348d4fe859cccb20e0cf287fbe
     restart: unless-stopped
 
   broker:
@@ -29,6 +29,17 @@ services:
       context: ../..
       dockerfile: infra/docker/Dockerfile.broker
     restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    read_only: true
+    tmpfs:
+      - /tmp
+    pids_limit: 512
+    mem_limit: 512m
+    cpus: "1.0"
+    stop_grace_period: 30s
     environment:
       BROKER_PORT: "8787"
       DATABASE_URL: postgres://tessera:tessera@postgres:5432/tessera
@@ -53,22 +64,37 @@ services:
       context: ../..
       dockerfile: infra/docker/Dockerfile.api
     restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    read_only: true
+    tmpfs:
+      - /tmp
+    pids_limit: 512
+    mem_limit: 512m
+    cpus: "1.0"
+    stop_grace_period: 30s
     environment:
       NODE_ENV: development
       API_PORT: "8788"
       DATABASE_URL: postgres://tessera:tessera@postgres:5432/tessera
       BROKER_URL: http://broker:8787
+      REDIS_URL: redis://redis:6379
       BROKER_DEMO_ALLOW: ${BROKER_DEMO_ALLOW:-1}
       BROKER_ADMIN_KEY: ${BROKER_ADMIN_KEY:-}
       BROKER_ADMIN_TOKEN: ${BROKER_ADMIN_TOKEN:-dev-admin-token}
       PUBLIC_BASE_URL: ${PUBLIC_BASE_URL:-http://localhost:8080}
       VERIFY_BASE_URL: ${VERIFY_BASE_URL:-http://localhost:8080}
+      TRUST_PROXY: "1"
       AUTH_DEV_MODE: ${AUTH_DEV_MODE:-1}
       OIDC_ISSUER: ${OIDC_ISSUER:-}
       OIDC_CLIENT_ID: ${OIDC_CLIENT_ID:-}
       OIDC_CLIENT_SECRET: ${OIDC_CLIENT_SECRET:-}
       OIDC_REDIRECT_URI: ${OIDC_REDIRECT_URI:-}
       OIDC_ALLOWED_DOMAINS: ${OIDC_ALLOWED_DOMAINS:-}
+      OIDC_ALLOW_EMAIL_LINKING: ${OIDC_ALLOW_EMAIL_LINKING:-0}
+      OIDC_STATE_SECRET: ${OIDC_STATE_SECRET:-tessera-dev-oidc-state-secret-32-bytes-minimum}
       CONTROL_PLANE_ENC_KEY: ${CONTROL_PLANE_ENC_KEY:-0x2222222222222222222222222222222222222222222222222222222222222222}
       TESSERA_AUTHORITY_HMAC_SECRET: ${TESSERA_AUTHORITY_HMAC_SECRET:-tessera-dev-authority-secret-32-bytes-minimum}
       TESSERA_AUTHORITY_HMAC_SECRET_PREVIOUS: ${TESSERA_AUTHORITY_HMAC_SECRET_PREVIOUS:-}
@@ -90,6 +116,12 @@ services:
       STRIPE_PORTAL_RETURN_URL: ${STRIPE_PORTAL_RETURN_URL:-}
     volumes:
       - evidence:/data/evidence
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:8788/healthz >/dev/null || exit 1"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 10s
     depends_on:
       postgres:
         condition: service_healthy
@@ -101,12 +133,36 @@ services:
       context: ../..
       dockerfile: infra/docker/Dockerfile.portal
     restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    read_only: true
+    tmpfs:
+      - /tmp
+      - /config
+      - /data
+    pids_limit: 128
+    mem_limit: 128m
+    cpus: "0.5"
 
   verify:
     build:
       context: ../..
       dockerfile: infra/docker/Dockerfile.verify
     restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    read_only: true
+    tmpfs:
+      - /tmp
+      - /config
+      - /data
+    pids_limit: 128
+    mem_limit: 128m
+    cpus: "0.5"
     depends_on:
       api:
         condition: service_started
@@ -116,12 +172,30 @@ services:
       context: ../..
       dockerfile: infra/docker/Dockerfile.site
     restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    read_only: true
+    tmpfs:
+      - /tmp
+      - /config
+      - /data
+    pids_limit: 128
+    mem_limit: 128m
+    cpus: "0.5"
     ports:
-      - "${SITE_PORT:-8081}:80"
+      - "${SITE_PORT:-8081}:8080"
 
   caddy:
-    image: caddy:2-alpine
+    image: caddy:2-alpine@sha256:78bd35025c7ba85961dd149ae670315129954e77abe2383ac47c89106b35ade9
     restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    pids_limit: 256
+    mem_limit: 512m
+    cpus: "1.0"
+    stop_grace_period: 30s
     ports:
       - "${CADDY_PORT:-8080}:80"
     volumes:

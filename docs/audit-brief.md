@@ -129,12 +129,14 @@ anyone ─▶ /v1/verify/{receipt,chain,merkle} (no trust in broker)
 
 ## 8. Known limitations (please do not spend budget re-deriving these)
 
-- Rate limiting is per-replica unless `REDIS_URL` is set (Redis fixed-window limiter).
+- API and broker rate limits use Redis when `REDIS_URL` is configured; otherwise they fall back to bounded per-process limiters.
 - In-process key is the default signer; KMS/HSM requires an operator-provided bridge.
 - Anchor confirmation is best-effort; deep reorg rollback/re-anchor is not implemented.
 - Provider-native revocation exists for GitHub installation tokens; Stripe uses broker-grant
   invalidation (no key-delete API); AWS STS cannot be revoked early.
-- Postgres uses a single role (no row-level security) — defense-in-depth only.
+- Production is required to run as the non-superuser `tessera_app` role. Broker tables have
+  RLS policies in `infra/sql/rls.sql`; applying them is a deployment step. Control-plane tables
+  are application-enforced and are not under RLS.
 - A user who bypasses the SDK entirely is out of model for the broker.
 - Model providers do not expose weights; provenance is over hashes and signed I/O.
 

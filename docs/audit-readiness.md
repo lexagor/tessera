@@ -110,7 +110,7 @@ outbound timeouts, and constant-time API-key comparison. See `controls-matrix.md
 
 ## 6. Known limitations (accepted, documented)
 
-- Rate limiting is per-replica unless `REDIS_URL` is set (Redis fixed-window limiter).
+- API and broker rate limits use Redis when `REDIS_URL` is configured; otherwise they fall back to bounded per-process limiters.
 - Signing keys may be in-process (`LocalSigner`) or an external KMS/HSM (`KMS_SIGNER_URL`); a
   reference KMS bridge contract is documented but the operator supplies the service.
 - Anchor confirmation is best-effort (bounded poll) and tracks block numbers; deep reorg

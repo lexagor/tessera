@@ -18,9 +18,10 @@ To rotate the authority key without breaking in-flight tokens, add
 
 ```bash
 helm install tessera infra/k8s/helm/tessera \
-  --set image.tag=0.6 \
-  --set ingress.enabled=true --set ingress.host=tessera.example.com
+  --set image.tag=0.1.3
 ```
 
-`TESSERA_DEMO_ALLOW` defaults to `"0"` (auth required). Set it to `"1"` only for demos.
-Scrape metrics from `/metrics`; probe liveness/readiness at `/healthz`.
+The chart intentionally creates only a ClusterIP Service and no Ingress. The broker is an
+internal service; expose the control-plane API through its own ingress, not the broker.
+`TESSERA_PRODUCTION` and `TESSERA_DEMO_ALLOW=0` are set by default. Scrape metrics from
+`/metrics`; probe liveness/readiness at `/healthz`.

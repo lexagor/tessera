@@ -120,6 +120,7 @@ impl RateLimiter for MemoryRateLimiter {
 /// Shared fixed-window limiter (`INCR` + `EXPIRE` per tenant per minute).
 pub struct RedisRateLimiter {
     manager: redis::aio::ConnectionManager,
+    fallback: MemoryRateLimiter,
 }
 
 impl RedisRateLimiter {
@@ -129,7 +130,10 @@ impl RedisRateLimiter {
         let manager = redis::aio::ConnectionManager::new(client)
             .await
             .map_err(|e| BrokerError::Internal(format!("redis connect: {e}")))?;
-        Ok(Self { manager })
+        Ok(Self {
+            manager,
+            fallback: MemoryRateLimiter::new(),
+        })
     }
 }
 
@@ -144,8 +148,8 @@ impl RateLimiter for RedisRateLimiter {
         let count: i64 = match conn.incr(&redis_key, 1i64).await {
             Ok(c) => c,
             Err(e) => {
-                tracing::warn!("redis rate-limit error, failing open: {e}");
-                return true;
+                tracing::warn!("redis rate-limit error, using local fallback: {e}");
+                return self.fallback.allow_per_minute(key, per_minute).await;
             }
         };
         if count == 1 {

@@ -417,6 +417,72 @@ impl StripeConfig {
     }
 }
 
+const DEV_SIGNING_KEY: &str = "0x59c6995e998f97a5a0044966f0945389dc9e86dae88c7a8412f4603b6b78690d";
+const DEV_TENANT_SECRET_KEY: &str =
+    "0x1111111111111111111111111111111111111111111111111111111111111111";
+const DEV_ADMIN_TOKEN: &str = "dev-admin-token";
+const DEV_AUTHORITY_SECRET: &str = "tessera-dev-authority-secret-32-bytes-minimum";
+
+/// Production-only checks for the broker. `TESSERA_PRODUCTION=1` is set by the prod overlay;
+/// local and test processes are unaffected.
+pub fn production_problems(cfg: &BrokerConfig) -> Vec<String> {
+    production_problems_for(
+        cfg,
+        std::env::var("TESSERA_PRODUCTION").as_deref() == Ok("1"),
+    )
+}
+
+fn production_problems_for(cfg: &BrokerConfig, production: bool) -> Vec<String> {
+    if !production {
+        return Vec::new();
+    }
+    let mut problems = Vec::new();
+    if cfg.demo_allow {
+        problems.push("TESSERA_DEMO_ALLOW must be disabled in production".into());
+    }
+    if cfg.kms_signer_url.is_none() {
+        match cfg.signing_key_hex.as_deref() {
+            None => problems
+                .push("BROKER_SIGNING_KEY (or KMS_SIGNER_URL) is required in production".into()),
+            Some(key) if key.eq_ignore_ascii_case(DEV_SIGNING_KEY) => {
+                problems.push("BROKER_SIGNING_KEY must not use the development default".into())
+            }
+            Some(_) => {}
+        }
+    }
+    match cfg.tenant_secret_enc_key.as_deref() {
+        None => problems.push("TENANT_SECRET_ENC_KEY is required in production".into()),
+        Some(key) if key.eq_ignore_ascii_case(DEV_TENANT_SECRET_KEY) => {
+            problems.push("TENANT_SECRET_ENC_KEY must not use the development default".into())
+        }
+        Some(_) => {}
+    }
+    match cfg.admin_token.as_deref() {
+        None => problems.push("TESSERA_ADMIN_TOKEN is required in production".into()),
+        Some(token) if token == DEV_ADMIN_TOKEN => {
+            problems.push("TESSERA_ADMIN_TOKEN must not use the development default".into())
+        }
+        Some(_) => {}
+    }
+    match std::env::var("TESSERA_AUTHORITY_HMAC_SECRET").ok() {
+        None => problems.push("TESSERA_AUTHORITY_HMAC_SECRET is required in production".into()),
+        Some(secret) if secret.len() < 32 => {
+            problems.push("TESSERA_AUTHORITY_HMAC_SECRET must be at least 32 bytes".into())
+        }
+        Some(secret) if secret == DEV_AUTHORITY_SECRET => problems
+            .push("TESSERA_AUTHORITY_HMAC_SECRET must not use the development default".into()),
+        Some(_) => {}
+    }
+    if !demo_allow_from(
+        std::env::var("TESSERA_AUTHORITY_REQUIRE_TOKEN")
+            .ok()
+            .as_deref(),
+    ) {
+        problems.push("TESSERA_AUTHORITY_REQUIRE_TOKEN must be enabled in production".into());
+    }
+    problems
+}
+
 fn env_or(key: &str, default: &str) -> String {
     std::env::var(key).unwrap_or_else(|_| default.to_string())
 }
@@ -438,6 +504,23 @@ mod tests {
         assert!(demo_allow_from(Some("1")));
         assert!(demo_allow_from(Some(" TRUE ")));
         assert!(demo_allow_from(Some("yes")));
+    }
+
+    #[test]
+    fn production_checks_reject_dev_defaults() {
+        let cfg = BrokerConfig {
+            demo_allow: true,
+            signing_key_hex: Some(DEV_SIGNING_KEY.into()),
+            tenant_secret_enc_key: Some(DEV_TENANT_SECRET_KEY.into()),
+            admin_token: Some(DEV_ADMIN_TOKEN.into()),
+            ..Default::default()
+        };
+        let problems = production_problems_for(&cfg, true);
+        assert!(problems.iter().any(|p| p.contains("TESSERA_DEMO_ALLOW")));
+        assert!(problems.iter().any(|p| p.contains("BROKER_SIGNING_KEY")));
+        assert!(problems.iter().any(|p| p.contains("TENANT_SECRET_ENC_KEY")));
+        assert!(problems.iter().any(|p| p.contains("TESSERA_ADMIN_TOKEN")));
+        assert!(production_problems_for(&cfg, false).is_empty());
     }
 
     #[test]

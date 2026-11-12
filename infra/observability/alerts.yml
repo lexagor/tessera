@@ -1,0 +1,76 @@
+groups:
+  - name: tessera-api
+    rules:
+      - alert: TesseraApiDown
+        expr: up{job="tessera-api"} == 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: Tessera API is not scrapeable
+
+      - alert: TesseraApiHighErrorRate
+        expr: |
+          sum(rate(tessera_api_errors_total[5m]))
+            /
+          clamp_min(sum(rate(tessera_api_requests_total[5m])), 1)
+            > 0.05
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: Tessera API 5xx rate is above 5%
+
+      - alert: TesseraApiSlowRequests
+        expr: |
+          sum(rate(tessera_api_request_duration_seconds_sum[5m]))
+            /
+          clamp_min(sum(rate(tessera_api_request_duration_seconds_count[5m])), 1)
+            > 1
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: Tessera API average request latency is above 1s
+
+      - alert: TesseraApiRateLimitSpike
+        expr: sum(rate(tessera_api_rate_limited_total[5m])) > 10
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: Tessera API is rejecting a sustained volume of rate-limited requests
+
+      - alert: TesseraWebhookFailures
+        expr: sum(rate(tessera_api_webhook_failed_total[5m])) > 0
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: Tessera webhook deliveries are failing
+
+      - alert: TesseraReadinessDegraded
+        expr: probe_success{job="tessera-readyz"} == 0
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: Tessera /readyz probe is failing
+
+  - name: tessera-broker
+    rules:
+      - alert: TesseraBrokerAnchorFailures
+        expr: increase(tessera_anchor_failures_total[15m]) > 0
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: Broker anchor submissions are failing
+
+      - alert: TesseraBrokerRateLimited
+        expr: increase(tessera_throttled_total[5m]) > 0
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: Broker is rejecting sustained rate-limited traffic

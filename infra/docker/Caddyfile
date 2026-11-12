@@ -13,13 +13,16 @@
 	handle /healthz {
 		reverse_proxy api:8788
 	}
+	handle /readyz {
+		reverse_proxy api:8788
+	}
 	handle /verify/* {
-		reverse_proxy verify:80
+		reverse_proxy verify:8080
 	}
 	handle /verify {
 		redir /verify/ 302
 	}
 	handle {
-		reverse_proxy portal:80
+		reverse_proxy portal:8080
 	}
 }

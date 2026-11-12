@@ -155,6 +155,9 @@ fn agent_chain_lock(tenant: &str, agent: &str) -> Arc<tokio::sync::Mutex<()>> {
     let mut guard = locks
         .lock()
         .unwrap_or_else(|poisoned| poisoned.into_inner());
+    if guard.len() >= 10_000 {
+        guard.retain(|_, lock| Arc::strong_count(lock) > 1);
+    }
     guard
         .entry(format!("{tenant}\0{agent}"))
         .or_insert_with(|| Arc::new(tokio::sync::Mutex::new(())))
@@ -806,7 +809,7 @@ impl AuthorizeService {
                 )));
             }
         }
-        self.egress.check(&redeemed.spec.base_url)?;
+        self.egress.check_resolved(&redeemed.spec.base_url).await?;
         // Reserve provider capacity for the duration of the upstream call.
         let provider = crate::issuers::grant_provider(&req.grant_id).unwrap_or("provider");
         let _permit = self.quota.acquire(provider, tenant)?;
@@ -1592,7 +1595,7 @@ impl AuthorizeService {
         let target = self.anchor_targets.get(tenant).await?;
         let declared_chain = target.as_ref().map(|target| target.chain_id).unwrap_or(0);
         let submitter = self.submitter_for(target)?;
-        self.egress.check(submitter.rpc_url())?;
+        self.egress.check_resolved(submitter.rpc_url()).await?;
 
         let mut report = serde_json::json!({
             "rpcUrl": submitter.rpc_url(),
@@ -2440,7 +2443,7 @@ impl AuthorizeService {
         let onchain = match self.anchor_targets.get(tenant).await? {
             Some(target) if record.tx_hash.is_some() => {
                 let submitter = self.submitter_for(Some(target))?;
-                self.egress.check(submitter.rpc_url())?;
+                self.egress.check_resolved(submitter.rpc_url()).await?;
                 let tenant_hash = merkle::keccak(tenant.as_bytes());
                 match parse_hex32(&record.merkle_root) {
                     Ok(root) => match submitter.verify_anchored(tenant_hash, root, 100_000).await {
@@ -2979,7 +2982,7 @@ impl AuthorizeService {
             ClaimOutcome::Claimed { id } => id,
         };
 
-        self.egress.check(submitter.rpc_url())?;
+        self.egress.check_resolved(submitter.rpc_url()).await?;
         let root = parse_hex32(&batch.root)?;
         let tenant_hash = merkle::keccak(tenant.as_bytes());
         let tx_hash = match submitter.submit(tenant_hash, root, batch.count).await {

@@ -17,13 +17,18 @@ docker compose -f infra/docker/docker-compose.yml up --build
 1. Set these environment variables (or put them in an operator-managed `.env`):
    - `SITE_DOMAIN=thetessera.xyz`, `APP_DOMAIN=app.thetessera.xyz`,
      `VERIFY_DOMAIN=verify.thetessera.xyz`, `ACME_EMAIL`
-   - `AUTH_DEV_MODE=0`, `TESSERA_DEMO_ALLOW=0`, `BROKER_DEMO_ALLOW=0`
+   - `NODE_ENV=production`, `TESSERA_PRODUCTION=1`, `AUTH_DEV_MODE=0`,
+     `COOKIE_SECURE=1`, `TESSERA_DEMO_ALLOW=0`, `BROKER_DEMO_ALLOW=0`
+   - `POSTGRES_PASSWORD`, `POSTGRES_APP_PASSWORD`,
+     `DATABASE_URL=postgres://tessera_app:...@postgres:5432/tessera`,
+     `REDIS_URL=redis://redis:6379`
    - `PUBLIC_BASE_URL=https://app.thetessera.xyz`,
      `VERIFY_BASE_URL=https://verify.thetessera.xyz`
    - `OIDC_ISSUER`, `OIDC_CLIENT_ID`, `OIDC_CLIENT_SECRET`,
-     `OIDC_REDIRECT_URI=https://app.thetessera.xyz/auth/callback`
+     `OIDC_REDIRECT_URI=https://app.thetessera.xyz/auth/callback`,
+     `OIDC_STATE_SECRET`
    - `CONTROL_PLANE_ENC_KEY`, `TENANT_SECRET_ENC_KEY`, `BROKER_SIGNING_KEY`
-   - `BROKER_ADMIN_KEY`, `BROKER_ADMIN_TOKEN`
+   - `BROKER_ADMIN_KEY`, `BROKER_ADMIN_TOKEN`, `TESSERA_ADMIN_TOKEN`
    - `TESSERA_AUTHORITY_HMAC_SECRET` (at least 32 bytes)
    - Optional rotation window: `TESSERA_AUTHORITY_HMAC_SECRET_PREVIOUS` and
      `TESSERA_AUTHORITY_PREVIOUS_KID`; current key id is `TESSERA_AUTHORITY_KID`
@@ -47,8 +52,16 @@ the next phase.
 
 ## Operational notes
 
-- `/healthz` is the API liveness probe; add a DB/broker readiness probe before production.
-- Keep `pgdata` and `evidence` backed up.
+- `/healthz` is the API liveness probe; `/readyz` checks Postgres and the broker.
+- The API exposes internal Prometheus text at `/metrics`; Caddy does not route it publicly.
+- Starter Prometheus alert rules are in `infra/observability/alerts.yml`.
+- With `REDIS_URL`, the broker scheduler elects one leader across replicas. Without Redis,
+  run a single broker replica or accept duplicate scheduled work.
+- Production must run as the non-superuser `tessera_app` role. The init script creates it on a
+  fresh Postgres volume; apply `infra/sql/rls.sql` after the first broker migration.
+- Keep `pgdata` and `evidence` backed up. `infra/scripts/backup.sh` writes a custom-format
+  Postgres dump and an evidence archive; `infra/scripts/restore-postgres.sh` restores a dump.
+  Restore evidence by extracting its archive into the configured evidence directory.
 - Rotate `CONTROL_PLANE_ENC_KEY` only with a re-encryption migration; rotating it without one
   makes stored broker keys unreadable.
 - Rotating `TESSERA_AUTHORITY_HMAC_SECRET` invalidates tokens signed by the old key. To overlap,

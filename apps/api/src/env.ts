@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { productionConfigProblems } from "./production-config.js";
+
 const bool = z
   .string()
   .optional()
@@ -10,14 +12,23 @@ const schema = z.object({
   API_PORT: z.coerce.number().default(8788),
   DATABASE_URL: z.string().min(1),
   BROKER_URL: z.string().url().default("http://localhost:8787"),
+  REDIS_URL: z.string().url().optional(),
   BROKER_ADMIN_TOKEN: z.string().optional(),
   BROKER_ADMIN_KEY: z.string().optional(),
   BROKER_DEMO_ALLOW: bool,
   PUBLIC_BASE_URL: z.string().default("http://localhost:5173"),
   EVIDENCE_DIR: z.string().default("./data/evidence"),
+  TRUST_PROXY: bool,
+  MAX_REQUEST_BYTES: z.coerce.number().int().min(1_024).default(2_097_152),
+  REQUEST_TIMEOUT_MS: z.coerce.number().int().min(1_000).default(60_000),
+  RATE_LIMIT_AUTH_PER_MINUTE: z.coerce.number().int().min(1).default(20),
+  RATE_LIMIT_PUBLIC_PER_MINUTE: z.coerce.number().int().min(1).default(60),
+  RATE_LIMIT_WRITE_PER_MINUTE: z.coerce.number().int().min(1).default(120),
+  WEBHOOK_RETENTION_DAYS: z.coerce.number().int().min(0).default(30),
   VERIFY_BASE_URL: z.string().optional(),
-  SESSION_COOKIE_NAME: z.string().default("tessera_session"),
+  SESSION_COOKIE_NAME: z.string().optional(),
   SESSION_TTL_DAYS: z.coerce.number().default(7),
+  SESSION_IDLE_HOURS: z.coerce.number().default(24),
   TESSERA_AUTHORITY_HMAC_SECRET: z.preprocess(
     (value) => (value === "" ? undefined : value),
     z.string().min(32).optional(),
@@ -42,6 +53,11 @@ const schema = z.object({
   OIDC_CLIENT_SECRET: z.string().optional(),
   OIDC_REDIRECT_URI: z.string().optional(),
   OIDC_ALLOWED_DOMAINS: z.string().optional(),
+  OIDC_STATE_SECRET: z.preprocess(
+    (value) => (value === "" ? undefined : value),
+    z.string().min(32).optional(),
+  ),
+  OIDC_ALLOW_EMAIL_LINKING: bool,
   BOOTSTRAP_EMAIL: z.string().email().optional(),
   COOKIE_SECURE: z.string().optional(),
   ALLOW_PRIVATE_WEBHOOKS: bool,
@@ -52,13 +68,19 @@ const schema = z.object({
   STRIPE_PORTAL_RETURN_URL: z.string().optional(),
 });
 
-export const env = schema.parse(process.env);
+const validatedSchema = schema.superRefine((value, ctx) => {
+  for (const problem of productionConfigProblems(value)) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, message: problem });
+  }
+});
+
+export const env = validatedSchema.parse(process.env);
 
 export const isProduction = env.NODE_ENV === "production";
 export const devAuthEnabled = env.AUTH_DEV_MODE || (!isProduction && !env.OIDC_ISSUER);
 export const verifyBaseUrl = (env.VERIFY_BASE_URL ?? env.PUBLIC_BASE_URL).replace(/\/$/, "");
 export const cookieSecure = env.COOKIE_SECURE
-  ? env.COOKIE_SECURE === "1" || env.COOKIE_SECURE === "true"
+  ? ["1", "true"].includes(env.COOKIE_SECURE.trim().toLowerCase())
   : isProduction;
 
 export function requireOidcConfig() {

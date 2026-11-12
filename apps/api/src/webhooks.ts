@@ -3,6 +3,8 @@ import { createHmac } from "node:crypto";
 import { decryptSecret, encryptSecret, randomToken, uuid } from "./crypto.js";
 import { db } from "./db.js";
 import { env, isProduction } from "./env.js";
+import { recordWebhookDelivered, recordWebhookFailed } from "./metrics.js";
+import { isPrivateHostname, safeWebhookPost } from "./safe-webhook.js";
 
 export const WEBHOOK_EVENTS = [
   "action.created",
@@ -22,21 +24,6 @@ export function signWebhook(secret: string, timestamp: string, body: string): st
   return createHmac("sha256", secret).update(`${timestamp}.${body}`).digest("hex");
 }
 
-function isPrivateHost(hostname: string): boolean {
-  const host = hostname.toLowerCase();
-  if (host === "localhost" || host === "0.0.0.0" || host === "::1" || host.endsWith(".local")) {
-    return true;
-  }
-  if (host === "127.0.0.1" || host.startsWith("127.")) return true;
-  if (host.startsWith("10.") || host.startsWith("192.168.")) return true;
-  const match = host.match(/^172\.(\d+)\./);
-  if (match) {
-    const octet = Number(match[1]);
-    if (octet >= 16 && octet <= 31) return true;
-  }
-  return false;
-}
-
 export function validateWebhookUrl(raw: string): string {
   let url: URL;
   try {
@@ -47,10 +34,13 @@ export function validateWebhookUrl(raw: string): string {
   if (url.protocol !== "https:" && url.protocol !== "http:") {
     throw new Error("Webhook URL must use http or https");
   }
+  if (url.username || url.password) {
+    throw new Error("Webhook URL must not contain credentials");
+  }
   if (isProduction && url.protocol !== "https:") {
     throw new Error("Webhook URL must use https in production");
   }
-  if (!env.ALLOW_PRIVATE_WEBHOOKS && isPrivateHost(url.hostname)) {
+  if (!env.ALLOW_PRIVATE_WEBHOOKS && isPrivateHostname(url.hostname)) {
     throw new Error("Private webhook hosts are not allowed");
   }
   return url.toString();
@@ -109,32 +99,65 @@ export async function emitWebhook(
 }
 
 let running = false;
+const workerId = `${process.pid}-${randomToken(8)}`;
+const LEASE_SECONDS = 120;
+
+export async function cleanupWebhookDeliveries(): Promise<void> {
+  const days = env.WEBHOOK_RETENTION_DAYS;
+  if (days <= 0) return;
+  await db()`
+    DELETE FROM webhook_deliveries
+     WHERE status IN ('delivered', 'failed')
+       AND created_at < now() - make_interval(days => ${days})
+  `;
+}
 
 export async function processWebhookDeliveries(): Promise<void> {
   if (running) return;
   running = true;
   try {
+    await db()`
+      UPDATE webhook_deliveries
+         SET status = 'pending', locked_by = NULL, locked_until = NULL
+       WHERE status = 'delivering' AND (locked_until IS NULL OR locked_until < now())
+    `;
+
     const rows = await db()`
+      WITH due AS (
+        SELECT id
+          FROM webhook_deliveries
+         WHERE status = 'pending'
+           AND next_attempt_at <= now()
+         ORDER BY next_attempt_at
+         FOR UPDATE SKIP LOCKED
+         LIMIT 20
+      ), claimed AS (
+        UPDATE webhook_deliveries d
+           SET status = 'delivering',
+               locked_by = ${workerId},
+               locked_until = now() + make_interval(secs => ${LEASE_SECONDS})
+          FROM due
+         WHERE d.id = due.id
+         RETURNING d.id
+      )
       SELECT d.id, d.attempts, d.payload, e.url, e.secret_enc
         FROM webhook_deliveries d
         JOIN webhook_endpoints e ON e.id = d.endpoint_id
-       WHERE d.status = 'pending'
-         AND d.next_attempt_at <= now()
-         AND e.active = true
-       ORDER BY d.next_attempt_at
-       LIMIT 20
+        JOIN claimed c ON c.id = d.id
+       WHERE e.active = true
     `;
+
     for (const row of rows) {
       const body = JSON.stringify(row.payload);
       const timestamp = Math.floor(Date.now() / 1000).toString();
-      const signature = signWebhook(
-        decryptSecret(row.secret_enc as string),
-        timestamp,
-        body,
-      );
       try {
-        const response = await fetch(row.url as string, {
-          method: "POST",
+        const signature = signWebhook(
+          decryptSecret(row.secret_enc as string),
+          timestamp,
+          body,
+        );
+        await safeWebhookPost({
+          url: row.url as string,
           headers: {
             "content-type": "application/json",
             "x-tessera-event": (row.payload as { event?: string }).event ?? "unknown",
@@ -143,18 +166,20 @@ export async function processWebhookDeliveries(): Promise<void> {
             "user-agent": "Tessera-Webhooks/0.1",
           },
           body,
-          signal: AbortSignal.timeout(10_000),
         });
-        if (!response.ok) throw new Error(`endpoint returned ${response.status}`);
+        recordWebhookDelivered();
         await db()`
           UPDATE webhook_deliveries
              SET status = 'delivered',
                  attempts = attempts + 1,
                  delivered_at = now(),
+                 locked_by = NULL,
+                 locked_until = NULL,
                  last_error = null
-           WHERE id = ${row.id as string}
+           WHERE id = ${row.id as string} AND locked_by = ${workerId}
         `;
       } catch (error) {
+        recordWebhookFailed();
         const attempts = Number(row.attempts) + 1;
         const failed = attempts >= 5;
         const delay = Math.min(2 ** attempts, 300);
@@ -163,8 +188,10 @@ export async function processWebhookDeliveries(): Promise<void> {
              SET status = ${failed ? "failed" : "pending"},
                  attempts = ${attempts},
                  next_attempt_at = now() + make_interval(secs => ${delay}),
+                 locked_by = NULL,
+                 locked_until = NULL,
                  last_error = ${error instanceof Error ? error.message : String(error)}
-           WHERE id = ${row.id as string}
+           WHERE id = ${row.id as string} AND locked_by = ${workerId}
         `;
       }
     }

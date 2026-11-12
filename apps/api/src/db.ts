@@ -4,7 +4,7 @@ import { fileURLToPath } from "node:url";
 
 import postgres, { type Sql } from "postgres";
 
-import { env } from "./env.js";
+import { env, isProduction } from "./env.js";
 
 let client: Sql | null = null;
 
@@ -14,10 +14,28 @@ export function db(): Sql {
       max: 10,
       idle_timeout: 20,
       connect_timeout: 10,
+      connection: {
+        application_name: "tessera-api",
+        statement_timeout: 15_000,
+        lock_timeout: 5_000,
+        idle_in_transaction_session_timeout: 10_000,
+      },
       onnotice: () => {},
     });
   }
   return client;
+}
+
+/** Production must not run the control plane as a Postgres superuser. */
+export async function assertProductionDatabaseRole(): Promise<void> {
+  if (!isProduction) return;
+  const rows = await db()`SELECT current_user, current_setting('is_superuser') AS is_superuser`;
+  const role = rows[0] as { current_user?: string; is_superuser?: string } | undefined;
+  if (role?.is_superuser === "on") {
+    throw new Error(
+      `DATABASE_URL user '${role.current_user ?? "unknown"}' is a Postgres superuser; use the non-superuser tessera_app role`,
+    );
+  }
 }
 
 export async function closeDb(): Promise<void> {

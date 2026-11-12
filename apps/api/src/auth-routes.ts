@@ -3,21 +3,35 @@ import { deleteCookie, getCookie, setCookie } from "hono/cookie";
 import { generators, Issuer, type Client } from "openid-client";
 
 import {
-  OIDC_COOKIE,
+  OidcIdentityConflict,
   type AppEnv,
   clearSessionCookie,
   createSession,
   destroySession,
   findMembership,
+  oidcCookieName,
   oidcCookieOptions,
   requireSession,
   setSessionCookie,
   upsertOidcUser,
 } from "./auth.js";
+import { clientIp } from "./client-ip.js";
+import { trustedWriteOrigin } from "./csrf.js";
 import { db } from "./db.js";
-import { devAuthEnabled, env, requireOidcConfig } from "./env.js";
+import { devAuthEnabled, env, isProduction, requireOidcConfig } from "./env.js";
+import { decodeOidcState, encodeOidcState } from "./oidc-state.js";
+import { rateLimit } from "./rate-limit.js";
 
 export const authRoutes = new Hono<AppEnv>();
+
+const authRateLimit = rateLimit({
+  name: "auth",
+  limit: env.RATE_LIMIT_AUTH_PER_MINUTE,
+  key: (c) => `auth:${clientIp(c)}`,
+});
+authRoutes.use("/auth/login", authRateLimit);
+authRoutes.use("/auth/callback", authRateLimit);
+authRoutes.use("/auth/dev-login", authRateLimit);
 
 let oidcClient: Client | null = null;
 
@@ -56,8 +70,8 @@ authRoutes.get("/auth/login", async (c) => {
   });
   setCookie(
     c,
-    OIDC_COOKIE,
-    Buffer.from(JSON.stringify({ state, nonce, verifier })).toString("base64url"),
+    oidcCookieName(),
+    encodeOidcState({ state, nonce, verifier }),
     oidcCookieOptions(),
   );
   return c.redirect(url);
@@ -79,15 +93,11 @@ authRoutes.get("/auth/dev-login", async (c) => {
 authRoutes.get("/auth/callback", async (c) => {
   const config = requireOidcConfig();
   const client = await getOidcClient();
-  const raw = getCookie(c, OIDC_COOKIE);
+  const raw = getCookie(c, oidcCookieName());
   if (!raw) return c.json({ error: "missing OIDC state" }, 400);
-  deleteCookie(c, OIDC_COOKIE, { path: "/" });
-  let stored: { state: string; nonce: string; verifier: string };
-  try {
-    stored = JSON.parse(Buffer.from(raw, "base64url").toString("utf8"));
-  } catch {
-    return c.json({ error: "invalid OIDC state" }, 400);
-  }
+  deleteCookie(c, oidcCookieName(), { path: "/" });
+  const stored = decodeOidcState(raw);
+  if (!stored) return c.json({ error: "invalid OIDC state" }, 400);
   const params = client.callbackParams(c.req.url);
   const tokenSet = await client.callback(config.redirectUri, params, {
     state: stored.state,
@@ -101,6 +111,12 @@ authRoutes.get("/auth/callback", async (c) => {
   }
   const email = typeof claims.email === "string" ? claims.email.toLowerCase() : null;
   if (!email) return c.json({ error: "OIDC response has no email" }, 400);
+  const subject = typeof claims.sub === "string" ? claims.sub : null;
+  if (!subject) return c.json({ error: "OIDC response has no subject" }, 400);
+  const emailVerified = claims.email_verified === true;
+  if (isProduction && !emailVerified) {
+    return c.json({ error: "OIDC email must be verified" }, 403);
+  }
   const allowedDomains = (env.OIDC_ALLOWED_DOMAINS ?? "")
     .split(",")
     .map((value) => value.trim().toLowerCase())
@@ -113,15 +129,29 @@ authRoutes.get("/auth/callback", async (c) => {
   const domainAllowed =
     allowedDomains.length > 0 &&
     allowedDomains.some((domain) => email.endsWith(`@${domain}`));
-  const bootstrapAllowed = env.BOOTSTRAP_EMAIL?.toLowerCase() === email;
+  let bootstrapAllowed = false;
+  if (env.BOOTSTRAP_EMAIL?.toLowerCase() === email) {
+    const users = await db()`SELECT 1 FROM users LIMIT 1`;
+    bootstrapAllowed = users.length === 0;
+  }
   if (invite.length === 0 && !domainAllowed && !bootstrapAllowed) {
     return c.json({ error: "This email is not invited to this workspace" }, 403);
   }
-  const user = await upsertOidcUser({
-    email,
-    name: typeof claims.name === "string" ? claims.name : null,
-    subject: typeof claims.sub === "string" ? claims.sub : null,
-  });
+  let user: Awaited<ReturnType<typeof upsertOidcUser>>;
+  try {
+    user = await upsertOidcUser({
+      email,
+      name: typeof claims.name === "string" ? claims.name : null,
+      issuer: config.issuer,
+      subject,
+      emailVerified,
+    });
+  } catch (error) {
+    if (error instanceof OidcIdentityConflict) {
+      return c.json({ error: error.message }, 409);
+    }
+    throw error;
+  }
   const membership = await findMembership(user.id);
   const session = await createSession(user.id, membership?.org.id ?? null);
   setSessionCookie(c, session.token);
@@ -129,6 +159,9 @@ authRoutes.get("/auth/callback", async (c) => {
 });
 
 authRoutes.post("/auth/logout", requireSession, async (c) => {
+  if (!trustedWriteOrigin(c.req.header("origin"))) {
+    return c.json({ error: "Cross-origin write rejected" }, 403);
+  }
   await destroySession(c);
   clearSessionCookie(c);
   return c.json({ ok: true });

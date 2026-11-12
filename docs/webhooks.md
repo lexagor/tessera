@@ -55,11 +55,19 @@ signature in constant time. The secret is stored encrypted at rest and is never 
 ## Retries
 
 Deliveries are durable. Failed attempts retry with exponential backoff up to five attempts.
-The portal Settings page shows recent deliveries and their status/last error.
+Workers claim due rows with `FOR UPDATE SKIP LOCKED` and a two-minute lease, so multiple API
+replicas do not normally deliver the same row at once. Delivery remains at-least-once; use the
+event and payload fields to make your handler idempotent. The portal Settings page shows recent
+deliveries and their status/last error.
 
 ## Security
 
 - Production endpoints must use HTTPS.
-- Private/localhost literal hosts are rejected unless `ALLOW_PRIVATE_WEBHOOKS=1` is set for
-  local development. DNS-based egress controls are the next hardening step for production.
+- Delivery resolves the destination and rejects private, loopback, link-local, metadata,
+  documentation, and reserved addresses. The resolved address is pinned for the request to
+  reduce DNS-rebinding risk.
+- Redirects are rejected; webhook handlers must respond directly.
+- Private/localhost targets are rejected unless `ALLOW_PRIVATE_WEBHOOKS=1` is set for local
+  development. Never enable that in production.
+- Response bodies are drained with a 64 KiB cap; only the status code decides success.
 - Keep the signing secret out of logs and client-side code.

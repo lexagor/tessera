@@ -2,7 +2,7 @@ export const openapi = {
   openapi: "3.1.0",
   info: {
     title: "Tessera Control Plane API",
-    version: "0.1.0",
+    version: "0.1.3",
     description:
       "Accounts, environments, agent credentials, actions, evidence, and verification links. Receipt truth remains in the broker.",
   },

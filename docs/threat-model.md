@@ -32,7 +32,7 @@ goals, following STRIDE-style categories. Living document.
 | T3 | Authorization bypass via forged intent | Intent is validated against policy + user RBAC + resource allowlist; anomaly scoring; deny-by-default |
 | T4 | Receipt forgery or ledger tampering | Chained receipts (`prev` hash), EIP-712 signatures, optional Merkle anchor on-chain |
 | T5 | Cross-tenant action / isolation escape | Per-tenant keys and policy namespaces; issuer scoping; no shared credential material |
-| T6 | MITM on agent↔broker | mTLS; short-lived SDK tokens; receipt signing pins trust to the broker key |
+| T6 | MITM on agent↔broker | TLS at the public edge and private broker network; short-lived SDK tokens; receipt signing pins trust to the broker key. mTLS is not implemented yet. |
 | T7 | Policy engine DoS / latency spike | Cache decisions in Redis; bounded CEL evaluation time; redundancy; fail-closed |
 | T8 | Anomalous-but-authorized bulk action | Per-agent rate/cost budgets; anomaly detector on the graph; step-up for sensitive resources |
 | T9 | Telemetry corpus exfiltration | Aggregate-only exports by default; tenant-scoped access; no raw cross-tenant data |

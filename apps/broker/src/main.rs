@@ -14,6 +14,18 @@ async fn main() -> anyhow::Result<()> {
         .init();
 
     let cfg = BrokerConfig::from_env();
+    let problems = tessera_broker::config::production_problems(&cfg);
+    if !problems.is_empty() {
+        anyhow::bail!(
+            "unsafe production broker configuration: {}",
+            problems.join("; ")
+        );
+    }
+    if std::env::var("TESSERA_PRODUCTION").as_deref() == Ok("1") {
+        if let Some(database_url) = cfg.database_url.as_deref() {
+            tessera_broker::db::assert_non_superuser(database_url).await?;
+        }
+    }
     let state = bootstrap::build_state(&cfg).await?;
 
     state.service.migrate().await?;
@@ -69,6 +81,28 @@ async fn main() -> anyhow::Result<()> {
         listener,
         http::app(state).into_make_service_with_connect_info::<std::net::SocketAddr>(),
     )
+    .with_graceful_shutdown(shutdown_signal())
     .await?;
     Ok(())
+}
+
+async fn shutdown_signal() {
+    let ctrl_c = async {
+        let _ = tokio::signal::ctrl_c().await;
+    };
+    #[cfg(unix)]
+    let terminate = async {
+        if let Ok(mut signal) =
+            tokio::signal::unix::signal(tokio::signal::unix::SignalKind::terminate())
+        {
+            signal.recv().await;
+        }
+    };
+    #[cfg(not(unix))]
+    let terminate = std::future::pending::<()>();
+    tokio::select! {
+        _ = ctrl_c => {},
+        _ = terminate => {},
+    }
+    tracing::info!("shutdown signal received");
 }

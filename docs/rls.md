@@ -4,10 +4,26 @@ Tessera scopes every query by `tenant`, but a future code change could forget a 
 Postgres row-level security closes that gap: once enabled, the database itself refuses
 cross-tenant rows.
 
+## Runtime role
+
+Production should run the API and broker as `tessera_app`, a `NOSUPERUSER NOBYPASSRLS` role.
+The production compose init script creates it on a fresh Postgres volume. Both services refuse
+production startup if `DATABASE_URL` resolves to a superuser.
+
 ## Enable
+
+After the first broker migration has created the broker tables:
 
 ```bash
 psql "$DATABASE_URL" -f infra/sql/rls.sql
+```
+
+In the production compose stack:
+
+```bash
+docker compose -f infra/docker/docker-compose.yml \
+  -f infra/docker/docker-compose.prod.yml exec -T postgres \
+  psql -U tessera -d tessera -f /sql/rls.sql
 ```
 
 This applies `ENABLE` + `FORCE ROW LEVEL SECURITY` and a `tenant_isolation` policy to every

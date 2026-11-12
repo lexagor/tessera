@@ -49,13 +49,21 @@ versions with 2FA from npmjs.com or `npm stage approve <stage-id>`.
 
 ## 3. Python / PyPI
 
-The Python distribution is `tessera-verify` (import `tessera_verify`):
+The Python distribution is `tessera-verify` (import `tessera_verify`). PyPI requires an API
+token with username `__token__`; account passwords are rejected.
 
 ```bash
 python -m pip install --upgrade build twine
 python -m build packages/sdk-py
 twine check packages/sdk-py/dist/*
-twine upload packages/sdk-py/dist/*
+
+export TWINE_USERNAME=__token__
+read -rs TWINE_PASSWORD
+export TWINE_PASSWORD
+twine upload \
+  packages/sdk-py/dist/tessera_verify-0.1.2-py3-none-any.whl \
+  packages/sdk-py/dist/tessera_verify-0.1.2.tar.gz
+unset TWINE_PASSWORD
 ```
 
 The tag workflow builds the wheel and publishes it when `PYPI_TOKEN` is configured. Without the

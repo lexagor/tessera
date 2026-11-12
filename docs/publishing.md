@@ -32,14 +32,30 @@ this order: `receipt-schema`, `verify`, `sdk-ts`, `langchain`, `mcp-adapter`.
 
 ## Python / PyPI
 
+PyPI no longer accepts account username/password authentication. Use an API token:
+
+- Username: `__token__`
+- Password: the token value (`pypi-…`)
+
+Do not print the token or put it in shell history.
+
 ```bash
 python -m pip install --upgrade build twine
 python -m build packages/sdk-py
 twine check packages/sdk-py/dist/*
-twine upload packages/sdk-py/dist/*
+
+export TWINE_USERNAME=__token__
+read -rs TWINE_PASSWORD
+export TWINE_PASSWORD
+twine upload \
+  packages/sdk-py/dist/tessera_verify-0.1.2-py3-none-any.whl \
+  packages/sdk-py/dist/tessera_verify-0.1.2.tar.gz
+unset TWINE_PASSWORD
 ```
 
 The package is published as `tessera-verify`; consumers use `import tessera_verify`.
+If a token is ever printed in a terminal transcript, revoke it immediately in PyPI account
+settings and create a replacement.
 
 ## Automated release
 

@@ -32,23 +32,33 @@ const MIGRATIONS = join(HERE, "..", "migrations");
 
 /** Run the idempotent SQL migrations in lexical order. */
 export async function migrate(): Promise<void> {
-  const sql = db();
-  await sql`
-    CREATE TABLE IF NOT EXISTS schema_migrations (
-      name TEXT PRIMARY KEY,
-      applied_at TIMESTAMPTZ NOT NULL DEFAULT now()
-    )
-  `;
-  const files = readdirSync(MIGRATIONS)
-    .filter((file) => file.endsWith(".sql"))
-    .sort();
-  for (const file of files) {
-    const applied = await sql`SELECT 1 FROM schema_migrations WHERE name = ${file}`;
-    if (applied.length > 0) continue;
-    const body = readFileSync(join(MIGRATIONS, file), "utf8");
-    await sql.begin(async (tx) => {
-      await tx.unsafe(body);
-      await tx`INSERT INTO schema_migrations (name) VALUES (${file})`;
-    });
+  const connection = await db().reserve();
+  try {
+    await connection`SELECT pg_advisory_lock(hashtext('tessera_api_migrations'))`;
+    await connection`
+      CREATE TABLE IF NOT EXISTS schema_migrations (
+        name TEXT PRIMARY KEY,
+        applied_at TIMESTAMPTZ NOT NULL DEFAULT now()
+      )
+    `;
+    const files = readdirSync(MIGRATIONS)
+      .filter((file) => file.endsWith(".sql"))
+      .sort();
+    for (const file of files) {
+      const applied = await connection`
+        SELECT 1 FROM schema_migrations WHERE name = ${file}
+      `;
+      if (applied.length > 0) continue;
+      const body = readFileSync(join(MIGRATIONS, file), "utf8");
+      await connection.begin(async (tx) => {
+        await tx.unsafe(body);
+        await tx`INSERT INTO schema_migrations (name) VALUES (${file})`;
+      });
+    }
+  } finally {
+    await connection`
+      SELECT pg_advisory_unlock(hashtext('tessera_api_migrations'))
+    `.catch(() => {});
+    connection.release();
   }
 }

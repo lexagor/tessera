@@ -29,7 +29,13 @@ jobs:
         run: cargo install cargo-audit --locked
       - name: Audit Rust dependencies
         working-directory: apps/broker
-        run: cargo audit
+        # rsa + libsqlite3-sys are optional SQLx features not present in the broker build graph.
+        # `cargo tree -i rsa` and `cargo tree -i libsqlite3-sys` are empty; remove these ignores
+        # when SQLx stops resolving the optional crates.
+        run: >-
+          cargo audit
+          --ignore RUSTSEC-2023-0071
+          --ignore RUSTSEC-2026-0459
 
   node-audit:
     runs-on: ubuntu-latest

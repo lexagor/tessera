@@ -55,11 +55,11 @@ npm install @tessera-verify/langchain
 
 Measured on an Apple M5 development machine with a mock issuer (not a production benchmark):
 
-- policy evaluation + CEL: **4.47 µs**;
-- EIP-712 receipt signing: **32.87 µs**;
-- HTTP authorize p50/p95/p99: **4.05 / 6.04 / 14.83 ms** (in-memory) and **7.36 / 21.26 /
-  30.82 ms** (Postgres);
-- offline v2 verification: **~0.96 ms**, 2,243-byte receipt.
+- policy evaluation + CEL: **4.70 µs**;
+- EIP-712 receipt signing: **23.42 µs**;
+- HTTP authorize p50/p95/p99: **3.87 / 6.10 / 10.25 ms** (in-memory) and **8.12 / 22.34 /
+  28.03 ms** (Postgres);
+- offline v2 verification: **~1.00 ms**, 2,243-byte receipt.
 
 See [`BENCHMARKS.md`](BENCHMARKS.md) for hardware, commands, and caveats.
 

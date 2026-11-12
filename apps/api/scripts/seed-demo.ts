@@ -78,6 +78,7 @@ async function main(): Promise<void> {
     await sql`DELETE FROM actions WHERE environment_id = ${environment.id}`;
     await sql`DELETE FROM usage_daily WHERE environment_id = ${environment.id}`;
     await sql`DELETE FROM agent_keys WHERE environment_id = ${environment.id}`;
+    await sql`DELETE FROM integration_connections WHERE environment_id = ${environment.id}`;
     await sql`DELETE FROM audit_log WHERE org_id = ${me.org.id} AND details->>'environmentId' = ${environment.id}`;
   }
 
@@ -188,6 +189,36 @@ async function main(): Promise<void> {
     });
   }
 
+  const integrations = [
+    { provider: "stripe", name: "Stripe billing", scopes: ["refunds", "charges"] },
+    { provider: "github", name: "GitHub release automation", scopes: ["issues", "pulls"] },
+    { provider: "aws", name: "AWS data lake", scopes: ["s3-read", "s3-write"] },
+    { provider: "slack", name: "Slack support", scopes: ["chat", "history"] },
+    { provider: "openai", name: "OpenAI support copilot", scopes: ["responses", "models"] },
+    { provider: "zendesk", name: "Zendesk tickets", scopes: ["tickets-create", "tickets-read"] },
+    { provider: "langchain", name: "LangChain tools", scopes: ["tool-invoke"] },
+  ];
+  for (const integration of integrations) {
+    await request("/v1/integrations", {
+      method: "POST",
+      body: JSON.stringify(integration),
+    });
+  }
+  const integrationActions = await sql<{ action_id: string }[]>`
+    SELECT action_id FROM actions
+     WHERE environment_id = ${environment.id} AND agent_id = 'tessera-integration-check'
+  `;
+  for (const row of integrationActions) {
+    await request(`/v1/actions/${row.action_id}`);
+  }
+  await sql`
+    UPDATE actions
+       SET verified_at = completed_at + (interval '5 seconds' * (abs(hashtext(action_id)) % 12 + 1))
+     WHERE environment_id = ${environment.id}
+       AND verified = true
+       AND completed_at IS NOT NULL
+  `;
+
   const baselineUntil = new Date(now - 7 * 86_400_000).toISOString().slice(0, 10);
   const baselineSince = new Date(now - 30 * 86_400_000).toISOString().slice(0, 10);
   await request("/v1/evidence-packs", {
@@ -240,8 +271,12 @@ async function main(): Promise<void> {
     method: "POST",
     body: JSON.stringify({ expiresInDays: 30 }),
   });
+  const totals = await sql<{ actions: number; agents: number }[]>`
+    SELECT count(*)::int AS actions, count(DISTINCT agent_id)::int AS agents
+      FROM actions WHERE environment_id = ${environment.id}
+  `;
 
-  console.log(JSON.stringify({ environment: environment.name, actions: rows.length, agents: new Set(tools.map((tool) => tool.agent)).size, evidencePack: finalPack.id, reviewerLink: share.url }, null, 2));
+  console.log(JSON.stringify({ environment: environment.name, actions: totals[0]?.actions ?? rows.length, agents: totals[0]?.agents ?? new Set(tools.map((tool) => tool.agent)).size, integrations: integrations.length, evidencePack: finalPack.id, reviewerLink: share.url }, null, 2));
   await sql.end();
 }
 

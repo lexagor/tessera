@@ -13,6 +13,11 @@ import { getCookie } from "hono/cookie";
 import { z } from "zod";
 
 import { audit } from "./audit.js";
+import { persistAction, persistOutcome } from "./actions.js";
+import { buildAnalytics } from "./analytics.js";
+import { buildNotifications } from "./notifications.js";
+import { searchResources } from "./search.js";
+import { parseDateParam } from "./time.js";
 import {
   type AppEnv,
   createOrgForUser,
@@ -32,6 +37,14 @@ import {
 } from "./crypto.js";
 import { db } from "./db.js";
 import { env, verifyBaseUrl } from "./env.js";
+import {
+  IntegrationError,
+  PROVIDERS,
+  createIntegration,
+  listIntegrations,
+  rotateIntegration,
+  testIntegration,
+} from "./integrations.js";
 import {
   buildEvidenceSummary,
   normalizeEvidenceFilters,
@@ -663,114 +676,6 @@ routes.post("/v1/proxy", async (c) => {
   }
 });
 
-async function persistAction(
-  environment: Environment & { broker_key_enc: string | null },
-  response: Record<string, unknown>,
-): Promise<void> {
-  const receipt = response.receipt as Record<string, any>;
-  const actionId = String(response.actionId || receipt.actionId || "");
-  if (!actionId || !receipt) return;
-  const authorization = receipt.authorization ?? {};
-  const policy = receipt.policy ?? {};
-  const credential = receipt.credential ?? {};
-  const outcome = receipt.outcome ?? null;
-  const createdAt = (receipt.ts as string) || new Date().toISOString();
-  const inserted = await db()`
-    INSERT INTO actions (
-      action_id, org_id, environment_id, agent_id, principal_id, tool, decision,
-      outcome_status, policy_id, policy_version, policy_hash, credential_issuer,
-      credential_thumbprint, receipt_id, outcome_receipt_id, created_at, completed_at,
-      verified, payload
-    ) VALUES (
-      ${actionId},
-      ${environment.org_id},
-      ${environment.id},
-      ${String(receipt.agent ?? "")},
-      ${String(receipt.principal?.principalId ?? receipt.user ?? "")},
-      ${String(receipt.call?.tool ?? "")},
-      ${String(authorization.decision ?? "deny")},
-      ${outcome?.status ?? (authorization.decision === "deny" ? "denied" : null)},
-      ${String(policy.policyId ?? authorization.policy ?? "")},
-      ${Number(policy.policyVersion ?? authorization.policyVersion ?? 0)},
-      ${policy.policyHash ?? null},
-      ${credential.issuer ?? receipt.grant?.provider ?? null},
-      ${credential.thumbprint ?? null},
-      ${String(response.receiptId ?? "")},
-      ${null},
-      ${createdAt},
-      ${outcome?.completedAt ?? null},
-      ${null},
-      ${db().json({ authorization: receipt, outcome: null } as never)}
-    )
-    ON CONFLICT (action_id) DO NOTHING
-    RETURNING action_id
-  `;
-  // Idempotent authorize replays must not double-count usage or agents.
-  if (inserted.length === 0) return;
-  void emitWebhook(
-    environment.org_id,
-    authorization.decision === "deny" ? "action.denied" : "action.created",
-    {
-      actionId,
-      environmentId: environment.id,
-      agentId: String(receipt.agent ?? ""),
-      principalId: String(receipt.principal?.principalId ?? receipt.user ?? ""),
-      tool: String(receipt.call?.tool ?? ""),
-      decision: String(authorization.decision ?? "deny"),
-      receiptId: String(response.receiptId ?? ""),
-      createdAt,
-    },
-  );
-  await db()`
-    INSERT INTO agents (id, environment_id, agent_id, last_seen_at)
-    VALUES (${uuid()}, ${environment.id}, ${String(receipt.agent ?? "")}, now())
-    ON CONFLICT (environment_id, agent_id) DO UPDATE SET last_seen_at = now()
-  `;
-  await db()`
-    INSERT INTO usage_daily (org_id, environment_id, day, actions, allowed, denied)
-    VALUES (
-      ${environment.org_id}, ${environment.id}, current_date, 1,
-      ${authorization.decision === "allow" ? 1 : 0},
-      ${authorization.decision === "allow" ? 0 : 1}
-    )
-    ON CONFLICT (org_id, environment_id, day) DO UPDATE SET
-      actions = usage_daily.actions + 1,
-      allowed = usage_daily.allowed + EXCLUDED.allowed,
-      denied = usage_daily.denied + EXCLUDED.denied
-  `;
-}
-
-async function persistOutcome(
-  environment: Environment & { broker_key_enc: string | null },
-  authorizationReceiptId: string,
-  response: Record<string, unknown>,
-): Promise<void> {
-  const receipt = response.receipt as Record<string, any> | undefined;
-  if (!receipt || response.status === "duplicate") return;
-  const outcome = receipt.outcome ?? {};
-  const updated = await db()`
-    UPDATE actions
-       SET outcome_status = ${outcome.status ?? null},
-           outcome_receipt_id = ${String(response.receiptId ?? "")},
-           completed_at = ${outcome.completedAt ?? null},
-           payload = jsonb_set(payload, '{outcome}', ${db().json(receipt as never)})
-     WHERE receipt_id = ${authorizationReceiptId}
-       AND environment_id = ${environment.id}
-    RETURNING action_id, agent_id, tool
-  `;
-  if (updated[0]) {
-    void emitWebhook(environment.org_id, "action.completed", {
-      actionId: updated[0].action_id as string,
-      environmentId: environment.id,
-      agentId: updated[0].agent_id as string,
-      tool: updated[0].tool as string,
-      outcomeStatus: String(outcome.status ?? "unknown"),
-      outcomeReceiptId: String(response.receiptId ?? ""),
-      completedAt: outcome.completedAt ?? new Date().toISOString(),
-    });
-  }
-}
-
 // ── Actions, agents, usage, audit ──────────────────────────────────────────
 
 routes.get("/v1/actions", async (c) => {
@@ -782,6 +687,14 @@ routes.get("/v1/actions", async (c) => {
   const decision = c.req.query("decision");
   const outcome = c.req.query("outcome");
   const cursor = c.req.query("cursor");
+  let since: string | null = null;
+  let until: string | null = null;
+  try {
+    if (c.req.query("since")) since = parseDateParam(c.req.query("since"), new Date()).toISOString();
+    if (c.req.query("until")) until = parseDateParam(c.req.query("until"), new Date(), true).toISOString();
+  } catch (error) {
+    return fail(c, 400, "invalid_request", error instanceof Error ? error.message : "Invalid date range");
+  }
   let query = db()`
     SELECT action_id, environment_id, agent_id, principal_id, tool, decision,
            outcome_status, policy_id, policy_version, policy_hash, credential_issuer,
@@ -793,6 +706,8 @@ routes.get("/v1/actions", async (c) => {
   if (tool) query = db()`${query} AND tool = ${tool}`;
   if (decision) query = db()`${query} AND decision = ${decision}`;
   if (outcome) query = db()`${query} AND outcome_status = ${outcome}`;
+  if (since) query = db()`${query} AND created_at >= ${since}`;
+  if (until) query = db()`${query} AND created_at <= ${until}`;
   if (cursor) {
     try {
       const [createdAt, actionId] = Buffer.from(cursor, "base64url").toString("utf8").split("|");
@@ -829,7 +744,12 @@ routes.get("/v1/actions/:actionId", async (c) => {
     try {
       verification = await broker.verifyRecord(payload.authorization, payload.outcome ?? null);
       if (verification.valid) {
-        await db()`UPDATE actions SET verified = true WHERE action_id = ${action.action_id as string}`;
+        await db()`
+          UPDATE actions
+             SET verified = true,
+                 verified_at = COALESCE(verified_at, now())
+           WHERE action_id = ${action.action_id as string}
+        `;
       }
     } catch {
       verification = { valid: false, errors: ["verification service unavailable"] };
@@ -942,6 +862,131 @@ routes.get("/v1/audit", async (c) => {
      ORDER BY created_at DESC LIMIT 100
   `;
   return c.json({ items: rows });
+});
+
+// ── Analytics and notifications ────────────────────────────────────────────
+
+routes.get("/v1/analytics", async (c) => {
+  const s = session(c);
+  const environment = await currentEnvironment(c, s);
+  if (!environment) return fail(c, 404, "not_found", "Create an environment first");
+  try {
+    return c.json(
+      await buildAnalytics({
+        orgId: s.org.id,
+        environment,
+        range: c.req.query("range"),
+        since: c.req.query("since"),
+        until: c.req.query("until"),
+        agentId: c.req.query("agentId"),
+      }),
+    );
+  } catch (error) {
+    return fail(c, 400, "invalid_request", error instanceof Error ? error.message : "Invalid analytics scope");
+  }
+});
+
+routes.get("/v1/notifications", async (c) => {
+  const s = session(c);
+  const environment = await currentEnvironment(c, s);
+  if (!environment) return c.json({ items: [] });
+  return c.json({ items: await buildNotifications(s.org.id, environment) });
+});
+
+routes.get("/v1/search", async (c) => {
+  const s = session(c);
+  const environment = await currentEnvironment(c, s);
+  if (!environment) return c.json({ actions: [], agents: [], policies: [], verificationLinks: [] });
+  return c.json(await searchResources(s.org.id, environment, c.req.query("q") ?? ""));
+});
+
+// ── Integrations ───────────────────────────────────────────────────────────
+
+function integrationFailure(c: any, error: unknown) {
+  if (error instanceof IntegrationError) {
+    return fail(c, error.status, error.code, error.message);
+  }
+  throw error;
+}
+
+routes.get("/v1/integrations", async (c) => {
+  const s = session(c);
+  const environment = await currentEnvironment(c, s);
+  if (!environment) return c.json({ items: [], providers: PROVIDERS });
+  return c.json({
+    items: await listIntegrations(s.org.id, environment.id),
+    providers: PROVIDERS,
+  });
+});
+
+routes.post("/v1/integrations", requireRole("owner", "admin", "member"), async (c) => {
+  const s = session(c);
+  const environment = await currentEnvironment(c, s);
+  if (!environment) return fail(c, 404, "not_found", "Create an environment first");
+  const body = z
+    .object({
+      provider: z.string().min(1).max(64),
+      name: z.string().trim().min(1).max(80).optional(),
+      scopes: z.array(z.string().min(1).max(64)).min(1).max(20).optional(),
+      credential: z.record(z.string()).optional(),
+    })
+    .safeParse(await requestBody(c));
+  if (!body.success) return fail(c, 400, "invalid_request", "Invalid integration request");
+  try {
+    const result = await createIntegration({
+      orgId: s.org.id,
+      environment,
+      user: { id: s.user.id, email: s.user.email },
+      providerId: body.data.provider,
+      name: body.data.name,
+      scopes: body.data.scopes,
+      credential: body.data.credential,
+    });
+    return c.json(result, 201);
+  } catch (error) {
+    return integrationFailure(c, error);
+  }
+});
+
+routes.post("/v1/integrations/:id/test", requireRole("owner", "admin", "member"), async (c) => {
+  const s = session(c);
+  const environment = await currentEnvironment(c, s);
+  if (!environment) return fail(c, 404, "not_found", "Create an environment first");
+  try {
+    return c.json(
+      await testIntegration({
+        orgId: s.org.id,
+        environment,
+        user: { id: s.user.id },
+        id: c.req.param("id"),
+      }),
+    );
+  } catch (error) {
+    return integrationFailure(c, error);
+  }
+});
+
+routes.post("/v1/integrations/:id/rotate", requireRole("owner", "admin"), async (c) => {
+  const s = session(c);
+  const environment = await currentEnvironment(c, s);
+  if (!environment) return fail(c, 404, "not_found", "Create an environment first");
+  const body = z
+    .object({ credential: z.record(z.string()).optional() })
+    .safeParse(await requestBody(c));
+  if (!body.success) return fail(c, 400, "invalid_request", "Invalid credential payload");
+  try {
+    return c.json(
+      await rotateIntegration({
+        orgId: s.org.id,
+        environment,
+        user: { id: s.user.id },
+        id: c.req.param("id"),
+        credential: body.data.credential,
+      }),
+    );
+  } catch (error) {
+    return integrationFailure(c, error);
+  }
 });
 
 // ── Policies ───────────────────────────────────────────────────────────────

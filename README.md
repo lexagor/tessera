@@ -11,8 +11,8 @@ Status: **broker + control plane + portal implemented; hosted hardening in progr
 Rust broker ships the authorize → broker → receipt → chain → verify loop with provider
 adapters, broker-observed proxy outcomes, authority transitions, revocation, KMS signing,
 quotas, and 300+ tests. The control plane (`apps/api`) and tenant portal (`apps/portal`) cover
-OIDC sessions, environments, agent keys, actions, evidence packs, reviewer reports and
-share links, verification links, authority transitions, usage, and audit. Agent Receipts v0.5.0 export, LangChain tool wrapping, OIDC
+OIDC sessions, environments, agent keys, actions, integrations, evidence packs, reviewer
+reports and share links, verification links, authority transitions, usage, and audit. Agent Receipts v0.5.0 export, LangChain tool wrapping, OIDC
 provider credentials, Stripe billing, and public package/domain rollout are the remaining
 hosted pieces. Pre-revenue; recruiting design partners.
 
@@ -134,6 +134,8 @@ docs/              Architecture, threat model, receipt spec, controls, RFCs
 - [`docs/trust-center.md`](docs/trust-center.md) — security posture and data handling
 - [`docs/webhooks.md`](docs/webhooks.md) — signed event delivery and retries
 - [`docs/authority-transitions.md`](docs/authority-transitions.md) — revocations, rotations, and step-ups
+- [`docs/integrations.md`](docs/integrations.md) — provider coverage, credential posture, and setup tests
+- [`docs/analytics.md`](docs/analytics.md) — analytics definitions, alerts, search, and shortcuts
 - [`docs/evidence-packs.md`](docs/evidence-packs.md) — framework coverage, reviewer reports, and share links
 - [`docs/distribution.md`](docs/distribution.md) — public repo, npm packages, and verifier rollout
 - [`docs/billing.md`](docs/billing.md) — plans, usage limits, and Stripe billing

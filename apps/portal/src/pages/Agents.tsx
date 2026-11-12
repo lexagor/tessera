@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 
 import { api, environmentQuery, type ActionSummary, type AgentSummary } from "../api";
 import { useWorkspace } from "../App";
-import { Badge, Card, EmptyState, PageHeader, formatDate } from "@tessera/ui";
+import { Badge, Button, Card, EmptyState, ErrorState, PageHeader, Skeleton, formatDate } from "@tessera/ui";
 import { RiskBadge, Sparkline } from "../components/Charts";
 import { relativeTime, riskForTool, riskRank, type RiskLevel } from "../lib/risk";
 
@@ -56,7 +56,26 @@ export function AgentsPage() {
         subtitle="The actors in this environment, their blast radius, and their recent behavior."
         actions={<Link className="tf-btn" to="/keys">Agent keys</Link>}
       />
-      {agents.data?.items.length ? (
+      {agents.isLoading || actions.isLoading ? (
+        <div className="tf-agent-grid">
+          {Array.from({ length: 4 }).map((_, index) => (
+            <Card key={index}>
+              <Skeleton width="42%" height={16} />
+              <Skeleton width="70%" height={10} style={{ marginTop: 12 }} />
+              <Skeleton width="100%" height={36} style={{ marginTop: 18 }} />
+              <Skeleton width="60%" height={10} style={{ marginTop: 14 }} />
+            </Card>
+          ))}
+        </div>
+      ) : agents.isError || actions.isError ? (
+        <Card>
+          <ErrorState
+            title="Agents are unavailable"
+            message={agents.error instanceof Error ? agents.error.message : "Could not load the agent inventory."}
+            action={<Button onClick={() => { void agents.refetch(); void actions.refetch(); }}>Retry</Button>}
+          />
+        </Card>
+      ) : agents.data?.items.length ? (
         <div className="tf-agent-grid">
           {agents.data.items.map((agent) => {
             const agentActions = grouped.get(agent.agent_id) ?? [];

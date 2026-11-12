@@ -17,7 +17,9 @@ import {
   Card,
   CopyRow,
   EmptyState,
+  ErrorState,
   PageHeader,
+  Skeleton,
   formatDate,
 } from "@tessera/ui";
 import { RiskBadge, Sparkline, Stat } from "../components/Charts";
@@ -153,6 +155,8 @@ export function OverviewPage() {
     window.location.hostname === "localhost"
       ? "http://localhost:5174/verify/"
       : "/verify/";
+  const dashboardLoading = Boolean(environmentId) && (actions.isLoading || agents.isLoading || usage.isLoading);
+  const dashboardError = actions.isError || agents.isError || usage.isError;
 
   return (
     <>
@@ -177,7 +181,33 @@ export function OverviewPage() {
 
       {error ? <div className="tf-error">{error}</div> : null}
 
-      {!environmentId ? (
+      {dashboardLoading ? (
+        <div className="tf-stat-row">
+          {Array.from({ length: 4 }).map((_, index) => (
+            <Card key={index}>
+              <Skeleton width="44%" height={10} />
+              <Skeleton width="62%" height={34} style={{ marginTop: 14 }} />
+              <Skeleton width="78%" height={10} style={{ marginTop: 12 }} />
+            </Card>
+          ))}
+        </div>
+      ) : dashboardError ? (
+        <ErrorState
+          title="The control plane could not be loaded"
+          message={actions.error instanceof Error ? actions.error.message : "Check the API and broker, then retry."}
+          action={
+            <Button
+              onClick={() => {
+                void actions.refetch();
+                void agents.refetch();
+                void usage.refetch();
+              }}
+            >
+              Retry
+            </Button>
+          }
+        />
+      ) : !environmentId ? (
         <Card>
           <h2 style={{ margin: 0 }}>Create your first environment</h2>
           <p className="tf-muted">

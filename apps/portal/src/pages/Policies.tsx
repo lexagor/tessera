@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { api, environmentQuery, type ActionSummary } from "../api";
@@ -79,6 +80,7 @@ function constraintText(constraint: Constraint): string {
 export function PoliciesPage() {
   const { environmentId } = useWorkspace();
   const queryClient = useQueryClient();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [selected, setSelected] = useState<string | null>(null);
   const [draft, setDraft] = useState(JSON.stringify(NEW_POLICY, null, 2));
   const [notes, setNotes] = useState<string[]>([]);
@@ -100,13 +102,24 @@ export function PoliciesPage() {
   });
 
   useEffect(() => {
+    const wanted = searchParams.get("policy");
+    if (wanted) {
+      const found = policies.data?.items.find((policy) => policy.id === wanted);
+      if (found && selected !== found.id) {
+        setSelected(found.id);
+        setDraft(JSON.stringify(found, null, 2));
+        setNotes([]);
+        setSearchParams({}, { replace: true });
+      }
+      return;
+    }
     if (selected) return;
     const first = policies.data?.items[0];
     if (first) {
       setSelected(first.id);
       setDraft(JSON.stringify(first, null, 2));
     }
-  }, [policies.data, selected]);
+  }, [policies.data, searchParams, selected, setSearchParams]);
 
   const parsed = useMemo<Policy | null>(() => {
     try {

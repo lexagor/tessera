@@ -110,14 +110,75 @@ export function ErrorBanner({ message }: { message: string | null }) {
   return <div className="tf-error">{message}</div>;
 }
 
+export function ErrorState({
+  title = "Something went wrong",
+  message,
+  action,
+}: {
+  title?: string;
+  message: string;
+  action?: ReactNode;
+}) {
+  return (
+    <div className="tf-error-state" role="alert">
+      <span className="tf-error-state-mark">!</span>
+      <div>
+        <h3>{title}</h3>
+        <p>{message}</p>
+        {action ? <div className="tf-actions" style={{ marginTop: 12 }}>{action}</div> : null}
+      </div>
+    </div>
+  );
+}
+
+export function Skeleton({
+  width = "100%",
+  height = 14,
+  style,
+}: {
+  width?: number | string;
+  height?: number | string;
+  style?: CSSProperties;
+}) {
+  return (
+    <span
+      className="tf-skeleton"
+      style={{ width, height, ...style }}
+      aria-hidden="true"
+    />
+  );
+}
+
+export function SkeletonTable({
+  rows = 6,
+  columns = 5,
+}: {
+  rows?: number;
+  columns?: number;
+}) {
+  return (
+    <div className="tf-skeleton-table" aria-label="Loading" role="status">
+      {Array.from({ length: rows }).map((_, row) => (
+        <div className="tf-skeleton-row" key={row}>
+          {Array.from({ length: columns }).map((__, column) => (
+            <Skeleton key={column} height={12} width={column === 0 ? "70%" : `${Math.max(32, 88 - column * 12)}%`} />
+          ))}
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export function Modal({
   title,
   children,
   onClose,
+  wide = false,
 }: {
   title: string;
   children: ReactNode;
   onClose: () => void;
+  wide?: boolean;
 }) {
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
@@ -130,7 +191,7 @@ export function Modal({
   return (
     <div className="tf-modal-backdrop" onClick={onClose}>
       <div
-        className="tf-modal"
+        className={`tf-modal ${wide ? "tf-modal-wide" : ""}`}
         role="dialog"
         aria-modal="true"
         aria-label={title}

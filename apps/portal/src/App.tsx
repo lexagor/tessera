@@ -1,16 +1,18 @@
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Link, NavLink, Navigate, Route, Routes, useLocation } from "react-router-dom";
+import { Link, NavLink, Navigate, Route, Routes, useLocation, useNavigate } from "react-router-dom";
 
 import { getMe, logout, type Me } from "./api";
 import { ActionsPage } from "./pages/Actions";
 import { DesignsPage } from "./pages/Designs";
 import { ActionDetailPage } from "./pages/ActionDetail";
 import { AgentsPage } from "./pages/Agents";
+import { AnalyticsPage } from "./pages/Analytics";
 import { AgentDetailPage } from "./pages/AgentDetail";
 import { EvidencePage } from "./pages/Evidence";
 import { EvidenceDetailPage } from "./pages/EvidenceDetail";
 import { TransitionsPage } from "./pages/Transitions";
+import { IntegrationsPage } from "./pages/Integrations";
 import { InvitePage } from "./pages/Invite";
 import { KeysPage } from "./pages/Keys";
 import { LoginPage } from "./pages/Login";
@@ -21,6 +23,9 @@ import { PublicVerifyPage } from "./pages/PublicVerify";
 import { ReviewsPage } from "./pages/Reviews";
 import { SettingsPage } from "./pages/Settings";
 import { TeamPage } from "./pages/Team";
+import { CommandPalette } from "./components/CommandPalette";
+import { NotificationCenter } from "./components/NotificationCenter";
+import { ShortcutsModal } from "./components/ShortcutsModal";
 import { applyDesign, DESIGNS, readDesign, type DesignId, type DesignMode } from "./design";
 
 interface Workspace {
@@ -39,6 +44,9 @@ export function useWorkspace(): Workspace {
 }
 
 export function App() {
+  const navigate = useNavigate();
+  const [paletteOpen, setPaletteOpen] = useState(false);
+  const [shortcutsOpen, setShortcutsOpen] = useState(false);
   const [designState, setDesignState] = useState(readDesign);
   const { design, mode } = designState;
   const meQuery = useQuery({ queryKey: ["me"], queryFn: getMe, retry: false });
@@ -53,6 +61,48 @@ export function App() {
   useEffect(() => {
     applyDesign(design, mode);
   }, [design, mode]);
+
+  useEffect(() => {
+    function isEditable(target: EventTarget | null): boolean {
+      if (!(target instanceof HTMLElement)) return false;
+      return (
+        target.tagName === "INPUT" ||
+        target.tagName === "TEXTAREA" ||
+        target.tagName === "SELECT" ||
+        target.isContentEditable
+      );
+    }
+    function onKeyDown(event: KeyboardEvent) {
+      if (publicVerify || publicInvite || publicEvidence) return;
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
+        event.preventDefault();
+        setPaletteOpen((current) => !current);
+        return;
+      }
+      if (event.key === "?" && !isEditable(event.target)) {
+        event.preventDefault();
+        setShortcutsOpen(true);
+        return;
+      }
+      if (event.altKey && !event.metaKey && !event.ctrlKey) {
+        const paths: Record<string, string> = {
+          "1": "/",
+          "2": "/analytics",
+          "3": "/actions",
+          "4": "/agents",
+          "5": "/integrations",
+          "6": "/evidence",
+        };
+        const path = paths[event.key];
+        if (path) {
+          event.preventDefault();
+          navigate(path);
+        }
+      }
+    }
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [navigate, publicEvidence, publicInvite, publicVerify]);
 
   function selectDesign(id: DesignId) {
     const option = DESIGNS.find((item) => item.id === id) ?? DESIGNS[0]!;
@@ -127,13 +177,16 @@ export function App() {
   return (
     <WorkspaceContext.Provider value={workspace}>
       <div className="tf-app">
+        <a className="tf-skip-link" href="#main">Skip to content</a>
         <aside className="tf-sidebar">
           <Link to="/" className="tf-brand">Tessera</Link>
           <p className="tf-tagline">Proof of action for AI agents</p>
-          <nav className="tf-nav">
+          <nav className="tf-nav" aria-label="Primary">
             <NavLink to="/" end>Overview</NavLink>
+            <NavLink to="/analytics">Analytics</NavLink>
             <NavLink to="/actions">Actions</NavLink>
             <NavLink to="/agents">Agents</NavLink>
+            <NavLink to="/integrations">Integrations</NavLink>
             <NavLink to="/evidence">Evidence</NavLink>
             <NavLink to="/reviews">Reviews</NavLink>
             <NavLink to="/transitions">Transitions</NavLink>
@@ -158,7 +211,7 @@ export function App() {
             </button>
           </div>
         </aside>
-        <main className="tf-main">
+        <main className="tf-main" id="main" tabIndex={-1}>
           <header className="tf-topbar">
             <div className="tf-org">
               <span>Environment</span>
@@ -176,6 +229,12 @@ export function App() {
               </select>
             </div>
             <div className="tf-topbar-right">
+              <button className="tf-search-trigger" onClick={() => setPaletteOpen(true)} aria-label="Open command palette">
+                <svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="8.5" cy="8.5" r="5" fill="none" stroke="currentColor" strokeWidth="1.5" /><path d="m12.5 12.5 4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" /></svg>
+                <span>Search</span>
+                <kbd>⌘K</kbd>
+              </button>
+              <NotificationCenter />
               <div className="tf-design-controls">
                 <label className="tf-muted" htmlFor="tf-design">Design</label>
                 <select
@@ -204,10 +263,12 @@ export function App() {
           <div className="tf-page">
             <Routes>
               <Route path="/" element={<OverviewPage />} />
+              <Route path="/analytics" element={<AnalyticsPage />} />
               <Route path="/actions" element={<ActionsPage />} />
               <Route path="/actions/:actionId" element={<ActionDetailPage />} />
               <Route path="/agents" element={<AgentsPage />} />
               <Route path="/agents/:agentId" element={<AgentDetailPage />} />
+              <Route path="/integrations" element={<IntegrationsPage />} />
               <Route path="/evidence" element={<EvidencePage />} />
               <Route path="/evidence/:packId" element={<EvidenceDetailPage />} />
               <Route path="/reviews" element={<ReviewsPage />} />
@@ -232,6 +293,8 @@ export function App() {
           </div>
         </main>
       </div>
+      <CommandPalette open={paletteOpen} onClose={() => setPaletteOpen(false)} />
+      {shortcutsOpen ? <ShortcutsModal onClose={() => setShortcutsOpen(false)} /> : null}
     </WorkspaceContext.Provider>
   );
 }

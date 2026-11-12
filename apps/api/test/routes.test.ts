@@ -349,6 +349,118 @@ test("control plane routes: auth, actions, evidence, billing, webhooks", { skip:
   assert.equal((await app.request("/v1/usage", { headers: auth })).status, 200);
   assert.equal((await app.request("/v1/audit", { headers: auth })).status, 200);
 
+  const integrations = await app.request(`/v1/integrations?environmentId=${environment.id}`, { headers: auth });
+  assert.equal(integrations.status, 200);
+  const integrationsBody = (await integrations.json()) as {
+    items: unknown[];
+    providers: Array<{ id: string }>;
+  };
+  assert.equal(integrationsBody.items.length, 0);
+  assert.equal(integrationsBody.providers.length, 8);
+  assert.equal(
+    (await app.request(`/v1/integrations?environmentId=${environment.id}`, {
+      method: "POST",
+      headers: { ...auth, "content-type": "application/json" },
+      body: JSON.stringify({ provider: "not-real", scopes: ["x"] }),
+    })).status,
+    400,
+  );
+  const integration = await app.request(`/v1/integrations?environmentId=${environment.id}`, {
+    method: "POST",
+    headers: { ...auth, "content-type": "application/json" },
+    body: JSON.stringify({ provider: "stripe", scopes: ["refunds", "charges"] }),
+  });
+  assert.equal(integration.status, 201);
+  const integrationBody = (await integration.json()) as {
+    integration: {
+      id: string;
+      status: string;
+      policyId: string;
+      testActionId: string;
+      hasCredential: boolean;
+    };
+  };
+  assert.equal(integrationBody.integration.status, "connected");
+  assert.match(integrationBody.integration.policyId ?? "", /^integration-stripe-/);
+  assert.ok(integrationBody.integration.testActionId);
+  assert.equal(integrationBody.integration.hasCredential, false);
+  assert.equal(
+    (await app.request(`/v1/integrations?environmentId=${environment.id}`, {
+      method: "POST",
+      headers: { ...auth, "content-type": "application/json" },
+      body: JSON.stringify({ provider: "stripe", scopes: ["refunds"] }),
+    })).status,
+    409,
+  );
+  const integrationTest = await app.request(
+    `/v1/integrations/${integrationBody.integration.id}/test?environmentId=${environment.id}`,
+    { method: "POST", headers: auth },
+  );
+  assert.equal(integrationTest.status, 200);
+  assert.equal(((await integrationTest.json()) as { integration: { status: string } }).integration.status, "connected");
+  const rotated = await app.request(
+    `/v1/integrations/${integrationBody.integration.id}/rotate?environmentId=${environment.id}`,
+    {
+      method: "POST",
+      headers: { ...auth, "content-type": "application/json" },
+      body: JSON.stringify({ credential: { secretKey: "rk_test_integration_secret" } }),
+    },
+  );
+  assert.equal(rotated.status, 200);
+  const rotatedBody = (await rotated.json()) as {
+    status: string;
+    hasCredential: boolean;
+    credentialHint: string;
+  };
+  assert.equal(rotatedBody.hasCredential, true);
+  assert.match(rotatedBody.credentialHint, /^••••/);
+  const storedCredential = await db()`
+    SELECT credential_ciphertext FROM integration_connections
+     WHERE id = ${integrationBody.integration.id} AND environment_id = ${environment.id}
+  `;
+  assert.ok(String(storedCredential[0]?.credential_ciphertext).startsWith("v1:"));
+  assert.equal(
+    String(storedCredential[0]?.credential_ciphertext).includes("rk_test_integration_secret"),
+    false,
+  );
+  const retested = await app.request(
+    `/v1/integrations/${integrationBody.integration.id}/test?environmentId=${environment.id}`,
+    { method: "POST", headers: auth },
+  );
+  assert.equal(retested.status, 200);
+  assert.equal(((await retested.json()) as { integration: { status: string } }).integration.status, "connected");
+  const slack = await app.request(`/v1/integrations?environmentId=${environment.id}`, {
+    method: "POST",
+    headers: { ...auth, "content-type": "application/json" },
+    body: JSON.stringify({ provider: "slack", scopes: ["chat"] }),
+  });
+  assert.equal(slack.status, 201);
+  assert.equal(((await slack.json()) as { integration: { status: string } }).integration.status, "needs_attention");
+
+  const analytics = await app.request(`/v1/analytics?range=14d&environmentId=${environment.id}`, { headers: auth });
+  assert.equal(analytics.status, 200);
+  const analyticsBody = (await analytics.json()) as {
+    totals: { actions: number; verified: number; agents: number };
+    series: unknown[];
+    rates: { policyCoverage: number };
+    verification: { sample: number };
+  };
+  assert.ok(analyticsBody.totals.actions >= 1);
+  assert.ok(analyticsBody.totals.verified >= 1);
+  assert.ok(analyticsBody.series.length >= 1);
+  assert.ok(analyticsBody.rates.policyCoverage >= 0);
+  assert.ok(analyticsBody.verification.sample >= 1);
+
+  const notifications = await app.request(`/v1/notifications?environmentId=${environment.id}`, { headers: auth });
+  assert.equal(notifications.status, 200);
+  const notificationItems = ((await notifications.json()) as { items: Array<{ id: string }> }).items;
+  assert.ok(notificationItems.some((item) => item.id === "integrations-attention"));
+
+  const search = await app.request(`/v1/search?environmentId=${environment.id}&q=stripe`, { headers: auth });
+  assert.equal(search.status, 200);
+  const searchBody = (await search.json()) as { actions: Array<{ tool: string }> };
+  assert.ok(searchBody.actions.some((action) => action.tool.includes("stripe")));
+
   const policy = await app.request("/v1/policies/test-policy", {
     method: "PUT",
     headers: { ...auth, "content-type": "application/json" },

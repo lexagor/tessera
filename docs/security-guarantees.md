@@ -37,6 +37,16 @@ the provider boundary, what it can only record, and what it cannot prove.
   for broker tables. The API enforces `org_id`/`environment_id` scoping in every query and is
   covered by cross-tenant tests; control-plane tables are not under RLS today.
 
+## Failure behavior
+
+- KMS/HSM signing failures are **fail-closed**: receipt and anchor signing return an error; no
+  unsigned fallback record is written.
+- Provider transport timeouts are bounded and return structured issuer errors. The proxy records
+  a broker-observed failure outcome when the authorization was already bound to a grant.
+- API plan limits return `402 plan_limit_exceeded` before the broker is called.
+- Circuit breakers are not implemented yet; the current boundary is connect/total request
+  timeouts plus fail-closed handling.
+
 ## Code and test anchors
 
 - Broker-held Stripe grant: `apps/broker/src/issuers/stripe.rs`, `apps/broker/src/proxy.rs`, `apps/broker/tests/proxy_e2e.rs`

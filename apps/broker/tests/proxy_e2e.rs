@@ -2,6 +2,7 @@
 
 use std::collections::HashMap;
 use std::sync::Arc;
+use std::time::Duration;
 
 use axum::body::Bytes;
 use axum::http::{HeaderMap, StatusCode};
@@ -43,11 +44,17 @@ async fn fail() -> (StatusCode, Json<Value>) {
     )
 }
 
+async fn slow() -> Json<Value> {
+    tokio::time::sleep(Duration::from_millis(300)).await;
+    Json(json!({ "ok": true }))
+}
+
 async fn spawn_upstream() -> String {
     let app = Router::new()
         .route("/v1/refunds", any(echo))
         .route("/v1/fail", any(fail))
-        .route("/v1/huge", any(huge));
+        .route("/v1/huge", any(huge))
+        .route("/v1/slow", any(slow));
     let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
     let addr = listener.local_addr().unwrap();
     tokio::spawn(async move {
@@ -66,6 +73,22 @@ fn service(api_base: String) -> Arc<AuthorizeService> {
 fn service_with_egress(
     api_base: String,
     egress: tessera_broker::netguard::EgressGuard,
+) -> Arc<AuthorizeService> {
+    service_with_options(api_base, egress, reqwest::Client::new())
+}
+
+fn service_with_http(api_base: String, http: reqwest::Client) -> Arc<AuthorizeService> {
+    service_with_options(
+        api_base,
+        tessera_broker::netguard::EgressGuard::permissive(),
+        http,
+    )
+}
+
+fn service_with_options(
+    api_base: String,
+    egress: tessera_broker::netguard::EgressGuard,
+    http: reqwest::Client,
 ) -> Arc<AuthorizeService> {
     let signer =
         Arc::new(ReceiptSigner::from_hex_or_random(Some(TEST_KEY), 84532, ZERO_ADDR).unwrap());
@@ -96,7 +119,7 @@ fn service_with_egress(
         anchor_confirmations: 12,
         anchor_reorg_grace_secs: 300,
         revocations: Arc::new(tessera_broker::revocation::MemoryRevocationStore::new()),
-        http: reqwest::Client::new(),
+        http,
         alert_acks: std::sync::Arc::new(tessera_broker::alert_acks::MemoryAlertAcks::new()),
         key_events: std::sync::Arc::new(tessera_broker::key_events::MemoryKeyEvents::new()),
         chain_checkpoints: std::sync::Arc::new(
@@ -354,6 +377,33 @@ async fn proxy_forwards_with_broker_held_secret() {
     let echoed: Value = serde_json::from_str(&resp.body).unwrap();
     assert_eq!(echoed["auth"], format!("Bearer {SECRET}"));
     assert_eq!(echoed["body"], "amount=4200");
+}
+
+#[tokio::test]
+async fn proxy_provider_timeout_fails_closed() {
+    let base = spawn_upstream().await;
+    let http = reqwest::Client::builder()
+        .timeout(Duration::from_millis(50))
+        .build()
+        .unwrap();
+    let svc = service_with_http(base, http);
+    let (grant_id, args_hash) = authorize_grant(&svc, json!({ "amount": 1 })).await;
+
+    let err = svc
+        .proxy(
+            "acme",
+            ProxyRequest {
+                grant_id,
+                args_hash,
+                method: "GET".into(),
+                path: "/v1/slow".into(),
+                query: vec![],
+                content_type: None,
+                body: None,
+            },
+        )
+        .await;
+    assert!(matches!(err, Err(tessera_broker::BrokerError::Issuer(_))));
 }
 
 #[tokio::test]

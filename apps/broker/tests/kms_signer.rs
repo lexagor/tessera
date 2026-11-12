@@ -3,8 +3,10 @@
 //! A mock KMS signs with a known local key; the broker must recover that key's address.
 
 use std::sync::Arc;
+use std::time::Duration;
 
 use axum::extract::State;
+use axum::http::StatusCode;
 use axum::routing::post;
 use axum::{Json, Router};
 use serde_json::{json, Value};
@@ -42,6 +44,42 @@ async fn spawn_kms() -> String {
     let app = Router::new()
         .route("/sign", post(sign_handler))
         .with_state(signer);
+    let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
+    let addr = listener.local_addr().unwrap();
+    tokio::spawn(async move {
+        axum::serve(listener, app).await.unwrap();
+    });
+    format!("http://{addr}")
+}
+
+async fn spawn_kms_response(status: StatusCode, body: Value) -> String {
+    let app = Router::new().route(
+        "/sign",
+        post(move || {
+            let body = body.clone();
+            async move { (status, Json(body)) }
+        }),
+    );
+    let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
+    let addr = listener.local_addr().unwrap();
+    tokio::spawn(async move {
+        axum::serve(listener, app).await.unwrap();
+    });
+    format!("http://{addr}")
+}
+
+async fn spawn_delayed_kms(delay: Duration) -> String {
+    let expected = LocalSigner::from_hex(TEST_KEY).unwrap().address_hex();
+    let app = Router::new().route(
+        "/sign",
+        post(move || {
+            let expected = expected.clone();
+            async move {
+                tokio::time::sleep(delay).await;
+                Json(json!({ "signature": format!("0x{}", "00".repeat(65)), "address": expected }))
+            }
+        }),
+    );
     let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
     let addr = listener.local_addr().unwrap();
     tokio::spawn(async move {
@@ -99,6 +137,66 @@ async fn kms_backs_receipt_signing() {
 
     // the signature recovers to the KMS key's address
     assert_eq!(recover(signer.domain(), &receipt).unwrap(), expected);
+}
+
+#[tokio::test]
+async fn kms_server_error_does_not_sign() {
+    let base = spawn_kms_response(
+        StatusCode::INTERNAL_SERVER_ERROR,
+        json!({ "error": "kms unavailable" }),
+    )
+    .await;
+    let expected = LocalSigner::from_hex(TEST_KEY).unwrap().address_hex();
+    let signer = ReceiptSigner::with_backend(
+        Arc::new(HttpKmsSigner::new(&base, &expected)),
+        84532,
+        ZERO_ADDR,
+        true,
+    )
+    .unwrap();
+    let mut receipt = sample_receipt();
+    assert!(signer.sign(&mut receipt).await.is_err());
+    assert!(receipt.signature.is_none(), "no unsigned fallback");
+}
+
+#[tokio::test]
+async fn kms_malformed_signature_does_not_sign() {
+    let base = spawn_kms_response(
+        StatusCode::OK,
+        json!({ "signature": "0x1234", "address": "0x0000000000000000000000000000000000000000" }),
+    )
+    .await;
+    let expected = LocalSigner::from_hex(TEST_KEY).unwrap().address_hex();
+    let signer = ReceiptSigner::with_backend(
+        Arc::new(HttpKmsSigner::new(&base, &expected)),
+        84532,
+        ZERO_ADDR,
+        true,
+    )
+    .unwrap();
+    let mut receipt = sample_receipt();
+    assert!(signer.sign(&mut receipt).await.is_err());
+    assert!(receipt.signature.is_none(), "no unsigned fallback");
+}
+
+#[tokio::test]
+async fn kms_timeout_is_bounded_and_fails_closed() {
+    let base = spawn_delayed_kms(Duration::from_millis(500)).await;
+    let expected = LocalSigner::from_hex(TEST_KEY).unwrap().address_hex();
+    let client = reqwest::Client::builder()
+        .timeout(Duration::from_millis(50))
+        .build()
+        .unwrap();
+    let signer = ReceiptSigner::with_backend(
+        Arc::new(HttpKmsSigner::with_client(&base, &expected, client)),
+        84532,
+        ZERO_ADDR,
+        true,
+    )
+    .unwrap();
+    let mut receipt = sample_receipt();
+    assert!(signer.sign(&mut receipt).await.is_err());
+    assert!(receipt.signature.is_none(), "no unsigned fallback");
 }
 
 #[tokio::test]

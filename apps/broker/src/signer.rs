@@ -104,10 +104,16 @@ pub struct HttpKmsSigner {
 
 impl HttpKmsSigner {
     pub fn new(url: &str, address: &str) -> Self {
+        Self::with_client(url, address, crate::netguard::outbound_client())
+    }
+
+    /// Build with an explicit client. Tests use a short timeout; production callers should
+    /// generally use [`HttpKmsSigner::new`] so the shared egress timeout policy applies.
+    pub fn with_client(url: &str, address: &str, http: reqwest::Client) -> Self {
         Self {
             url: url.trim_end_matches('/').to_string(),
             address: address.to_string(),
-            http: crate::netguard::outbound_client(),
+            http,
         }
     }
 }

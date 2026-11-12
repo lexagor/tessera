@@ -50,10 +50,15 @@ export async function migrate(): Promise<void> {
       `;
       if (applied.length > 0) continue;
       const body = readFileSync(join(MIGRATIONS, file), "utf8");
-      await connection.begin(async (tx) => {
-        await tx.unsafe(body);
-        await tx`INSERT INTO schema_migrations (name) VALUES (${file})`;
-      });
+      await connection.unsafe("BEGIN");
+      try {
+        await connection.unsafe(body);
+        await connection`INSERT INTO schema_migrations (name) VALUES (${file})`;
+        await connection.unsafe("COMMIT");
+      } catch (error) {
+        await connection.unsafe("ROLLBACK").catch(() => {});
+        throw error;
+      }
     }
   } finally {
     await connection`

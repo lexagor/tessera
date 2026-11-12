@@ -12,6 +12,7 @@ RUN pnpm --filter @tessera/site build
 FROM caddy:2-alpine@sha256:78bd35025c7ba85961dd149ae670315129954e77abe2383ac47c89106b35ade9
 COPY --from=build /app/apps/site/dist /srv
 RUN printf ':8080 {\n\troot * /srv\n\ttry_files {path} /index.html\n\tfile_server\n}\n' > /etc/caddy/Caddyfile
+RUN addgroup -S caddy && adduser -S -D -H -G caddy caddy
 RUN mkdir -p /config /data && chown -R caddy:caddy /config /data /srv
 USER caddy
 EXPOSE 8080

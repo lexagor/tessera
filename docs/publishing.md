@@ -30,6 +30,20 @@ pnpm --filter @tessera-verify/mcp-adapter publish --dry-run --no-git-checks --ac
 `pnpm publish` rewrites `workspace:*` dependencies to the published versions, so publish in
 this order: `receipt-schema`, `verify`, `sdk-ts`, `langchain`, `mcp-adapter`.
 
+### npm 2FA
+
+npm requires either an interactive 2FA code or a granular access token with **Bypass 2FA**
+enabled for publishing. If the CLI prompts for an OTP and you do not have an authenticator:
+
+1. Sign in at npmjs.com → Access Tokens → Generate New Token.
+2. Choose a granular token with Read and write (publish and stage) access.
+3. Enable **Bypass 2FA**.
+4. Select the `@tessera-verify` scope / all required packages.
+5. Use the token as `NODE_AUTH_TOKEN` for local or CI publishing.
+
+Staged publishing (`npm stage publish`) does not require an OTP at upload time, but a maintainer
+must still approve the staged version with 2FA. Do not disable 2FA merely to publish.
+
 ## Python / PyPI
 
 PyPI no longer accepts account username/password authentication. Use an API token:

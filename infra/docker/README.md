@@ -36,12 +36,18 @@ docker compose -f infra/docker/docker-compose.yml up --build
    - Optional: `AGENT_RECEIPT_ED25519_KEY`, `AGENT_RECEIPT_ISSUER_DID`,
      `AGENT_RECEIPT_TSA_URL`
 2. Bootstrap the broker admin key once (see `TESSERA_BOOTSTRAP_TENANT` in the broker env).
-3. Start with the production overlay:
+3. Pull the published images and start without rebuilding on the VPS:
 
 ```bash
+# Make GHCR packages public or authenticate with a read:packages PAT.
 docker compose -f infra/docker/docker-compose.yml \
-  -f infra/docker/docker-compose.prod.yml up -d --build
+  -f infra/docker/docker-compose.prod.yml pull
+docker compose -f infra/docker/docker-compose.yml \
+  -f infra/docker/docker-compose.prod.yml up -d --no-build
 ```
+
+`up --build` is only appropriate on a larger host/with swap; do not compile Rust on a 2 GB VPS.
+Run `ENV_FILE=.env VPS_IP=<vps-ip> sh infra/scripts/vps-preflight.sh` before changing DNS.
 
 Caddy obtains TLS automatically for all three domains and routes:
 `$SITE_DOMAIN` → site/docs, `$APP_DOMAIN` → portal + API, `$VERIFY_DOMAIN` → verifier.

@@ -68,7 +68,7 @@ services:
       SITE_DOMAIN: ${SITE_DOMAIN:-thetessera.xyz}
       APP_DOMAIN: ${APP_DOMAIN:-app.thetessera.xyz}
       VERIFY_DOMAIN: ${VERIFY_DOMAIN:-verify.thetessera.xyz}
-      ACME_EMAIL: ${ACME_EMAIL}
+      ACME_EMAIL: ${ACME_EMAIL:?set ACME_EMAIL}
     volumes: !override
       - ./Caddyfile.prod:/etc/caddy/Caddyfile:ro
       - caddy_data:/data

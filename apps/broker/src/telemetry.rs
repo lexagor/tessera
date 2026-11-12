@@ -57,14 +57,10 @@ pub fn looks_sensitive(value: &str) -> bool {
     }
     // Long digit runs (card / account / phone numbers), allowing separators.
     let digits = value.chars().filter(char::is_ascii_digit).count();
-    if digits >= 13
+    digits >= 13
         && value
             .chars()
             .all(|c| c.is_ascii_digit() || " -".contains(c))
-    {
-        return true;
-    }
-    false
 }
 
 /// Value recorded for a string field: redacted when it looks sensitive.

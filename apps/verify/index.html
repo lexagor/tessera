@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Tessera — Verify an action record</title>
+    <link rel="stylesheet" href="/src/style.css" />
+  </head>
+  <body>
+    <main>
+      <header>
+        <p class="eyebrow">Tessera</p>
+        <h1>Verify an action record</h1>
+        <p class="lede">
+          Paste a signed authorization record, outcome pair, or receipt chain. Verification
+          runs entirely in your browser — no call to Tessera.
+        </p>
+      </header>
+
+      <section id="link-panel" class="panel" hidden>
+        <h2 id="link-title" style="margin: 0 0 8px;">Verification link</h2>
+        <p id="link-summary" class="lede" style="margin: 0 0 14px;"></p>
+        <div id="link-facts" class="row"></div>
+      </section>
+
+      <section class="panel">
+        <div class="row">
+          <label>
+            Chain ID
+            <input id="chain-id" value="31337" inputmode="numeric" />
+          </label>
+          <label>
+            Verifying contract
+            <input id="contract" value="0x0000000000000000000000000000000000000000" spellcheck="false" />
+          </label>
+          <label>
+            Expected signer (optional)
+            <input id="expected-signer" placeholder="0x…" spellcheck="false" />
+          </label>
+        </div>
+        <label class="file">
+          <span>Load a JSON file</span>
+          <input id="file" type="file" accept="application/json,.json" />
+        </label>
+        <textarea id="input" spellcheck="false" placeholder='{"receipt": { … }}'></textarea>
+        <div class="actions">
+          <button id="verify" class="primary">Verify</button>
+          <button id="sample">Load sample</button>
+          <button id="clear">Clear</button>
+        </div>
+      </section>
+
+      <section id="result" class="result" hidden>
+        <div id="verdict" class="verdict"></div>
+        <pre id="details"></pre>
+      </section>
+    </main>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

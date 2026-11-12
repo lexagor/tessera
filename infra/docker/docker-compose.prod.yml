@@ -1,0 +1,35 @@
+# Production overlay: real TLS + domain + no dev defaults.
+#
+#   DOMAIN=app.example.com ACME_EMAIL=ops@example.com \
+#   AUTH_DEV_MODE=0 TESSERA_DEMO_ALLOW=0 BROKER_DEMO_ALLOW=0 \
+#   PUBLIC_BASE_URL=https://app.example.com VERIFY_BASE_URL=https://app.example.com \
+#   docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
+#
+# Required: OIDC_* values, CONTROL_PLANE_ENC_KEY, TENANT_SECRET_ENC_KEY,
+# BROKER_SIGNING_KEY, BROKER_ADMIN_KEY, BROKER_ADMIN_TOKEN.
+
+services:
+  api:
+    environment:
+      AUTH_DEV_MODE: "0"
+      ALLOW_PRIVATE_WEBHOOKS: "0"
+
+  broker:
+    environment:
+      TESSERA_DEMO_ALLOW: "0"
+
+  caddy:
+    ports: !override
+      - "80:80"
+      - "443:443"
+    environment:
+      DOMAIN: ${DOMAIN}
+      ACME_EMAIL: ${ACME_EMAIL}
+    volumes: !override
+      - ./Caddyfile.prod:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+
+volumes:
+  caddy_data:
+  caddy_config:

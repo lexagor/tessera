@@ -1,0 +1,98 @@
+[
+  {
+    "v": 1,
+    "tenant": "acme",
+    "agent": "billing-agent",
+    "user": "user_42",
+    "intentHash": "0x1111111111111111111111111111111111111111111111111111111111111111",
+    "authorization": {
+      "decision": "allow",
+      "policy": "acme-refunds",
+      "policyVersion": 7,
+      "resource": "stripe:refunds.create",
+      "anomalyScore": 0.0
+    },
+    "call": {
+      "tool": "stripe.refunds.create",
+      "argsHash": "0x2222222222222222222222222222222222222222222222222222222222222222",
+      "resultHash": null
+    },
+    "grant": { "provider": "stripe", "ttlS": 30, "singleUse": true, "status": "issued" },
+    "ts": "2026-09-15T12:00:00Z",
+    "nonce": "0x3333333333333333333333333333333333333333333333333333333333333333",
+    "prev": null,
+    "signature": null
+  },
+  {
+    "v": 1,
+    "tenant": "acme",
+    "agent": "billing-agent",
+    "user": "user_42",
+    "intentHash": "0x1111111111111111111111111111111111111111111111111111111111111111",
+    "authorization": {
+      "decision": "allow",
+      "policy": "acme-refunds",
+      "policyVersion": 7,
+      "resource": "stripe:refunds.create",
+      "anomalyScore": 0.5
+    },
+    "call": {
+      "tool": "stripe.refunds.create",
+      "argsHash": "0x2222222222222222222222222222222222222222222222222222222222222222",
+      "resultHash": "0x4444444444444444444444444444444444444444444444444444444444444444"
+    },
+    "grant": { "provider": "stripe", "ttlS": 30, "singleUse": true, "status": "used" },
+    "ts": "2026-09-15T12:05:00Z",
+    "nonce": "0x6666666666666666666666666666666666666666666666666666666666666666",
+    "prev": "0x5555555555555555555555555555555555555555555555555555555555555555",
+    "signature": null
+  },
+  {
+    "v": 1,
+    "tenant": "acme",
+    "agent": "billing-agent",
+    "user": "user_42",
+    "intentHash": "0x7777777777777777777777777777777777777777777777777777777777777777",
+    "authorization": {
+      "decision": "deny",
+      "policy": "acme-refunds",
+      "policyVersion": 8,
+      "resource": "stripe:refunds.create",
+      "anomalyScore": 1.0
+    },
+    "call": {
+      "tool": "stripe.refunds.create",
+      "argsHash": "0x2222222222222222222222222222222222222222222222222222222222222222",
+      "resultHash": null
+    },
+    "grant": { "provider": "stripe", "ttlS": 0, "singleUse": true, "status": "denied" },
+    "ts": "2026-09-15T12:10:00Z",
+    "nonce": "0x8888888888888888888888888888888888888888888888888888888888888888",
+    "prev": null,
+    "signature": null
+  },
+  {
+    "v": 1,
+    "tenant": "acme\"co",
+    "agent": "agent\\with\\slashes",
+    "user": "user_42",
+    "intentHash": "0x1111111111111111111111111111111111111111111111111111111111111111",
+    "authorization": {
+      "decision": "allow",
+      "policy": "acme-refunds",
+      "policyVersion": 7,
+      "resource": "stripe:refunds.create",
+      "anomalyScore": 0.03
+    },
+    "call": {
+      "tool": "stripe.refunds.create",
+      "argsHash": "0x2222222222222222222222222222222222222222222222222222222222222222",
+      "resultHash": null
+    },
+    "grant": { "provider": "stripe", "ttlS": 30, "singleUse": true, "status": "issued" },
+    "ts": "2026-09-15T12:15:00Z",
+    "nonce": "0x9999999999999999999999999999999999999999999999999999999999999999",
+    "prev": null,
+    "signature": null
+  }
+]

@@ -1,0 +1,22 @@
+{
+  "name": "@tessera/example-github-pr-agent",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "tsx index.ts",
+    "typecheck": "tsc --noEmit",
+    "lint": "echo 'lint not configured'",
+    "test": "echo 'no tests yet'",
+    "build": "echo 'example: no build'",
+    "clean": "echo 'example: nothing to clean'"
+  },
+  "dependencies": {
+    "@tessera/sdk-ts": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "tsx": "^4.19.2",
+    "typescript": "^5.6.3"
+  }
+}

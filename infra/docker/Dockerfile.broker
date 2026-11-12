@@ -1,0 +1,17 @@
+# syntax=docker/dockerfile:1
+# Tessera Agent Action Broker image (scaffold).
+
+# Match the toolchain the workspace is tested with (see rustc --version in CI).
+FROM rust:1.98-slim AS build
+WORKDIR /app
+COPY apps/broker/Cargo.toml apps/broker/Cargo.lock ./
+COPY apps/broker/src ./src
+# `--locked` keeps the image reproducible; only the server binary is needed at runtime.
+RUN cargo build --release --locked --bin tessera-broker
+
+FROM debian:bookworm-slim AS runtime
+RUN useradd -r -u 10001 tessera
+COPY --from=build /app/target/release/tessera-broker /usr/local/bin/tessera-broker
+USER tessera
+EXPOSE 8787
+ENTRYPOINT ["/usr/local/bin/tessera-broker"]

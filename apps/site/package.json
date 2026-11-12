@@ -1,0 +1,14 @@
+{
+  "name": "@tessera/site",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Static landing page + docs site generated from /docs",
+  "scripts": {
+    "build": "node build.mjs",
+    "clean": "rm -rf dist"
+  },
+  "devDependencies": {
+    "marked": "^12.0.2"
+  }
+}

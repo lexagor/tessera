@@ -64,7 +64,7 @@ export function setSessionCookie(c: Context<AppEnv>, token: string): void {
 }
 
 export function clearSessionCookie(c: Context<AppEnv>): void {
-  deleteCookie(c, sessionCookieName(), { path: "/" });
+  deleteCookie(c, sessionCookieName(), { path: "/", secure: cookieSecure });
 }
 
 export async function destroySession(c: Context<AppEnv>): Promise<void> {

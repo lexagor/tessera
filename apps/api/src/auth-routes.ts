@@ -18,7 +18,7 @@ import {
 import { clientIp } from "./client-ip.js";
 import { trustedWriteOrigin } from "./csrf.js";
 import { db } from "./db.js";
-import { devAuthEnabled, env, isProduction, requireOidcConfig } from "./env.js";
+import { cookieSecure, devAuthEnabled, env, isProduction, requireOidcConfig } from "./env.js";
 import { decodeOidcState, encodeOidcState } from "./oidc-state.js";
 import { rateLimit } from "./rate-limit.js";
 
@@ -95,7 +95,7 @@ authRoutes.get("/auth/callback", async (c) => {
   const client = await getOidcClient();
   const raw = getCookie(c, oidcCookieName());
   if (!raw) return c.json({ error: "missing OIDC state" }, 400);
-  deleteCookie(c, oidcCookieName(), { path: "/" });
+  deleteCookie(c, oidcCookieName(), { path: "/", secure: cookieSecure });
   const stored = decodeOidcState(raw);
   if (!stored) return c.json({ error: "invalid OIDC state" }, 400);
   const params = client.callbackParams(c.req.url);

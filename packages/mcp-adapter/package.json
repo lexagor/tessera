@@ -1,6 +1,6 @@
 {
   "name": "@tessera-verify/mcp-adapter",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "MCP middleware that brokers Tessera credentials for each tool call",
   "license": "Apache-2.0",
   "type": "module",

@@ -30,6 +30,10 @@ pnpm --filter @tessera-verify/mcp-adapter publish --dry-run --no-git-checks --ac
 `pnpm publish` rewrites `workspace:*` dependencies to the published versions, so publish in
 this order: `receipt-schema`, `verify`, `sdk-ts`, `langchain`, `mcp-adapter`.
 
+Do not run plain `npm publish` from the workspace package directory; it can publish
+`workspace:*` dependencies as-is and make the package uninstallable. If publishing a tarball,
+create it with `pnpm pack` first and inspect `package/package.json` before uploading.
+
 ### npm 2FA
 
 npm requires either an interactive 2FA code or a granular access token with **Bypass 2FA**

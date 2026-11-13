@@ -312,7 +312,7 @@ Do next:
 
 | P2 item | Status | Notes |
 |---|---|---|
-| SOC 2 readiness | Readiness mapping + evidence cadence added | `docs/soc2-readiness.md`; no auditor, policies, or report yet |
+| SOC 2 readiness | Readiness mapping, policy set, and evidence snapshot added | `docs/soc2-readiness.md`, `docs/security-policies.md`, `infra/scripts/soc2-evidence.sh`; no auditor or report yet |
 | External penetration test | Scope/rules added; not run | `docs/pentest-scope.md`; independent engagement still required |
 | Cloud KMS/HSM benchmark | Harness + matrix added; no real KMS | `scripts/kms-bench.mjs`, `docs/kms-benchmark.md`; live signer still in-process |
 | Multi-AZ/managed data + DR | Target design + failover plan added | `docs/multi-az-dr.md`; live remains single VPS |

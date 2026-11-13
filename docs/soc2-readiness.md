@@ -29,6 +29,12 @@ SLA and more than one production region.
 | Evidence integrity | EIP-712 receipts, hash chains, offline verifier, evidence packs | Independent review of receipt/chain boundaries |
 | HR / entity controls | Founder-operated | Employment/contractor policy, background checks if required, org chart |
 
+## Collect a snapshot
+
+`infra/scripts/soc2-evidence.sh` writes a non-secret snapshot of the commit, CI runs, containers,
+image digests, RLS result, backups, and host firewall/fail2ban status. Review it before sharing;
+it is evidence metadata, not an audit opinion.
+
 ## Evidence cadence
 
 - **Per release:** commit SHA, image digests, migration list, CI/Security/SBOM/RLS results,

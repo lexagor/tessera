@@ -1,7 +1,7 @@
 import { createHmac } from "node:crypto";
 
 import { decryptSecret, encryptSecret, randomToken, uuid } from "./crypto.js";
-import { db } from "./db.js";
+import { db, withAdminContext, withDetachedAdminContext } from "./db.js";
 import { env, isProduction } from "./env.js";
 import { recordWebhookDelivered, recordWebhookFailed } from "./metrics.js";
 import { isPrivateHostname, safeWebhookPost } from "./safe-webhook.js";
@@ -71,28 +71,34 @@ export async function emitWebhook(
   event: WebhookEvent,
   data: Record<string, unknown>,
 ): Promise<void> {
+  let enqueued = false;
   try {
-    const endpoints = await db()`
-      SELECT id FROM webhook_endpoints
-       WHERE org_id = ${orgId}
-         AND active = true
-         AND (events @> ARRAY['*']::text[] OR events @> ARRAY[${event}]::text[])
-    `;
-    if (endpoints.length === 0) return;
-    const payload = {
-      event,
-      createdAt: new Date().toISOString(),
-      data,
-    };
-    for (const endpoint of endpoints) {
-      await db()`
-        INSERT INTO webhook_deliveries (id, endpoint_id, org_id, event, payload)
-        VALUES (${uuid()}, ${endpoint.id as string}, ${orgId}, ${event}, ${db().json(payload as never)})
+    await withDetachedAdminContext(async () => {
+      const endpoints = await db()`
+        SELECT id FROM webhook_endpoints
+         WHERE org_id = ${orgId}
+           AND active = true
+           AND (events @> ARRAY['*']::text[] OR events @> ARRAY[${event}]::text[])
       `;
-    }
-    void processWebhookDeliveries().catch((error) => {
-      console.error("webhook worker error", error);
+      if (endpoints.length === 0) return;
+      const payload = {
+        event,
+        createdAt: new Date().toISOString(),
+        data,
+      };
+      for (const endpoint of endpoints) {
+        await db()`
+          INSERT INTO webhook_deliveries (id, endpoint_id, org_id, event, payload)
+          VALUES (${uuid()}, ${endpoint.id as string}, ${orgId}, ${event}, ${db().json(payload as never)})
+        `;
+      }
+      enqueued = true;
     });
+    if (enqueued) {
+      void withAdminContext(processWebhookDeliveries).catch((error) => {
+        console.error("webhook worker error", error);
+      });
+    }
   } catch (error) {
     console.error("webhook enqueue failed", error);
   }

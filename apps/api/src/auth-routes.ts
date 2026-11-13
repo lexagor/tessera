@@ -18,7 +18,7 @@ import {
 } from "./auth.js";
 import { clientIp } from "./client-ip.js";
 import { trustedWriteOrigin } from "./csrf.js";
-import { db } from "./db.js";
+import { db, withAdminContext } from "./db.js";
 import { cookieSecure, devAuthEnabled, env, isProduction, requireOidcConfig } from "./env.js";
 import { decodeOidcState, encodeOidcState } from "./oidc-state.js";
 import { rateLimit } from "./rate-limit.js";
@@ -33,6 +33,9 @@ const authRateLimit = rateLimit({
 authRoutes.use("/auth/login", authRateLimit);
 authRoutes.use("/auth/callback", authRateLimit);
 authRoutes.use("/auth/dev-login", authRateLimit);
+
+// Identity bootstrap, state exchange, and session creation happen before an org is known.
+authRoutes.use("*", async (_c, next) => withAdminContext(next));
 
 let oidcClient: Client | null = null;
 

@@ -2,7 +2,7 @@ import type { Context, MiddlewareHandler } from "hono";
 import { deleteCookie, getCookie, setCookie } from "hono/cookie";
 
 import { uuid, randomToken, sha256, slugify } from "./crypto.js";
-import { db } from "./db.js";
+import { db, withAdminContext } from "./db.js";
 import { cookieSecure, env, isProduction } from "./env.js";
 import type { Org, Role, SessionContext, User, Variables } from "./types.js";
 
@@ -140,7 +140,7 @@ async function loadSession(c: Context<AppEnv>): Promise<SessionContext | null> {
 }
 
 export const requireSession: MiddlewareHandler<AppEnv> = async (c, next) => {
-  const session = await loadSession(c);
+  const session = await withAdminContext(() => loadSession(c));
   if (!session) {
     return c.json(
       { error: { code: "unauthorized", message: "Sign in to continue" } },

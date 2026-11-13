@@ -42,7 +42,7 @@ import {
   slugify,
   uuid,
 } from "./crypto.js";
-import { db } from "./db.js";
+import { db, withOrgContext } from "./db.js";
 import { env, verifyBaseUrl } from "./env.js";
 import { evidenceStorage } from "./evidence-storage.js";
 import { newScimToken } from "./scim.js";
@@ -290,6 +290,12 @@ routes.use("/v1/*", async (c, next) => {
   return requireSession(c, next);
 });
 
+routes.use("/v1/*", async (c, next) => {
+  const s = c.get("session") as SessionContext | undefined;
+  if (!s) return next();
+  return withOrgContext(s.org.id, next);
+});
+
 routes.get("/v1/me", async (c) => {
   const s = session(c);
   const environments = await db()`
@@ -471,7 +477,7 @@ routes.patch("/v1/org/retention", requireRole("owner"), async (c) => {
 routes.get("/v1/scim-tokens", requireRole("owner", "admin"), async (c) => {
   const s = session(c);
   const rows = await db()`
-    SELECT id, name, created_at, last_used_at, revoked_at
+    SELECT id, name, created_at, last_used_at, expires_at, revoked_at
       FROM scim_tokens WHERE org_id = ${s.org.id}
      ORDER BY created_at DESC
   `;
@@ -481,14 +487,20 @@ routes.get("/v1/scim-tokens", requireRole("owner", "admin"), async (c) => {
 routes.post("/v1/scim-tokens", requireRole("owner", "admin"), async (c) => {
   const s = session(c);
   const body = z
-    .object({ name: z.string().min(1).max(80).default("Identity provider") })
+    .object({
+      name: z.string().min(1).max(80).default("Identity provider"),
+      expiresInDays: z.coerce.number().int().min(1).max(365).optional(),
+    })
     .safeParse(await requestBody(c));
   if (!body.success) return fail(c, 400, "invalid_request", "Token name is required");
   const generated = newScimToken();
   const id = uuid();
+  const expiresAt = body.data.expiresInDays
+    ? new Date(Date.now() + body.data.expiresInDays * 86_400_000).toISOString()
+    : null;
   await db()`
-    INSERT INTO scim_tokens (id, org_id, name, token_hash, created_by)
-    VALUES (${id}, ${s.org.id}, ${body.data.name}, ${generated.hash}, ${s.user.id})
+    INSERT INTO scim_tokens (id, org_id, name, token_hash, created_by, expires_at)
+    VALUES (${id}, ${s.org.id}, ${body.data.name}, ${generated.hash}, ${s.user.id}, ${expiresAt})
   `;
   await audit({
     orgId: s.org.id,
@@ -502,6 +514,7 @@ routes.post("/v1/scim-tokens", requireRole("owner", "admin"), async (c) => {
       id,
       name: body.data.name,
       token: generated.token,
+      expiresAt,
       endpoint: "/scim/v2",
       notice: "Store this SCIM token now; it will not be shown again.",
     },

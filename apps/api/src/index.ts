@@ -9,7 +9,7 @@ import { timeout } from "hono/timeout";
 import { type AppEnv, cleanupSessions, requireSession } from "./auth.js";
 import { authRoutes } from "./auth-routes.js";
 import { billingWebhookRoutes } from "./billing.js";
-import { assertProductionDatabaseRole, closeDb, db, migrate } from "./db.js";
+import { assertProductionDatabaseRole, closeDb, db, migrate, withAdminContext } from "./db.js";
 import { env, isProduction } from "./env.js";
 import { recordRequest, renderMetrics } from "./metrics.js";
 import { openapi } from "./openapi.js";
@@ -124,24 +124,24 @@ app.get("/v1/session", requireSession, (c) => {
 if (process.env.NODE_ENV !== "test") {
   await assertProductionDatabaseRole();
   await migrate();
-  void cleanupSessions().catch((error) => {
+  void withAdminContext(cleanupSessions).catch((error) => {
     console.error("session cleanup failed", error);
   });
-  void cleanupWebhookDeliveries().catch((error) => {
+  void withAdminContext(cleanupWebhookDeliveries).catch((error) => {
     console.error("webhook cleanup failed", error);
   });
   setInterval(() => {
-    void cleanupSessions().catch((error) => {
+    void withAdminContext(cleanupSessions).catch((error) => {
       console.error("session cleanup failed", error);
     });
   }, 3_600_000).unref();
   setInterval(() => {
-    void processWebhookDeliveries().catch((error) => {
+    void withAdminContext(processWebhookDeliveries).catch((error) => {
       console.error("webhook worker failed", error);
     });
   }, 5_000).unref();
   setInterval(() => {
-    void cleanupWebhookDeliveries().catch((error) => {
+    void withAdminContext(cleanupWebhookDeliveries).catch((error) => {
       console.error("webhook cleanup failed", error);
     });
   }, 3_600_000).unref();

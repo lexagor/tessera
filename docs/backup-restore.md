@@ -81,6 +81,12 @@ After restore:
 4. regenerate a signed evidence export and confirm the archive index/digests;
 5. record the drill date, restore duration, row counts, and any mismatch.
 
+## Freshness and DR drill
+
+Run `infra/scripts/check-backup-freshness.sh` daily; it fails if the database or evidence archive
+is older than the configured threshold. Run the clean-host procedure in
+[`dr-drill.md`](dr-drill.md) monthly/quarterly and record the result.
+
 ## Failure notes
 
 - A superuser `DATABASE_URL` is rejected in production; use `tessera_app`.

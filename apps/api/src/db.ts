@@ -1,3 +1,4 @@
+import { AsyncLocalStorage } from "node:async_hooks";
 import { readFileSync, readdirSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -7,8 +8,11 @@ import postgres, { type Sql } from "postgres";
 import { env, isProduction } from "./env.js";
 
 let client: Sql | null = null;
+const transactionScope = new AsyncLocalStorage<Sql>();
 
-export function db(): Sql {
+export const controlPlaneRlsEnabled = env.CONTROL_PLANE_RLS;
+
+function connectRoot(): Sql {
   if (!client) {
     client = postgres(env.DATABASE_URL, {
       max: 10,
@@ -26,6 +30,10 @@ export function db(): Sql {
   return client;
 }
 
+export function db(): Sql {
+  return transactionScope.getStore() ?? connectRoot();
+}
+
 /** Production must not run the control plane as a Postgres superuser. */
 export async function assertProductionDatabaseRole(): Promise<void> {
   if (!isProduction) return;
@@ -36,6 +44,50 @@ export async function assertProductionDatabaseRole(): Promise<void> {
       `DATABASE_URL user '${role.current_user ?? "unknown"}' is a Postgres superuser; use the non-superuser tessera_app role`,
     );
   }
+}
+
+/** Run a tenant request inside a transaction with the control-plane RLS GUC set. */
+export async function withOrgContext<T>(orgId: string, fn: () => Promise<T>): Promise<T> {
+  if (!controlPlaneRlsEnabled || transactionScope.getStore()) return fn();
+  return db().begin(async (tx) => {
+    await tx`
+      SELECT set_config('app.rls', '1', true),
+             set_config('app.org_id', ${orgId}, true),
+             set_config('app.admin', '0', true)
+    `;
+    return transactionScope.run(tx as unknown as Sql, fn);
+  }) as unknown as Promise<T>;
+}
+
+/** Run an explicitly privileged operation (identity bootstrap, cleanup, webhook worker). */
+export async function withAdminContext<T>(fn: () => Promise<T>): Promise<T> {
+  if (!controlPlaneRlsEnabled || transactionScope.getStore()) return fn();
+  return db().begin(async (tx) => {
+    await tx`
+      SELECT set_config('app.rls', '1', true),
+             set_config('app.org_id', '', true),
+             set_config('app.admin', '1', true)
+    `;
+    return transactionScope.run(tx as unknown as Sql, fn);
+  }) as unknown as Promise<T>;
+}
+
+/** Open a separate privileged transaction even when a request transaction is active. */
+export async function withDetachedAdminContext<T>(fn: () => Promise<T>): Promise<T> {
+  if (!controlPlaneRlsEnabled) return fn();
+  return connectRoot().begin(async (tx) => {
+    await tx`
+      SELECT set_config('app.rls', '1', true),
+             set_config('app.org_id', '', true),
+             set_config('app.admin', '1', true)
+    `;
+    return transactionScope.run(tx as unknown as Sql, fn);
+  }) as unknown as Promise<T>;
+}
+
+/** Escape hatch for code that must not inherit a request transaction (use deliberately). */
+export function detachedDb(): Sql {
+  return connectRoot();
 }
 
 export async function closeDb(): Promise<void> {

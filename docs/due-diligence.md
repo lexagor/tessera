@@ -303,7 +303,7 @@ Do next:
 | WAF/DDoS/edge limits | Partial | Caddy request-body cap + API rate limits; no managed WAF/DDoS |
 | Load tests | Harness added; not run on staging | `scripts/load/authorize.mjs`, docs; staging target required |
 | RLS CI/deploy check | Implemented | `infra/scripts/check-rls.sh`; CI step added |
-| Control-plane RLS | Design only | `docs/control-plane-rls.md`; not enabled |
+| Control-plane RLS | Implemented behind `CONTROL_PLANE_RLS`; live flag off | Migration 015, transaction helpers, API/RLS tests; canary still pending |
 | Dependency/image updates | Config added; app not installed | `renovate.json`, `docs/dependency-updates.md` |
 | Docs/one-pager/trust | Updated | Legal/security/runbook links added |
 | `www` DNS | Documented as intentionally absent | `docs/edge-and-dns.md` |

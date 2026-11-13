@@ -1,6 +1,6 @@
 # Control-Plane RLS Design
 
-**Status:** proposed design; **not enabled** on the live control plane.
+**Status:** implemented behind `CONTROL_PLANE_RLS`; the live flag remains off until a canary rollout. Policies are safe to apply with the flag off.
 
 Broker tables use Postgres row-level security today. Control-plane tables (`orgs`,
 `memberships`, `environments`, `actions`, `agent_keys`, `evidence_packs`, `webhooks`, `audit_log`)
@@ -78,3 +78,24 @@ the request path.
 
 Until all of this is implemented and tested, the accurate claim is: **broker RLS is enforced;
 control-plane isolation is application-enforced and tested, not database-enforced.**
+
+## Enablement (implemented, default off)
+
+The migration `015_control_plane_rls.sql` is safe to apply while the feature is off: policies
+allow access when `app.rls` is unset. To enable enforcement:
+
+```bash
+# 1. Test locally with the API/DB tests.
+TEST_DATABASE_URL=... CONTROL_PLANE_RLS=1 pnpm --filter @tessera/api test
+
+# 2. Set the flag on one staging instance and run the full smoke suite.
+CONTROL_PLANE_RLS=1
+
+# 3. Canary production after verifying auth/login, SCIM, webhook delivery, cleanup jobs,
+#    billing webhook, and background workers. Roll back by setting CONTROL_PLANE_RLS=0.
+```
+
+When enabled, `withOrgContext()` sets `app.rls=1` and `app.org_id`; `withAdminContext()` sets
+`app.rls=1`, `app.org_id=''`, and `app.admin=1`. Auth bootstrap, session lookup, SCIM token
+lookup, webhook enqueue/worker, and cleanup jobs use the admin path. The live flag remains off
+until a production canary is approved.

@@ -121,15 +121,7 @@ function page(title, body, slug) {
 <body class="doc">
 ${nav(slug)}
 <main class="content">${body}</main>
-<script>
-  const search = document.getElementById("doc-search");
-  search?.addEventListener("input", () => {
-    const q = search.value.trim().toLowerCase();
-    document.querySelectorAll(".sidebar li").forEach((item) => {
-      item.style.display = !q || item.textContent.toLowerCase().includes(q) ? "" : "none";
-    });
-  });
-</script>
+<script src="../doc-search.js" defer></script>
 </body>
 </html>`;
 }
@@ -183,6 +175,7 @@ function escapeXml(value) {
 writeFileSync(join(OUT, "index.html"), renderLanding());
 copyFileSync(join(HERE, "src", "landing.css"), join(OUT, "landing.css"));
 copyFileSync(join(HERE, "src", "styles.css"), join(OUT, "styles.css"));
+copyFileSync(join(HERE, "src", "doc-search.js"), join(OUT, "doc-search.js"));
 if (existsSync(join(HERE, "public"))) {
   cpSync(join(HERE, "public"), OUT, { recursive: true });
 }

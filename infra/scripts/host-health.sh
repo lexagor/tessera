@@ -48,7 +48,7 @@ if [ -f "$VERIFY_STAMP" ]; then
   [ "$verify_age" -le 8 ] || { echo "FAIL backup restore verification is ${verify_age} day(s) old"; failed=1; }
   echo "backup_verify_days=${verify_age}"
 else
-  echo "WARN backup restore verification has not run"
+  echo "FAIL backup restore verification has not run"; failed=1
 fi
 
 for name in docker-api-1 docker-broker-1 docker-postgres-1 docker-caddy-1; do

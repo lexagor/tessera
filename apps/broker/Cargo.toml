@@ -43,7 +43,7 @@ tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 uuid = { version = "1", features = ["v4", "serde"] }
 
 [dev-dependencies]
-criterion = "0.5"
+criterion = "0.8"
 jsonwebtoken = { version = "10.3", features = ["rust_crypto"] }
 sqlx = { version = "0.8", default-features = false, features = ["runtime-tokio", "tls-rustls", "postgres", "json", "chrono"] }
 tokio-test = "0.4"

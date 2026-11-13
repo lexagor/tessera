@@ -216,6 +216,7 @@ docs/              Architecture, threat model, receipt spec, controls, RFCs
 - [`docs/kms-production.md`](docs/kms-production.md) — KMS/HSM migration runbook
 - [`docs/edge-and-dns.md`](docs/edge-and-dns.md) — WAF/DDoS options and DNS decision
 - [`docs/soc2-readiness.md`](docs/soc2-readiness.md) — SOC 2 readiness mapping and evidence cadence
+- [`docs/security-policies.md`](docs/security-policies.md) — draft security policy set for readiness
 - [`docs/pentest-scope.md`](docs/pentest-scope.md) — external penetration-test scope and rules
 - [`docs/incident-response.md`](docs/incident-response.md) — incident severity, roles, and runbook
 - [`docs/support-sla.md`](docs/support-sla.md) — support channels and response targets

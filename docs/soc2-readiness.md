@@ -42,8 +42,9 @@ SLA and more than one production region.
 ## Type I path
 
 1. Appoint a control owner and choose an auditor (readiness assessment first).
-2. Write the policy set: access, change, incident, backup, vendor, risk, acceptable use,
-   retention, cryptography, vulnerability management.
+2. Adopt the draft policy set in [`security-policies.md`](security-policies.md): access, change,
+   incident, backup, vendor, risk, acceptable use, retention, cryptography, and vulnerability
+   management.
 3. Run three months of evidence collection against the control matrix.
 4. Close design gaps: HA/managed data tier, alerting, formal access reviews, audit logging
    retention, and a tested incident process.

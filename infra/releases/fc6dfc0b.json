@@ -1,0 +1,15 @@
+{
+  "commit": "fc6dfc0b",
+  "deployedAt": "2026-11-13T11:15:00Z",
+  "environment": "production",
+  "scope": "documentation/site only",
+  "images": {
+    "api": "ghcr.io/lexagor/tessera-api@sha256:3a6d6c0892376674ddef1b452fecd7d1071368fd67bd5f74b621a0e2d26aaa38",
+    "broker": "ghcr.io/lexagor/tessera-broker@sha256:8395ed4bc443e4091f2051d209842987ee78e8ac67f2f9bb810d749e957b72ac",
+    "portal": "ghcr.io/lexagor/tessera-portal@sha256:abe19be86a67b46bfa03a6178107bdaee39e4c3eee6b4678ce0c8a82fce4e992",
+    "verify": "ghcr.io/lexagor/tessera-verify@sha256:2486dea72c27c633d1fb0a41699508a803b2cff09a2c8a343d226cdf00fbb4ab",
+    "site": "ghcr.io/lexagor/tessera-site@sha256:042d5db052d00a03d11501a1e1a1dc0eb46695260d3e5e475c592b43ee833b25"
+  },
+  "checks": ["CI", "Security", "CodeQL", "Images", "enforced CSP", "SCIM/RLS canary still active"],
+  "flags": { "CONTROL_PLANE_RLS": "1" }
+}

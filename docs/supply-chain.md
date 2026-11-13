@@ -42,5 +42,5 @@ digest or a digest whose signature identity is not the expected repository/workf
 - A valid signature proves which workflow built the image, not that the code is vulnerability-free.
 - Keyless signing depends on GitHub OIDC and the public transparency log.
 - Scorecard is a posture signal, not a compliance certification.
-- Verify signatures before the first production deploy that claims supply-chain controls; the
-  current live images predate the signing workflow.
+- The `828c8b9f` live API/portal/site digests were signed by the keyless workflow; verify the
+  signatures before the next deploy and after every image update.

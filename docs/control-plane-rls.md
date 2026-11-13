@@ -106,5 +106,6 @@ until a production canary is approved.
 DATABASE_URL=... RLS_REQUIRE_TABLES=1 infra/scripts/check-control-plane-rls.sh
 ```
 
-The CI node job runs this after migrations. It verifies `ENABLE` + `FORCE` and a policy on every
-control-plane table; policy existence is not a substitute for the transaction-helper tests.
+The CI node job runs this after migrations. The API also runs `assertControlPlaneRlsPolicies()`
+at production startup and refuses to boot if any expected table lacks `ENABLE` + `FORCE` or a
+policy. Policy existence is not a substitute for the transaction-helper tests.

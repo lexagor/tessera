@@ -5,6 +5,7 @@ the open verifier; the live record also has a hosted reviewer link.
 
 ## 1. Live production record — policy denial
 
+- Permanent static page: <https://thetessera.xyz/proof/live-denial.html>
 - Public verifier: <https://verify.thetessera.xyz/verify/MF8r1-gEjpTqJkMXBftezBAfqhy6UORapo-xluIMlW4>
 - File: [`live-denial.json`](live-denial.json)
 - Signer: `0xc35374b171e3be80b62c7612479f4d65e519f4e6`

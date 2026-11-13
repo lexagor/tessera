@@ -34,6 +34,48 @@ export function db(): Sql {
   return transactionScope.getStore() ?? connectRoot();
 }
 
+const CONTROL_PLANE_RLS_TABLES = [
+  "orgs",
+  "memberships",
+  "invites",
+  "sessions",
+  "environments",
+  "agents",
+  "agent_keys",
+  "actions",
+  "action_reviews",
+  "usage_daily",
+  "verification_links",
+  "evidence_packs",
+  "audit_log",
+  "webhook_endpoints",
+  "webhook_deliveries",
+  "integration_connections",
+  "billing_subscriptions",
+  "scim_tokens",
+] as const;
+
+/** Production must fail closed if migration 015 policies are missing. */
+export async function assertControlPlaneRlsPolicies(): Promise<void> {
+  if (!isProduction) return;
+  const rows = await db()`
+    SELECT c.relname, c.relrowsecurity, c.relforcerowsecurity,
+           (SELECT count(*) FROM pg_policies p
+             WHERE p.schemaname = 'public' AND p.tablename = c.relname) AS policies
+      FROM pg_class c
+      JOIN pg_namespace n ON n.oid = c.relnamespace
+     WHERE n.nspname = 'public' AND c.relkind IN ('r', 'p')
+  `;
+  const byName = new Map(rows.map((row) => [String(row.relname), row]));
+  const missing = CONTROL_PLANE_RLS_TABLES.filter((name) => {
+    const row = byName.get(name);
+    return !row || row.relrowsecurity !== true || row.relforcerowsecurity !== true || Number(row.policies) < 1;
+  });
+  if (missing.length > 0) {
+    throw new Error(`control-plane RLS is incomplete for: ${missing.join(", ")}; run migration 015`);
+  }
+}
+
 /** Production must not run the control plane as a Postgres superuser. */
 export async function assertProductionDatabaseRole(): Promise<void> {
   if (!isProduction) return;

@@ -46,6 +46,7 @@ const EXCLUDED_FILES = new Set([
   "financial-model.md",
   "fundraise-checklist.md",
   "case-study-template.md",
+  "soc2-data-room.md",
 ]);
 
 rmSync(OUT, { recursive: true, force: true });

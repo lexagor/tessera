@@ -53,7 +53,7 @@ broker tables forced); images are digest-pinned; local backups and uptime checks
 | Auth0 cleanup | Partial | M2M and legacy app disabled; deletion, local credential-file removal, custom domain pending |
 | Environment key revocation | Done and verified live | Migration 011 stores `broker_key_id`; delete returned 200 and key `revoked_at` was set |
 | Redis persistence | Done | AOF + `docker_redisdata`; document RTO/RPO |
-| Broker admin bootstrap | Partial | Runbook documented; valid admin key/token live; automated preflight still missing |
+| Broker admin bootstrap | Partial | Valid admin key/token live; preflight now checks token equality/key shape; actual broker auth still checked manually |
 | Broker RLS | Partial | 9 tables `ENABLE`+`FORCE` RLS; re-applied after migration; no startup assertion or control-plane RLS |
 | Domain access copy | Done | Domain allowlist and invited-workspace behavior documented |
 | Auth0 RP-initiated logout | Done and verified live | `/auth/logout` returns Auth0 `/v2/logout`; portal redirects; host observed |
@@ -192,7 +192,8 @@ Do next:
 The API needs a valid broker admin API key plus matching broker admin token to provision
 environments. The live deployment now has a valid key for tenant `tessera-admin` and matching
 tokens; the earlier 502 was caused by a random non-key value and token mismatch. The runbook
-documents this, but there is no automated preflight or dedicated bootstrap command.
+documents this. `infra/scripts/vps-preflight.sh` now checks token equality and API-key shape; it
+does not call broker admin authentication.
 
 Do next:
 
@@ -282,7 +283,7 @@ Do next:
 6. [~] Disable the Auth0 M2M and legacy apps. Missing: deletion, credential-file removal, custom domain.
 7. [x] Fix environment deletion to revoke the broker key; verified live.
 8. [x] Enable Redis AOF persistence. Missing: documented RTO/RPO.
-9. [~] Document broker admin key/token bootstrap. Missing: automated preflight/bootstrap command.
+9. [~] Document broker admin key/token bootstrap; preflight checks token equality/key shape. Missing: live broker-auth call/bootstrap command.
 10. [~] Re-apply RLS after migration and verify 9 forced tables. Missing: startup assertion/control-plane RLS.
 11. [x] Document domain allowlist vs invited workspace membership.
 12. [x] Implement Auth0 RP-initiated logout; verified live.

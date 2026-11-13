@@ -175,8 +175,10 @@ With the production environment file present, run:
 ENV_FILE=.env VPS_IP=<vps-ip> sh infra/scripts/vps-preflight.sh
 ```
 
-This checks required variables, Docker Compose, free memory/disk, DNS A records, and port
-availability without printing secret values.
+This checks required variables, broker admin token equality, API-key shape, Docker Compose, free
+memory/disk, DNS A records, and port availability without printing secret values. It does not
+perform a live broker admin authentication call. On an
+already-running host, set `TESSERA_SKIP_PORT_CHECK=1` to avoid the expected 80/443 warning.
 
 ## Smoke checks
 

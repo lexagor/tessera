@@ -33,6 +33,20 @@ for name in SITE_DOMAIN APP_DOMAIN VERIFY_DOMAIN ACME_EMAIL \
   [ -n "$value" ] || fail "missing required environment variable: $name"
 done
 
+if [ -n "${BROKER_ADMIN_TOKEN:-}" ] && [ -n "${TESSERA_ADMIN_TOKEN:-}" ]; then
+  if [ "$BROKER_ADMIN_TOKEN" != "$TESSERA_ADMIN_TOKEN" ]; then
+    fail "BROKER_ADMIN_TOKEN and TESSERA_ADMIN_TOKEN differ"
+  else
+    ok "broker admin tokens match"
+  fi
+fi
+
+case "${BROKER_ADMIN_KEY:-}" in
+  tsk_*) ok "BROKER_ADMIN_KEY has API-key shape" ;;
+  "") : ;;
+  *) fail "BROKER_ADMIN_KEY does not have the expected tsk_... shape" ;;
+esac
+
 if [ -r /proc/meminfo ]; then
   mem_kb=$(awk '/MemTotal/ {print $2}' /proc/meminfo)
   [ "${mem_kb:-0}" -ge 3145728 ] || warn "less than 3 GB RAM detected; use pulled images and swap, do not build on the VPS"
@@ -54,7 +68,9 @@ else
   warn "dig is not installed; DNS was not checked"
 fi
 
-if command -v ss >/dev/null 2>&1; then
+if [ "${TESSERA_SKIP_PORT_CHECK:-0}" = "1" ]; then
+  ok "skipping port availability check (TESSERA_SKIP_PORT_CHECK=1)"
+elif command -v ss >/dev/null 2>&1; then
   if ss -ltn 2>/dev/null | awk '{print $4}' | grep -Eq ':(80|443)$'; then
     warn "something is already listening on port 80 or 443"
   else

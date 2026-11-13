@@ -74,6 +74,15 @@
         <h2 id="link-title">Verification link</h2>
         <p id="link-summary" class="lede small"></p>
         <div id="link-facts" class="facts"></div>
+        <p id="link-proof-note" class="fine-print"></p>
+        <div class="actions">
+          <button id="download-proof" class="button primary small">Download proof JSON</button>
+          <button id="copy-proof" class="button small">Copy proof JSON</button>
+        </div>
+        <details class="proof-record" open>
+          <summary>Signed record JSON</summary>
+          <pre id="link-record"></pre>
+        </details>
       </section>
 
       <div class="verify-grid">
@@ -137,7 +146,7 @@
             <div id="trust-flow" class="trust-flow"></div>
             <div class="trust-proof">
               <strong>What this proves</strong>
-              <p>The broker signed this exact record and its link to the prior record. Changing one signed field invalidates the payload hash and signature. It does not prove the provider executed correctly or that the agent did not leak a credential.</p>
+              <p>The broker signed this exact record and its link to the prior record. Changing one signed field invalidates the payload hash and signature. A denial records the policy decision only: no credential was issued and no provider call was made.</p>
             </div>
           </section>
 

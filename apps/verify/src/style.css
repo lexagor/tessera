@@ -347,3 +347,28 @@ input {
   html { scroll-behavior: auto; }
   *, *::before, *::after { transition: none !important; animation: none !important; }
 }
+
+.link-panel .proof-record {
+  margin-top: 16px;
+  border-top: 1px solid var(--line);
+  padding-top: 12px;
+}
+.link-panel .proof-record summary {
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+}
+.link-panel .proof-record pre {
+  margin: 10px 0 0;
+  max-height: 320px;
+  overflow: auto;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface-soft);
+  font-size: 11px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.enforcement.denied { color: var(--bad); border-color: rgba(200, 30, 30, .35); background: rgba(200, 30, 30, .05); }

@@ -10,6 +10,7 @@ BACKUP_DIR="${BACKUP_DIR:-/var/backups/tessera}"
 PASSFILE="${BACKUP_PASSPHRASE_FILE:-/root/.tessera-backup-passphrase}"
 STATE_FILE="${BACKUP_VERIFY_STAMP:-/var/lib/tessera-backup-verify/last_success}"
 POSTGRES_CONTAINER="${POSTGRES_CONTAINER:-docker-postgres-1}"
+SCRIPT_DIR="${TESSERA_SCRIPTS_DIR:-/opt/tessera/infra/scripts}"
 
 [ -r "$ENV_FILE" ] || { echo "missing $ENV_FILE" >&2; exit 2; }
 [ -r "$PASSFILE" ] || { echo "missing $PASSFILE" >&2; exit 2; }
@@ -26,7 +27,7 @@ BACKUP_FILE="$latest" \
 BACKUP_ENCRYPTION_PASSPHRASE="$(cat "$PASSFILE")" \
 POSTGRES_CONTAINER="$POSTGRES_CONTAINER" \
 POSTGRES_PASSWORD="$POSTGRES_PASSWORD" \
-  sh "$(dirname "$0")/verify-encrypted-backup.sh"
+  sh "$SCRIPT_DIR/verify-encrypted-backup.sh"
 
 mkdir -p "$(dirname "$STATE_FILE")"
 chmod 700 "$(dirname "$STATE_FILE")"

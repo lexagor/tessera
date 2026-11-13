@@ -20,6 +20,7 @@ import { clientIp } from "./client-ip.js";
 import { trustedWriteOrigin } from "./csrf.js";
 import { db, withAdminContext } from "./db.js";
 import { cookieSecure, devAuthEnabled, env, isProduction, requireOidcConfig } from "./env.js";
+import { evaluateOidcAccess } from "./oidc-access.js";
 import { decodeOidcState, encodeOidcState } from "./oidc-state.js";
 import { rateLimit } from "./rate-limit.js";
 
@@ -118,48 +119,46 @@ authRoutes.get("/auth/callback", async (c) => {
   const subject = typeof claims.sub === "string" ? claims.sub : null;
   if (!subject) return c.json({ error: "OIDC response has no subject" }, 400);
   const emailVerified = claims.email_verified === true;
-  const allowedDomains = (env.OIDC_ALLOWED_DOMAINS ?? "")
-    .split(",")
-    .map((value) => value.trim().toLowerCase())
-    .filter(Boolean);
-  const allowedEmails = (env.OIDC_ALLOWED_EMAILS ?? "")
-    .split(",")
-    .map((value) => value.trim().toLowerCase())
-    .filter(Boolean);
-  const unverifiedDemoEmails = (env.OIDC_UNVERIFIED_DEMO_EMAILS ?? "")
-    .split(",")
-    .map((value) => value.trim().toLowerCase())
-    .filter(Boolean);
-  const unverifiedDemoAllowed =
-    allowedEmails.includes(email) &&
-    unverifiedDemoEmails.includes(email) &&
-    !emailVerified;
-  if (isProduction && !emailVerified && !unverifiedDemoAllowed) {
-    return c.json({ error: "OIDC email must be verified" }, 403);
-  }
+  const splitList = (value: string | undefined) =>
+    (value ?? "")
+      .split(",")
+      .map((item) => item.trim().toLowerCase())
+      .filter(Boolean);
+  const allowedDomains = splitList(env.OIDC_ALLOWED_DOMAINS);
+  const allowedEmails = splitList(env.OIDC_ALLOWED_EMAILS);
+  const unverifiedDemoEmails = splitList(env.OIDC_UNVERIFIED_DEMO_EMAILS);
   const invite = await db()`
     SELECT 1 FROM invites
      WHERE lower(email) = ${email} AND accepted_at IS NULL AND expires_at > now()
      LIMIT 1
   `;
-  const domainAllowed =
-    allowedDomains.length > 0 &&
-    allowedDomains.some((domain) => email.endsWith(`@${domain}`));
-  const exactEmailAllowed = allowedEmails.includes(email);
   const existing = await findOidcUser({ issuer: config.issuer, subject });
   let bootstrapAllowed = false;
   if (!existing && env.BOOTSTRAP_EMAIL?.toLowerCase() === email) {
     const users = await db()`SELECT 1 FROM users LIMIT 1`;
     bootstrapAllowed = users.length === 0;
   }
-  if (
-    !existing &&
-    invite.length === 0 &&
-    !domainAllowed &&
-    !exactEmailAllowed &&
-    !bootstrapAllowed
-  ) {
-    return c.json({ error: "This email is not invited to this workspace" }, 403);
+  const access = evaluateOidcAccess({
+    production: isProduction,
+    email,
+    emailVerified,
+    allowedDomains,
+    allowedEmails,
+    unverifiedDemoEmails,
+    hasInvite: invite.length > 0,
+    existingIdentity: Boolean(existing),
+    bootstrapAllowed,
+  });
+  if (!access.allowed) {
+    return c.json(
+      {
+        error:
+          access.reason === "email_unverified"
+            ? "OIDC email must be verified"
+            : "This email is not invited to this workspace",
+      },
+      403,
+    );
   }
   let user: Awaited<ReturnType<typeof upsertOidcUser>>;
   try {

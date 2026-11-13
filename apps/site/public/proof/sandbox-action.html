@@ -1,0 +1,242 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Tessera proof of action — sandbox allow and outcome</title>
+<meta name="description" content="A signed Tessera sandbox authorization and outcome pair, verifiable offline. Mock Stripe issuer; no real execution." />
+<link rel="canonical" href="https://thetessera.xyz/proof/sandbox-action.html" />
+<link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+<style>
+  :root { --ink:#111; --muted:#666; --line:#e5e5e5; --surface:#fafafa; --accent:#087f5b; --warn:#8a4b00; --mono:ui-monospace,SFMono-Regular,Menlo,monospace; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--surface); color:var(--ink); font:15px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }
+  main { max-width:900px; margin:0 auto; padding:56px 24px 80px; }
+  .eyebrow { margin:0 0 8px; color:var(--muted); font:11px var(--mono); letter-spacing:.12em; text-transform:uppercase; }
+  h1 { margin:0 0 12px; font-size:clamp(32px,5vw,48px); line-height:1.05; letter-spacing:-.04em; }
+  h2 { margin:32px 0 10px; font-size:20px; letter-spacing:-.02em; }
+  p { color:#333; }
+  .status { display:inline-flex; gap:8px; align-items:center; margin:4px 0 20px; padding:5px 10px; border:1px solid rgba(8,127,91,.3); border-radius:999px; color:var(--accent); background:rgba(8,127,91,.06); font-size:13px; font-weight:600; }
+  .sandbox { display:inline-flex; margin:0 0 18px 8px; padding:5px 10px; border:1px solid rgba(138,75,0,.3); border-radius:999px; color:var(--warn); background:rgba(138,75,0,.06); font-size:13px; font-weight:600; }
+  .facts { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:16px; margin:24px 0; padding:20px; border:1px solid var(--line); border-radius:12px; background:#fff; }
+  .fact small { display:block; color:var(--muted); font:10px var(--mono); letter-spacing:.08em; text-transform:uppercase; }
+  .fact strong { display:block; margin-top:4px; font-size:14px; overflow-wrap:anywhere; }
+  .actions { display:flex; flex-wrap:wrap; gap:8px; margin:22px 0; }
+  .button { display:inline-block; padding:9px 13px; border:1px solid var(--ink); border-radius:7px; color:var(--ink); text-decoration:none; font-size:13px; font-weight:600; }
+  .button.primary { background:var(--ink); color:#fff; }
+  pre { margin:12px 0; padding:14px; border:1px solid var(--line); border-radius:9px; background:#fff; overflow:auto; font:12px/1.55 var(--mono); white-space:pre-wrap; overflow-wrap:anywhere; }
+  details { margin-top:18px; }
+  summary { cursor:pointer; font-weight:600; }
+  .note { padding:14px 16px; border-left:3px solid var(--warn); background:#fff; color:#333; }
+  .fine { color:var(--muted); font-size:13px; }
+  footer { margin-top:40px; padding-top:18px; border-top:1px solid var(--line); color:var(--muted); font-size:12px; }
+  @media (max-width:640px) { .facts { grid-template-columns:1fr 1fr; } }
+</style>
+</head>
+<body>
+<main>
+  <p class="eyebrow">Tessera · proof of action</p>
+  <h1>Sandbox allow + outcome record</h1>
+  <div><span class="status">● Signed authorization</span><span class="sandbox">Sandbox · mock Stripe</span></div>
+  <p><strong>proof-refund-agent</strong> was authorized for <code>stripe.refunds.create</code> by
+  <strong>demo-human-approver</strong> under policy <code>demo v1</code>. The broker issued a
+  mock Stripe credential and recorded the agent-reported success outcome.</p>
+  <p class="note"><strong>This is a sandbox record.</strong> It uses the mock Stripe issuer. No real
+  Stripe call was made, no real credential was used, and no money moved. The outcome is
+  <code>agent_reported</code>, not broker-observed.</p>
+
+  <div class="facts">
+    <div class="fact"><small>Decision</small><strong>allow</strong></div>
+    <div class="fact"><small>Outcome</small><strong>success</strong></div>
+    <div class="fact"><small>Outcome source</small><strong>agent_reported</strong></div>
+    <div class="fact"><small>Policy</small><strong>demo v1</strong></div>
+    <div class="fact"><small>Credential</small><strong>Stripe · mock bearer</strong></div>
+    <div class="fact"><small>Action ID</small><strong>d13e1299-2b5c-4db9-9490-66302afad940</strong></div>
+    <div class="fact"><small>Signer</small><strong>0x70997970c51812dc3a010c7d01b50e0d17dc79c8</strong></div>
+    <div class="fact"><small>Domain</small><strong>Base Sepolia · 84532</strong></div>
+    <div class="fact"><small>External ref</small><strong>re_demo_4242</strong></div>
+  </div>
+
+  <div class="actions">
+    <a class="button primary" href="/proof/sandbox-action.json" download>Download signed JSON</a>
+    <a class="button" href="https://verify.thetessera.xyz/verify/">Open verifier</a>
+    <a class="button" href="/proof/live-denial.html">View live denial record</a>
+  </div>
+
+  <h2>Verify offline</h2>
+  <pre>npm install @tessera-verify/verify
+npx tessera-verify sandbox-action.json \
+  --expected-signer 0x70997970c51812dc3a010c7d01b50e0d17dc79c8</pre>
+  <p class="fine">Expected: <code>valid: true</code>, <code>length: 2</code>, and the signer above.
+  The JSON contains the EIP-712 domain plus the authorization/outcome pair.</p>
+
+  <details>
+    <summary>Signed authorization + outcome JSON</summary>
+    <pre>{
+  &quot;authorization&quot;: {
+    &quot;actionId&quot;: &quot;d13e1299-2b5c-4db9-9490-66302afad940&quot;,
+    &quot;agent&quot;: &quot;proof-refund-agent&quot;,
+    &quot;agentMeta&quot;: {
+      &quot;agentId&quot;: &quot;proof-refund-agent&quot;
+    },
+    &quot;attestation&quot;: {
+      &quot;signatureAlg&quot;: &quot;secp256k1-eip712&quot;,
+      &quot;signerKeyId&quot;: &quot;0x70997970c51812dc3a010c7d01b50e0d17dc79c8&quot;,
+      &quot;timestamp&quot;: &quot;2026-11-13T08:13:15Z&quot;
+    },
+    &quot;authorization&quot;: {
+      &quot;anomalyScore&quot;: 0.0,
+      &quot;decision&quot;: &quot;allow&quot;,
+      &quot;policy&quot;: &quot;demo&quot;,
+      &quot;policyHash&quot;: &quot;0x8c07be2bef298b90fa61534e23ce05ec39c94d689a63f269542a65d1c188ab84&quot;,
+      &quot;policyVersion&quot;: 1,
+      &quot;resource&quot;: &quot;stripe:refunds.create&quot;
+    },
+    &quot;call&quot;: {
+      &quot;argsHash&quot;: &quot;0xf8b997a824f446e93118422e9c4c66339f74c9b0d7008d6e4145ff9cf34e381c&quot;,
+      &quot;resultHash&quot;: null,
+      &quot;tool&quot;: &quot;stripe.refunds.create&quot;
+    },
+    &quot;credential&quot;: {
+      &quot;credentialType&quot;: &quot;bearer&quot;,
+      &quot;issuanceId&quot;: &quot;f62004b8-6bff-4b57-ab0c-4c52d93854d6&quot;,
+      &quot;issuer&quot;: &quot;stripe&quot;,
+      &quot;singleUse&quot;: true,
+      &quot;thumbprint&quot;: &quot;0x9c29b0e8ec6ea8afe8cc0dbd07857e22a9c936a1eefa75184d1a86247d1a8d97&quot;,
+      &quot;ttlSeconds&quot;: 30
+    },
+    &quot;grant&quot;: {
+      &quot;provider&quot;: &quot;stripe&quot;,
+      &quot;singleUse&quot;: true,
+      &quot;status&quot;: &quot;issued&quot;,
+      &quot;ttlS&quot;: 30
+    },
+    &quot;intent&quot;: {
+      &quot;declaredPurpose&quot;: &quot;Customer requested a refund for a duplicate charge.&quot;,
+      &quot;intentHash&quot;: &quot;0x91e3ac979d8ce349369e555411babb299d9eb0b440e0d59a65ce175a3892895f&quot;,
+      &quot;riskClass&quot;: &quot;high&quot;
+    },
+    &quot;intentHash&quot;: &quot;0x91e3ac979d8ce349369e555411babb299d9eb0b440e0d59a65ce175a3892895f&quot;,
+    &quot;nonce&quot;: &quot;0x4d28ec30c9ed25bae212600e0fd753dde27541c97b2c5d3aa70024385311910c&quot;,
+    &quot;policy&quot;: {
+      &quot;decision&quot;: &quot;allow&quot;,
+      &quot;evaluatedInputsHash&quot;: &quot;0x96dfa3ba15838fa28e45107ea322e95e2a1d8a071e3c8f58ab2496d597562d30&quot;,
+      &quot;evaluatorVersion&quot;: &quot;tessera-policy-v1&quot;,
+      &quot;policyHash&quot;: &quot;0x8c07be2bef298b90fa61534e23ce05ec39c94d689a63f269542a65d1c188ab84&quot;,
+      &quot;policyId&quot;: &quot;demo&quot;,
+      &quot;policyVersion&quot;: 1,
+      &quot;reasonCode&quot;: &quot;grant &#x27;*&#x27; matched&quot;
+    },
+    &quot;prev&quot;: null,
+    &quot;principal&quot;: {
+      &quot;authorityHash&quot;: &quot;0xf849f32dc6dc07bc324842b3c6945851ff4942bf462cf6260705d36370908f77&quot;,
+      &quot;authorityRef&quot;: &quot;demo-human-approver&quot;,
+      &quot;principalId&quot;: &quot;demo-human-approver&quot;,
+      &quot;principalType&quot;: &quot;user&quot;,
+      &quot;verificationMethod&quot;: &quot;user_id&quot;,
+      &quot;verifiedAt&quot;: &quot;2026-11-13T08:13:15Z&quot;
+    },
+    &quot;signature&quot;: &quot;0x9c0fc5024bc6780cee2270c9d94214b43794cdeccaf6bc0653e36942b79b99023a453578d2fe4dac5ce934fa3cce55f01686b9318ca2eede9dea62bc50e484cf1c&quot;,
+    &quot;tenant&quot;: &quot;default&quot;,
+    &quot;ts&quot;: &quot;2026-11-13T08:13:15Z&quot;,
+    &quot;user&quot;: &quot;demo-human-approver&quot;,
+    &quot;v&quot;: 2
+  },
+  &quot;domain&quot;: {
+    &quot;chainId&quot;: 84532,
+    &quot;verifyingContract&quot;: &quot;0x0000000000000000000000000000000000000000&quot;
+  },
+  &quot;outcome&quot;: {
+    &quot;actionId&quot;: &quot;d13e1299-2b5c-4db9-9490-66302afad940&quot;,
+    &quot;agent&quot;: &quot;proof-refund-agent&quot;,
+    &quot;agentMeta&quot;: {
+      &quot;agentId&quot;: &quot;proof-refund-agent&quot;
+    },
+    &quot;attestation&quot;: {
+      &quot;signatureAlg&quot;: &quot;secp256k1-eip712&quot;,
+      &quot;signerKeyId&quot;: &quot;0x70997970c51812dc3a010c7d01b50e0d17dc79c8&quot;,
+      &quot;timestamp&quot;: &quot;2026-11-13T08:13:35Z&quot;
+    },
+    &quot;authorization&quot;: {
+      &quot;anomalyScore&quot;: 0.0,
+      &quot;decision&quot;: &quot;allow&quot;,
+      &quot;policy&quot;: &quot;demo&quot;,
+      &quot;policyHash&quot;: &quot;0x8c07be2bef298b90fa61534e23ce05ec39c94d689a63f269542a65d1c188ab84&quot;,
+      &quot;policyVersion&quot;: 1,
+      &quot;resource&quot;: &quot;stripe:refunds.create&quot;
+    },
+    &quot;authorizationReceiptId&quot;: &quot;0x2f5dc2d34f82293d2ffc82c9bea628117a9b223da58adf8b2dd75aca925a2d85&quot;,
+    &quot;call&quot;: {
+      &quot;argsHash&quot;: &quot;0xf8b997a824f446e93118422e9c4c66339f74c9b0d7008d6e4145ff9cf34e381c&quot;,
+      &quot;resultHash&quot;: &quot;0xe56690deb21b05c476eb83b7113b20511dbdcc46323e55e64a788f08b36057e5&quot;,
+      &quot;tool&quot;: &quot;stripe.refunds.create&quot;
+    },
+    &quot;credential&quot;: {
+      &quot;credentialType&quot;: &quot;bearer&quot;,
+      &quot;issuanceId&quot;: &quot;f62004b8-6bff-4b57-ab0c-4c52d93854d6&quot;,
+      &quot;issuer&quot;: &quot;stripe&quot;,
+      &quot;singleUse&quot;: true,
+      &quot;thumbprint&quot;: &quot;0x9c29b0e8ec6ea8afe8cc0dbd07857e22a9c936a1eefa75184d1a86247d1a8d97&quot;,
+      &quot;ttlSeconds&quot;: 30
+    },
+    &quot;grant&quot;: {
+      &quot;provider&quot;: &quot;stripe&quot;,
+      &quot;singleUse&quot;: true,
+      &quot;status&quot;: &quot;used&quot;,
+      &quot;ttlS&quot;: 30
+    },
+    &quot;intent&quot;: {
+      &quot;declaredPurpose&quot;: &quot;Customer requested a refund for a duplicate charge.&quot;,
+      &quot;intentHash&quot;: &quot;0x91e3ac979d8ce349369e555411babb299d9eb0b440e0d59a65ce175a3892895f&quot;,
+      &quot;riskClass&quot;: &quot;high&quot;
+    },
+    &quot;intentHash&quot;: &quot;0x91e3ac979d8ce349369e555411babb299d9eb0b440e0d59a65ce175a3892895f&quot;,
+    &quot;nonce&quot;: &quot;0x627d0dcccb043b9075a8b9d48045b2909a9a9481ee5ab1f8afb0344f8a97d28f&quot;,
+    &quot;outcome&quot;: {
+      &quot;completedAt&quot;: &quot;2026-11-13T08:15:03Z&quot;,
+      &quot;externalRef&quot;: &quot;re_demo_4242&quot;,
+      &quot;resultHash&quot;: &quot;0xe56690deb21b05c476eb83b7113b20511dbdcc46323e55e64a788f08b36057e5&quot;,
+      &quot;source&quot;: &quot;agent_reported&quot;,
+      &quot;status&quot;: &quot;success&quot;
+    },
+    &quot;policy&quot;: {
+      &quot;decision&quot;: &quot;allow&quot;,
+      &quot;evaluatedInputsHash&quot;: &quot;0x96dfa3ba15838fa28e45107ea322e95e2a1d8a071e3c8f58ab2496d597562d30&quot;,
+      &quot;evaluatorVersion&quot;: &quot;tessera-policy-v1&quot;,
+      &quot;policyHash&quot;: &quot;0x8c07be2bef298b90fa61534e23ce05ec39c94d689a63f269542a65d1c188ab84&quot;,
+      &quot;policyId&quot;: &quot;demo&quot;,
+      &quot;policyVersion&quot;: 1,
+      &quot;reasonCode&quot;: &quot;grant &#x27;*&#x27; matched&quot;
+    },
+    &quot;prev&quot;: &quot;0x2f5dc2d34f82293d2ffc82c9bea628117a9b223da58adf8b2dd75aca925a2d85&quot;,
+    &quot;principal&quot;: {
+      &quot;authorityHash&quot;: &quot;0xf849f32dc6dc07bc324842b3c6945851ff4942bf462cf6260705d36370908f77&quot;,
+      &quot;authorityRef&quot;: &quot;demo-human-approver&quot;,
+      &quot;principalId&quot;: &quot;demo-human-approver&quot;,
+      &quot;principalType&quot;: &quot;user&quot;,
+      &quot;verificationMethod&quot;: &quot;user_id&quot;,
+      &quot;verifiedAt&quot;: &quot;2026-11-13T08:13:15Z&quot;
+    },
+    &quot;signature&quot;: &quot;0xc54bc44439177b3bd9e8637fd9baa988b75a7aa63836affa48adec766cc0deb0313892a1448e7da7e19417363609bad60461483c1f71a2d7c68418ddd2defa3b1b&quot;,
+    &quot;tenant&quot;: &quot;default&quot;,
+    &quot;ts&quot;: &quot;2026-11-13T08:13:35Z&quot;,
+    &quot;user&quot;: &quot;demo-human-approver&quot;,
+    &quot;v&quot;: 2
+  }
+}</pre>
+  </details>
+
+  <h2>What this proves</h2>
+  <p>The broker signed the authorization, the policy and intent bindings, the mock credential
+  metadata, and the linked outcome receipt. Changing a signed field invalidates the signature and
+  the action-pair link.</p>
+  <h2>What this does not prove</h2>
+  <p class="note">This is a sandbox run with a mock issuer. It does not prove a real Stripe refund
+  occurred, that the agent used the credential correctly, or that the business intent was lawful.
+  The outcome is caller-reported.</p>
+  <p class="fine">Compare with the <a href="/proof/live-denial.html">live production policy-denial
+  record</a>, which shows real policy enforcement with no credential and no provider call.</p>
+  <footer>Apache-2.0 · <a href="https://thetessera.xyz/">thetessera.xyz</a> · <a href="https://github.com/lexagor/tessera/tree/main/examples/proof-of-action">source artifact</a></footer>
+</main>
+</body>
+</html>

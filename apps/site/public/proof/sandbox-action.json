@@ -1,0 +1,152 @@
+{
+  "authorization": {
+    "actionId": "d13e1299-2b5c-4db9-9490-66302afad940",
+    "agent": "proof-refund-agent",
+    "agentMeta": {
+      "agentId": "proof-refund-agent"
+    },
+    "attestation": {
+      "signatureAlg": "secp256k1-eip712",
+      "signerKeyId": "0x70997970c51812dc3a010c7d01b50e0d17dc79c8",
+      "timestamp": "2026-11-13T08:13:15Z"
+    },
+    "authorization": {
+      "anomalyScore": 0.0,
+      "decision": "allow",
+      "policy": "demo",
+      "policyHash": "0x8c07be2bef298b90fa61534e23ce05ec39c94d689a63f269542a65d1c188ab84",
+      "policyVersion": 1,
+      "resource": "stripe:refunds.create"
+    },
+    "call": {
+      "argsHash": "0xf8b997a824f446e93118422e9c4c66339f74c9b0d7008d6e4145ff9cf34e381c",
+      "resultHash": null,
+      "tool": "stripe.refunds.create"
+    },
+    "credential": {
+      "credentialType": "bearer",
+      "issuanceId": "f62004b8-6bff-4b57-ab0c-4c52d93854d6",
+      "issuer": "stripe",
+      "singleUse": true,
+      "thumbprint": "0x9c29b0e8ec6ea8afe8cc0dbd07857e22a9c936a1eefa75184d1a86247d1a8d97",
+      "ttlSeconds": 30
+    },
+    "grant": {
+      "provider": "stripe",
+      "singleUse": true,
+      "status": "issued",
+      "ttlS": 30
+    },
+    "intent": {
+      "declaredPurpose": "Customer requested a refund for a duplicate charge.",
+      "intentHash": "0x91e3ac979d8ce349369e555411babb299d9eb0b440e0d59a65ce175a3892895f",
+      "riskClass": "high"
+    },
+    "intentHash": "0x91e3ac979d8ce349369e555411babb299d9eb0b440e0d59a65ce175a3892895f",
+    "nonce": "0x4d28ec30c9ed25bae212600e0fd753dde27541c97b2c5d3aa70024385311910c",
+    "policy": {
+      "decision": "allow",
+      "evaluatedInputsHash": "0x96dfa3ba15838fa28e45107ea322e95e2a1d8a071e3c8f58ab2496d597562d30",
+      "evaluatorVersion": "tessera-policy-v1",
+      "policyHash": "0x8c07be2bef298b90fa61534e23ce05ec39c94d689a63f269542a65d1c188ab84",
+      "policyId": "demo",
+      "policyVersion": 1,
+      "reasonCode": "grant '*' matched"
+    },
+    "prev": null,
+    "principal": {
+      "authorityHash": "0xf849f32dc6dc07bc324842b3c6945851ff4942bf462cf6260705d36370908f77",
+      "authorityRef": "demo-human-approver",
+      "principalId": "demo-human-approver",
+      "principalType": "user",
+      "verificationMethod": "user_id",
+      "verifiedAt": "2026-11-13T08:13:15Z"
+    },
+    "signature": "0x9c0fc5024bc6780cee2270c9d94214b43794cdeccaf6bc0653e36942b79b99023a453578d2fe4dac5ce934fa3cce55f01686b9318ca2eede9dea62bc50e484cf1c",
+    "tenant": "default",
+    "ts": "2026-11-13T08:13:15Z",
+    "user": "demo-human-approver",
+    "v": 2
+  },
+  "domain": {
+    "chainId": 84532,
+    "verifyingContract": "0x0000000000000000000000000000000000000000"
+  },
+  "outcome": {
+    "actionId": "d13e1299-2b5c-4db9-9490-66302afad940",
+    "agent": "proof-refund-agent",
+    "agentMeta": {
+      "agentId": "proof-refund-agent"
+    },
+    "attestation": {
+      "signatureAlg": "secp256k1-eip712",
+      "signerKeyId": "0x70997970c51812dc3a010c7d01b50e0d17dc79c8",
+      "timestamp": "2026-11-13T08:13:35Z"
+    },
+    "authorization": {
+      "anomalyScore": 0.0,
+      "decision": "allow",
+      "policy": "demo",
+      "policyHash": "0x8c07be2bef298b90fa61534e23ce05ec39c94d689a63f269542a65d1c188ab84",
+      "policyVersion": 1,
+      "resource": "stripe:refunds.create"
+    },
+    "authorizationReceiptId": "0x2f5dc2d34f82293d2ffc82c9bea628117a9b223da58adf8b2dd75aca925a2d85",
+    "call": {
+      "argsHash": "0xf8b997a824f446e93118422e9c4c66339f74c9b0d7008d6e4145ff9cf34e381c",
+      "resultHash": "0xe56690deb21b05c476eb83b7113b20511dbdcc46323e55e64a788f08b36057e5",
+      "tool": "stripe.refunds.create"
+    },
+    "credential": {
+      "credentialType": "bearer",
+      "issuanceId": "f62004b8-6bff-4b57-ab0c-4c52d93854d6",
+      "issuer": "stripe",
+      "singleUse": true,
+      "thumbprint": "0x9c29b0e8ec6ea8afe8cc0dbd07857e22a9c936a1eefa75184d1a86247d1a8d97",
+      "ttlSeconds": 30
+    },
+    "grant": {
+      "provider": "stripe",
+      "singleUse": true,
+      "status": "used",
+      "ttlS": 30
+    },
+    "intent": {
+      "declaredPurpose": "Customer requested a refund for a duplicate charge.",
+      "intentHash": "0x91e3ac979d8ce349369e555411babb299d9eb0b440e0d59a65ce175a3892895f",
+      "riskClass": "high"
+    },
+    "intentHash": "0x91e3ac979d8ce349369e555411babb299d9eb0b440e0d59a65ce175a3892895f",
+    "nonce": "0x627d0dcccb043b9075a8b9d48045b2909a9a9481ee5ab1f8afb0344f8a97d28f",
+    "outcome": {
+      "completedAt": "2026-11-13T08:15:03Z",
+      "externalRef": "re_demo_4242",
+      "resultHash": "0xe56690deb21b05c476eb83b7113b20511dbdcc46323e55e64a788f08b36057e5",
+      "source": "agent_reported",
+      "status": "success"
+    },
+    "policy": {
+      "decision": "allow",
+      "evaluatedInputsHash": "0x96dfa3ba15838fa28e45107ea322e95e2a1d8a071e3c8f58ab2496d597562d30",
+      "evaluatorVersion": "tessera-policy-v1",
+      "policyHash": "0x8c07be2bef298b90fa61534e23ce05ec39c94d689a63f269542a65d1c188ab84",
+      "policyId": "demo",
+      "policyVersion": 1,
+      "reasonCode": "grant '*' matched"
+    },
+    "prev": "0x2f5dc2d34f82293d2ffc82c9bea628117a9b223da58adf8b2dd75aca925a2d85",
+    "principal": {
+      "authorityHash": "0xf849f32dc6dc07bc324842b3c6945851ff4942bf462cf6260705d36370908f77",
+      "authorityRef": "demo-human-approver",
+      "principalId": "demo-human-approver",
+      "principalType": "user",
+      "verificationMethod": "user_id",
+      "verifiedAt": "2026-11-13T08:13:15Z"
+    },
+    "signature": "0xc54bc44439177b3bd9e8637fd9baa988b75a7aa63836affa48adec766cc0deb0313892a1448e7da7e19417363609bad60461483c1f71a2d7c68418ddd2defa3b1b",
+    "tenant": "default",
+    "ts": "2026-11-13T08:13:35Z",
+    "user": "demo-human-approver",
+    "v": 2
+  }
+}

@@ -18,7 +18,7 @@ const publicJwk = {
   use: "sig",
   alg: "RS256",
 };
-const codes = new Map<string, { nonce: string; email: string; sub: string }>();
+const codes = new Map<string, { nonce: string; email: string; sub: string; emailVerified?: boolean }>();
 
 function base64url(value: unknown): string {
   return Buffer.from(JSON.stringify(value)).toString("base64url");
@@ -70,7 +70,7 @@ const oidc = createServer(async (req: IncomingMessage, res: ServerResponse) => {
       sub: record.sub,
       aud: clientId,
       email: record.email,
-      email_verified: true,
+      email_verified: record.emailVerified ?? true,
       name: "Alice",
       nonce: record.nonce,
       iat: now,
@@ -109,7 +109,8 @@ process.env.OIDC_CLIENT_ID = clientId;
 process.env.OIDC_CLIENT_SECRET = clientSecret;
 process.env.OIDC_REDIRECT_URI = redirectUri;
 process.env.OIDC_ALLOWED_DOMAINS = "example.com";
-process.env.OIDC_ALLOWED_EMAILS = "investor@example.net, second-investor@example.net";
+process.env.OIDC_ALLOWED_EMAILS = "investor@example.net, second-investor@example.net, unverified-investor@example.net";
+process.env.OIDC_UNVERIFIED_DEMO_EMAILS = "unverified-investor@example.net";
 process.env.PUBLIC_BASE_URL = "http://localhost:5173";
 process.env.VERIFY_BASE_URL = "https://verify.thetessera.xyz";
 process.env.CONTROL_PLANE_ENC_KEY = "11".repeat(32);
@@ -241,6 +242,43 @@ test("exact allowlisted email can sign in outside the domain allowlist", { skip:
   assert.ok(cookie);
   const code = randomBytes(12).toString("hex");
   codes.set(code, { nonce, email, sub });
+  const callback = await app.request(
+    `${redirectUri}?code=${encodeURIComponent(code)}&state=${encodeURIComponent(state)}`,
+    { redirect: "manual", headers: { cookie } },
+  );
+  assert.equal(callback.status, 302);
+  const sessionCookie = callback.headers
+    .getSetCookie()
+    .find((value) => value.startsWith("tessera_session="))
+    ?.split(";")[0];
+  assert.ok(sessionCookie);
+  const session = await app.request("/v1/session", { headers: { cookie: sessionCookie! } });
+  assert.equal(session.status, 200);
+  const body = (await session.json()) as { user: { id: string; email: string }; org: { id: string } };
+  assert.equal(body.user.email, email);
+
+  await db()`DELETE FROM orgs WHERE id = ${body.org.id}`;
+  await db()`DELETE FROM users WHERE id = ${body.user.id}`;
+  await closeDb();
+});
+
+test("exact demo email can sign in before Auth0 verifies its email", { skip: !canRun, timeout: 30_000 }, async () => {
+  const { migrate, closeDb, db } = await import("../src/db.js");
+  await migrate();
+  const { app } = await import("../src/index.js");
+
+  const email = "unverified-investor@example.net";
+  const sub = `unverified-investor-${Date.now()}`;
+  const login = await app.request("/auth/login", { redirect: "manual" });
+  assert.equal(login.status, 302);
+  const location = new URL(login.headers.get("location")!);
+  const state = location.searchParams.get("state");
+  const nonce = location.searchParams.get("nonce");
+  assert.ok(state && nonce);
+  const cookie = login.headers.get("set-cookie")?.split(";")[0];
+  assert.ok(cookie);
+  const code = randomBytes(12).toString("hex");
+  codes.set(code, { nonce, email, sub, emailVerified: false });
   const callback = await app.request(
     `${redirectUri}?code=${encodeURIComponent(code)}&state=${encodeURIComponent(state)}`,
     { redirect: "manual", headers: { cookie } },

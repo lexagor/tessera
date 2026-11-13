@@ -82,6 +82,7 @@ const schema = z.object({
   ),
   OIDC_ALLOWED_DOMAINS: z.string().optional(),
   OIDC_ALLOWED_EMAILS: z.string().optional(),
+  OIDC_UNVERIFIED_DEMO_EMAILS: z.string().optional(),
   OIDC_STATE_SECRET: z.preprocess(
     (value) => (value === "" ? undefined : value),
     z.string().min(32).optional(),

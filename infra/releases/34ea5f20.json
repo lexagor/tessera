@@ -1,0 +1,28 @@
+{
+  "commit": "34ea5f20",
+  "deployedAt": "2026-11-13T08:00:00Z",
+  "environment": "production",
+  "migrations": ["012_tenant_lifecycle.sql"],
+  "images": {
+    "api": "ghcr.io/lexagor/tessera-api@sha256:7976c9dc2076f5ca1c3b9573cc018d1c3fc4bf5097f834b10b465c459ce3680b",
+    "broker": "ghcr.io/lexagor/tessera-broker@sha256:8395ed4bc443e4091f2051d209842987ee78e8ac67f2f9bb810d749e957b72ac",
+    "portal": "ghcr.io/lexagor/tessera-portal@sha256:969fd5e44d65f0c832ab7c59ccc0b5541dee3cab6f37dfb2ec3a5f17e3556122",
+    "verify": "ghcr.io/lexagor/tessera-verify@sha256:2486dea72c27c633d1fb0a41699508a803b2cff09a2c8a343d226cdf00fbb4ab",
+    "site": "ghcr.io/lexagor/tessera-site@sha256:a12b96bad0bbeab0adddb3c879c1fbbb5ff83174944f90cba6122789958e9e8e"
+  },
+  "previous": {
+    "api": "ghcr.io/lexagor/tessera-api@sha256:f6a89dc5b2cc29e9ae7a7b5ffd93abd13d262e2c11be4932277a6e18c5866211",
+    "portal": "ghcr.io/lexagor/tessera-portal@sha256:d65e1f5fd32418a05e0e5727146f6ffb106c0d25fe2a753229004296cfc9b377",
+    "site": "ghcr.io/lexagor/tessera-site@sha256:14bb7bef75de5555c2203aa7774278f536b1f79c28ffcb48a1b28f376da23f4a"
+  },
+  "checks": [
+    "CI",
+    "Security",
+    "SBOM",
+    "Images",
+    "RLS check",
+    "live /readyz",
+    "live org export",
+    "live Auth0 login/logout"
+  ]
+}

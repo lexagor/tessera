@@ -1,7 +1,7 @@
 # Hardening report
 
 **Date:** 2026-11-13  
-**Base commit:** `b5add27c`  
+**Base commit:** `34ea5f20`  
 **Scope:** production configuration, auth/session, API edge, SSRF, webhook delivery, database
 roles, observability, containers, and release metadata. External IdP/KMS/pen-test validation
 is not included.
@@ -72,7 +72,7 @@ is not included.
 - Multi-replica: two brokers handled 20 concurrent authorizes with a verified 20-entry chain and elected one scheduler leader; two APIs shared the Redis auth limit and delivered one webhook exactly once.
 - Helm chart rendered successfully with `helm template` (3 manifests, no Ingress).
 - CI Security workflow built and Trivy-scanned API and broker images successfully.
-- CI, Security, Images, and SBOM are green on `b5add27c`; Uptime manual run passed. P1 CI/RLS checks are pending the P1 commit.
+- CI, Security, Images, and SBOM are green on `b5add27c`; Uptime manual run passed. P1 CI/RLS checks passed on `34ea5f20`; live RLS check passed 9/9.
 - Caddy production config validates.
 - Production compose config validates with a complete secret set.
 - `pnpm install --frozen-lockfile` passes.

@@ -2,7 +2,7 @@
 
 **Date:** 2026-11-13  
 **Repository:** `lexagor/tessera`  
-**Code state:** current `main` after P1 implementation (working tree also contains pre-existing investor-doc/design changes)  
+**Code state:** `34ea5f20` (working tree also contains pre-existing investor-doc/design changes)  
 **Live deployment:** `https://app.thetessera.xyz` on IONOS VPS `198.71.63.45`  
 **Method:** source review, live endpoint checks, SSH host inspection, database checks, CI history,
 and live Auth0/control-plane validation.
@@ -374,8 +374,10 @@ Do not claim today:
   `revoked_at` was set.
 - Local scheduled backup + disposable restore drill passed: 11 migrations and one user restored.
 - API tests: 32 passing; Rust: 343 passing; portal: 10 passing; CI/Security/Images/SBOM green on
-  `b5add27c`; Uptime workflow manual run green.
+  `34ea5f20`; Uptime workflow manual run green; live RLS check 9/9.
 - TLS certificate valid until 2027-02-10; kernel `6.8.0-149-generic`; fail2ban active.
 - Postgres app role is non-superuser; 9 broker tables have forced RLS.
 - Host: ~826 MB RAM, 1 GB swap, 1.8 GB free disk (80%); local daily backups and GitHub uptime
   checks active; Prometheus/Alertmanager/Sentry/status page still absent.
+- P1 live: migration 012 applied; org export returned 200 without secrets; legal pages and
+  public pricing removal served; Caddy request-body cap reloaded; S3/email remain unconfigured.

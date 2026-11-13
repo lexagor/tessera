@@ -61,4 +61,5 @@ database and cut over only after the restore drill passes.
 
 For every production release, record: commit SHA, image digests, migration versions applied,
 config hash, deploy time, smoke results, and the previous digest set. Store the record with the
-operator runbook, not in the public repository if it contains host details.
+operator runbook, not in the public repository if it contains host details. Non-secret image
+digest records can live in `infra/releases/` (for example `34ea5f20.json`).

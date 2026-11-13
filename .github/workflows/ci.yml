@@ -38,7 +38,13 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm typecheck
       - run: pnpm build
+      - run: node scripts/check-csp-hash.mjs
       - run: pnpm test
+      - name: Verify control-plane RLS policies
+        env:
+          DATABASE_URL: postgres://tessera:tessera@127.0.0.1:5432/tessera_test
+          RLS_REQUIRE_TABLES: "1"
+        run: sh infra/scripts/check-control-plane-rls.sh
 
   rust:
     runs-on: ubuntu-latest

@@ -99,3 +99,12 @@ When enabled, `withOrgContext()` sets `app.rls=1` and `app.org_id`; `withAdminCo
 `app.rls=1`, `app.org_id=''`, and `app.admin=1`. Auth bootstrap, session lookup, SCIM token
 lookup, webhook enqueue/worker, and cleanup jobs use the admin path. The live flag remains off
 until a production canary is approved.
+
+## Verification
+
+```bash
+DATABASE_URL=... RLS_REQUIRE_TABLES=1 infra/scripts/check-control-plane-rls.sh
+```
+
+The CI node job runs this after migrations. It verifies `ENABLE` + `FORCE` and a policy on every
+control-plane table; policy existence is not a substitute for the transaction-helper tests.

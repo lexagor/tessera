@@ -48,7 +48,7 @@ is not included.
 | Transactional email | Code complete; disabled | Resend HTTP adapter for invites/deletion notices; `EMAIL_PROVIDER=resend`; no live provider key |
 | Tenant lifecycle | Code + runbook | JSON export, 30-day deletion request/cancel, retention setting; operator purge in `docs/data-lifecycle.md` |
 | RLS automation | Implemented | `infra/scripts/check-rls.sh`; CI RLS step; 9 live broker tables verified |
-| Control-plane RLS | Implemented behind flag; tests | `015_control_plane_rls.sql`, `db.ts` context helpers, RLS tests; live flag off |
+| Control-plane RLS | Enabled live, tested | `015_control_plane_rls.sql`, `db.ts` context helpers, API/RLS tests, canary; rollback flag exists |
 | Dependency updates | Config added | `renovate.json`, `docs/dependency-updates.md`; Renovate app installation pending |
 | Load testing | Harness added | `scripts/load/authorize.mjs`, `docs/load-testing.md`; no staging host yet |
 | Staging/rollback | Config + runbook | `docker-compose.staging.yml`, `docs/staging-rollback.md`; separate host/Auth0 app pending |

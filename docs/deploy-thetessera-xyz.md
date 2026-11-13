@@ -182,6 +182,9 @@ perform a live broker admin authentication call. After migrations, run
 already-running host, set `TESSERA_SKIP_PORT_CHECK=1` to avoid the expected 80/443 warning.
 
 
+Control-plane RLS is feature-flagged. Apply migration 015, canary a staging instance with
+`CONTROL_PLANE_RLS=1`, then enable it in production. Set `CONTROL_PLANE_RLS=0` to roll back.
+
 Optional email and evidence storage settings:
 
 ```bash

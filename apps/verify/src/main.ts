@@ -317,8 +317,12 @@ async function loadVerificationLink(token: string): Promise<void> {
     linkProofNote.textContent = isDenial
       ? "This signed record proves the policy decision and the exact call it evaluated. No credential was issued and no provider call was made."
       : "The signed JSON below is the portable proof. Download it and verify it offline with the open-source verifier.";
-    currentProof = body.records;
-    linkRecord.textContent = JSON.stringify(body.records, null, 2);
+    currentProof = body.domain
+      ? outcome
+        ? { domain: body.domain, authorization, outcome }
+        : { domain: body.domain, receipt: authorization }
+      : body.records;
+    linkRecord.textContent = JSON.stringify(currentProof, null, 2);
     linkFacts.append(
       fact("Decision", String(authorization?.authorization?.decision ?? "—")),
       fact("Outcome", String(outcome?.outcome?.status ?? "not recorded")),
@@ -333,7 +337,7 @@ async function loadVerificationLink(token: string): Promise<void> {
       $<HTMLInputElement>("contract").value = body.domain.verifyingContract;
     }
     if (body.signer) $<HTMLInputElement>("expected-signer").value = body.signer;
-    input.value = JSON.stringify(body.records, null, 2);
+    input.value = JSON.stringify(currentProof, null, 2);
     verify();
   } catch (error) {
     linkTitle.textContent = "Link unavailable";

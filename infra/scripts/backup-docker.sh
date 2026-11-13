@@ -8,6 +8,7 @@ EVIDENCE_VOLUME="${EVIDENCE_VOLUME:-docker_evidence}"
 RETENTION_DAYS="${BACKUP_RETENTION_DAYS:-30}"
 OFFSITE_DIR="${BACKUP_OFFSITE_DIR:-}"
 ENCRYPTION_PASSPHRASE="${BACKUP_ENCRYPTION_PASSPHRASE:-}"
+ENCRYPTION_ONLY="${BACKUP_ENCRYPTION_ONLY:-1}"
 STAMP="$(date -u +%Y%m%dT%H%M%SZ)"
 
 : "${ENV_FILE:?ENV_FILE is required}"
@@ -51,6 +52,9 @@ if [ -n "$ENCRYPTION_PASSPHRASE" ]; then
     openssl enc -aes-256-cbc -salt -pbkdf2 -iter 200000 \
       -pass env:BACKUP_ENCRYPTION_PASSPHRASE -in "$BUNDLE" -out "$ENCRYPTED"
   rm -f "$BUNDLE"
+  if [ "$ENCRYPTION_ONLY" = "1" ]; then
+    rm -f "$BACKUP_DIR/postgres-$STAMP.dump" "$BACKUP_DIR/evidence-$STAMP.tar.gz"
+  fi
   if command -v sha256sum >/dev/null 2>&1; then
     (cd "$BACKUP_DIR" && sha256sum "tessera-backup-$STAMP.tar.gz.enc" > "SHA256SUMS-$STAMP")
   else

@@ -42,6 +42,15 @@ if command -v auditctl >/dev/null 2>&1; then
   systemctl is-active --quiet auditd || { echo "FAIL auditd is not active"; failed=1; }
 fi
 
+VERIFY_STAMP="${BACKUP_VERIFY_STAMP:-/var/lib/tessera-backup-verify/last_success}"
+if [ -f "$VERIFY_STAMP" ]; then
+  verify_age=$(( ($(date +%s) - $(stat -c %Y "$VERIFY_STAMP")) / 86400 ))
+  [ "$verify_age" -le 8 ] || { echo "FAIL backup restore verification is ${verify_age} day(s) old"; failed=1; }
+  echo "backup_verify_days=${verify_age}"
+else
+  echo "FAIL backup restore verification has not run"; failed=1
+fi
+
 for name in docker-api-1 docker-broker-1 docker-postgres-1 docker-caddy-1; do
   running="$(docker inspect -f '{{.State.Status}}' "$name" 2>/dev/null || echo missing)"
   health="$(docker inspect -f '{{if .State.Health}}{{.State.Health.Status}}{{end}}' "$name" 2>/dev/null || true)"

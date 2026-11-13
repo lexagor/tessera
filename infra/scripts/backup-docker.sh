@@ -1,5 +1,6 @@
 #!/bin/sh
 set -eu
+umask 077
 
 ENV_FILE="${ENV_FILE:-/opt/tessera/infra/docker/.env}"
 BACKUP_DIR="${BACKUP_DIR:-/var/backups/tessera}"
@@ -28,6 +29,7 @@ if [ -n "$ENCRYPTION_PASSPHRASE" ] && ! command -v openssl >/dev/null 2>&1; then
 fi
 
 mkdir -p "$BACKUP_DIR"
+chmod 700 "$BACKUP_DIR"
 docker exec -e PGPASSWORD="$POSTGRES_PASSWORD" "$POSTGRES_CONTAINER" \
   pg_dump -U tessera -Fc -d tessera -f "/tmp/postgres-$STAMP.dump"
 docker cp "$POSTGRES_CONTAINER:/tmp/postgres-$STAMP.dump" "$BACKUP_DIR/postgres-$STAMP.dump"

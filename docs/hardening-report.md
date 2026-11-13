@@ -1,7 +1,7 @@
 # Hardening report
 
-**Date:** 2026-11-12  
-**Base commit:** `81da683e`  
+**Date:** 2026-11-13  
+**Base commit:** `b5add27c`  
 **Scope:** production configuration, auth/session, API edge, SSRF, webhook delivery, database
 roles, observability, containers, and release metadata. External IdP/KMS/pen-test validation
 is not included.
@@ -26,8 +26,8 @@ is not included.
 | Scheduler leader | Implemented | Redis lease via `apps/broker/src/scheduler.rs` |
 | Graceful shutdown | Implemented | API SIGTERM drain; broker graceful axum shutdown |
 | Session/webhook cleanup | Implemented | Session idle cleanup; `WEBHOOK_RETENTION_DAYS` cleanup job |
-| Observability | Implemented baseline | `/metrics`, structured request logs, `infra/observability/alerts.yml` |
-| Backups | Implemented and drilled | `infra/scripts/backup.sh` (offsite copy + checksums), `restore-postgres.sh`, `docs/backup-restore.md`; logical restore and local PITR passed |
+| Observability | Baseline live; gaps remain | Structured logs + rotation, GitHub uptime workflow; `/metrics` and `alerts.yml` not scraped/deployed; no Sentry/status page |
+| Backups | Live local schedule + restore drill; offsite missing | `infra/scripts/backup-docker.sh`, cron 03:15, logrotate; DB restore passed; no encrypted offsite/WAL/PITR |
 | Containers | Implemented baseline | non-root API/static Caddy, cap drops, read-only app containers, limits, digest-pinned bases |
 | Helm | Implemented baseline | read-only rootfs, seccomp, no broker Ingress, version `0.1.3` |
 | Actions SHA pinning | Implemented | All workflow `uses:` refs pinned to commit SHAs |
@@ -36,40 +36,41 @@ is not included.
 | Image publishing | CI verified | GHCR images for API, broker, portal, verifier, and site; anonymous manifests return 200 |
 | Image scanning | CI verified | Buildx + Trivy job passed for API and broker images |
 | npm provenance / PyPI attestations | Implemented | Release workflow uses `--provenance` and trusted publishing with PEP 740 attestations; registry-side setup still required |
-| Live OIDC | Live on Auth0 | Auth0 Regular Web Application, callback/login/logout configured |
+| Live OIDC | Live on Auth0 | Auth0 Regular Web Application; callback, domain allowlist, first-admin bootstrap, RP-initiated logout; dev tenant |
+| SSH / host firewall | Implemented | Non-root deploy user, key-only auth, root `prohibit-password`, UFW, fail2ban active; root key break-glass remains |
 | Cloud KMS/HSM + pen test | Not started | External dependency |
 
 ## Verification snapshot
 
-- API: 24 tests passing with local Postgres.
+- API: 25 tests passing with local Postgres.
 - Broker: 144 unit tests plus all integration suites passing; `cargo fmt` and `cargo clippy -D warnings` clean.
 - Workspace: `pnpm typecheck`, `pnpm test`, `pnpm lint` passing.
 - Redis limiter: allow/allow/deny verified against local Redis.
 - Postgres init role: created and verified as `NOSUPERUSER NOBYPASSRLS`.
-- Backup: logical dump created from local Postgres; restore into a fresh database restored 10 migrations.
+- Backup: daily backup ran on the live host; restore into a disposable database restored 11 migrations and one user.
 - PITR: local WAL archiving + base backup restored to a target timestamp; the post-target row was absent.
-- Offsite copy: backup script copied a dump and SHA-256 manifest to a separate directory successfully.
+- Offsite copy: the script supports `BACKUP_OFFSITE_DIR`, but no remote target is configured on the live host.
 - Multi-replica: two brokers handled 20 concurrent authorizes with a verified 20-entry chain and elected one scheduler leader; two APIs shared the Redis auth limit and delivered one webhook exactly once.
 - Helm chart rendered successfully with `helm template` (3 manifests, no Ingress).
 - CI Security workflow built and Trivy-scanned API and broker images successfully.
-- CI, Security, Images, and SBOM are green on `431b4199`.
+- CI, Security, Images, and SBOM are green on `b5add27c`; Uptime manual run passed.
 - Caddy production config validates.
 - Production compose config validates with a complete secret set.
 - `pnpm install --frozen-lockfile` passes.
 
 ## Residual risks
 
-1. Auth0 login is live. Enterprise IdP validation (Okta/Entra), custom Auth0 domain, and
-   RP-initiated logout testing remain.
-2. Broker RLS is verified locally, but must still be applied in each target deployment after
-   the first broker migration. Control-plane tables remain application-enforced.
+1. Auth0 login and RP-initiated logout are live. Enterprise IdP validation (Okta/Entra) and a
+   custom Auth0 domain remain; the temporary M2M app is disabled but not deleted.
+2. Broker RLS is active on 9 tables and was re-applied after migration 011; no startup
+   assertion exists. Control-plane tables remain application-enforced.
 3. Local Docker was unavailable; images were built and Trivy-scanned in CI, so non-root
    runtime verification is covered there rather than on this machine.
 4. npm provenance and PyPI trusted publishing are implemented in the tag workflow but require
    registry-side setup before the next release. GitHub Actions are pinned, dependency review
    runs on PRs, and `cargo-deny` passes locally and in CI.
 5. Real remote offsite retention and measured restore timing remain operational validation; the
-   local logical restore, offsite-copy, and PITR drills passed.
+   live logical restore passed, while offsite/WAL/PITR and a clean-host drill remain.
 6. Generated galleries/archives are at-least-once; webhook consumers must be idempotent.
 7. `paste 1.0.15` is unmaintained transitively through `cel-interpreter`; `cargo-deny` records
    `RUSTSEC-2024-0436` as an accepted risk until the policy engine dependency changes.
@@ -78,5 +79,5 @@ is not included.
 
 Safe wording: “production configuration is fail-closed; auth, session, SSRF, webhook, and
 database-role hardening are implemented; broker RLS is verified locally and documented.” Do not claim
-SOC 2, a completed external pen test, control-plane RLS, live IdP/KMS validation, or immutable
-storage.
+SOC 2, a completed external pen test, control-plane RLS, enterprise IdP/KMS validation, or
+immutable storage.

@@ -2,7 +2,7 @@
 
 **Date:** 2026-11-13  
 **Repository:** `lexagor/tessera`  
-**Code state:** `112f24c7` (working tree also contains pre-existing investor-doc/design changes)  
+**Code state:** `b5add27c` (working tree also contains pre-existing investor-doc/design changes)  
 **Live deployment:** `https://app.thetessera.xyz` on IONOS VPS `198.71.63.45`  
 **Method:** source review, live endpoint checks, SSH host inspection, database checks, CI history,
 and live Auth0/control-plane validation.
@@ -18,10 +18,11 @@ and live Auth0/control-plane validation.
 
 The technical core is materially stronger than the operational shell around it. The broker,
 receipt, verifier, authority binding, RLS, and test coverage are real. The largest risks are now
-host security, backups, observability, deployment reproducibility, and product/GTM proof.
+offsite backup, observability/error tracking, rollback retention, Auth0 cleanup, and product/GTM proof.
 
 **Current live state:** one user, one org, zero environments after the smoke check; Auth0 login
-is live; broker and API are healthy; Postgres runs as `tessera_app` with broker RLS active.
+is live; broker and API are healthy; Postgres runs as `tessera_app` with broker RLS active (9
+broker tables forced); images are digest-pinned; local backups and uptime checks are scheduled.
 
 ## What is working
 
@@ -40,138 +41,164 @@ is live; broker and API are healthy; Postgres runs as `tessera_app` with broker 
 - Site, docs, app, and verifier are reachable; design selection was removed and only light/dark
   mode remains.
 
+## P0 remediation status (2026-11-13)
+
+| P0 item | Status | Evidence |
+|---|---|---|
+| SSH hardening | Done with residual root key access | `tessera-deploy` user, key-only password auth, root `prohibit-password`, UFW, fail2ban active; root key remains break-glass |
+| Deploy key out of repo | Done locally | `~/.ssh/tessera-vps`; rotate if the key was ever copied |
+| Daily backups | Partial — local scheduled, offsite missing | `/usr/local/bin/tessera-backup`, cron 03:15, logrotate, restore drill passed; no offsite/encryption/WAL |
+| Monitoring and error tracking | Partial | GitHub uptime workflow and Docker log rotation live; no Prometheus/Alertmanager, Sentry, or status page |
+| Image digest pinning | Partial | Live API/broker/portal/verify/site digests pinned; rollback manifest/runbook still incomplete |
+| Auth0 cleanup | Partial | M2M and legacy app disabled; deletion, local credential-file removal, custom domain pending |
+| Environment key revocation | Done and verified live | Migration 011 stores `broker_key_id`; delete returned 200 and key `revoked_at` was set |
+| Redis persistence | Done | AOF + `docker_redisdata`; document RTO/RPO |
+| Broker admin bootstrap | Partial | Runbook documented; valid admin key/token live; automated preflight still missing |
+| Broker RLS | Partial | 9 tables `ENABLE`+`FORCE` RLS; re-applied after migration; no startup assertion or control-plane RLS |
+| Domain access copy | Done | Domain allowlist and invited-workspace behavior documented |
+| Auth0 RP-initiated logout | Done and verified live | `/auth/logout` returns Auth0 `/v2/logout`; portal redirects; host observed |
+
 ## Critical findings (P0)
 
-### 1. Host SSH is the largest current security risk
+### 1. Host SSH — largely remediated; root key access remains
 
-Live host findings:
+Current live findings:
 
-- `PermitRootLogin yes`
-- `PasswordAuthentication yes`
-- `ufw` is inactive
-- `fail2ban` is absent
-- 3,654 failed SSH password attempts in the last 24 hours
-- OpenSSH and Docker are directly exposed on a small public VPS
-
-A private key (`new-ssh.txt`) was also present in the repository working directory. It has been
-moved out to `~/.ssh/tessera-vps` and should be treated as a deploy key. Rotate it if it was ever
-shared or copied.
+- Non-root `tessera-deploy` user exists with key-only access and limited passwordless sudo.
+- `PasswordAuthentication no`; `PermitRootLogin prohibit-password`; UFW allows only 22/tcp,
+  80/tcp, 443/tcp, and 443/udp; 22 is rate-limited.
+- `fail2ban` is active with the sshd jail; one hostile IP was banned immediately after reboot.
+- Root key login still works as break-glass and should be reviewed/removed once console access is
+  confirmed.
+- OpenSSH and Docker remain directly exposed on a small public VPS; 3,654 failed SSH password
+  attempts were observed before password auth was disabled.
+- The former repository private key (`new-ssh.txt`) is at `~/.ssh/tessera-vps`; rotate it if it
+  was ever shared or copied.
 
 Do next:
 
-- Add a non-root deploy user with key-only access.
-- Disable root login and password authentication after verifying key access.
-- Enable a host firewall allowing only 22, 80, 443 (and 443/udp if HTTP/3 is desired).
-- Add fail2ban or equivalent for SSH.
-- Keep a break-glass console path before changing SSH.
+- Remove root key login after confirming the provider console break-glass path.
 - Rotate the deploy key periodically and remove unused keys.
+- Keep the kernel rebooted for OpenSSH/systemd security updates (now `6.8.0-149-generic`).
 
-### 2. Backups are manual and not scheduled
+### 2. Backups are scheduled locally; offsite is still missing
 
-The backup script exists, but there is no host cron/systemd timer. There is one pre-production
-dump at `/root/tessera-pre-prod/`; no daily schedule, offsite copy, WAL archive, or restore drill
-on this host.
+Current live findings:
+
+- `/usr/local/bin/tessera-backup` runs daily at 03:15 via `/etc/cron.d/tessera-backup`.
+- The first scheduled dump and evidence archive succeeded at `/var/backups/tessera/`.
+- A restore drill into a disposable database restored 11 migrations and one user successfully.
+- There is no offsite copy, WAL archive/PITR, encryption-at-rest key, retention policy, or
+  backup-failure alert on the live host.
+- `BACKUP_OFFSITE_DIR` remains unset; the script supports a local/offsite target when configured.
 
 Do next:
 
-- Schedule daily Postgres dumps and evidence-volume archives.
-- Copy both off-host with encryption and retention.
+- Configure encrypted offsite retention and alert on backup failure.
 - Enable WAL archiving/PITR if the target RPO is below 24 hours.
-- Run a restore drill into a disposable database and record RTO.
-- Alert on backup failure.
+- Run a clean-host restore drill and record RTO.
 
-### 3. No real monitoring or alerting
+### 3. Monitoring is partial: uptime and log rotation only
 
-The API exposes `/metrics`, but no Prometheus scrape, Alertmanager, uptime check, error tracker,
-or status page is deployed. Docker json logs are the only telemetry and can fill the 8.7 GB disk.
+Current live findings:
+
+- `.github/workflows/uptime.yml` checks site, API health/readiness, and verifier every five
+  minutes and opens/closes a GitHub issue; a manual run passed.
+- Docker logs rotate at 10 MB with three files per container.
+- No Prometheus scrape, Alertmanager, Sentry/error tracker, certificate-expiry monitor, or
+  status page is deployed. The API `/metrics` endpoint is still unscraped.
+- Disk is 80% used (`1.8 GB` free) after image/build-cache cleanup; capacity is not alerted on.
 
 Do next:
 
-- Scrape API/broker/Caddy/Docker metrics.
+- Add external metrics/alerting and error tracking.
 - Alert on `/readyz`, 5xx rate, latency, webhook failures, disk, memory, certificate expiry,
   Postgres connections, Redis errors, and backup failure.
-- Rotate/limit Docker logs.
-- Add Sentry or equivalent for API/portal exceptions.
-- Add an external uptime/status page.
+- Add a public status page.
 
-### 4. Auth0 cleanup and production tenant polish
+### 4. Auth0 cleanup — M2M disabled; deletion and custom domain pending
 
-- The temporary Management API M2M application is still active; revoke it.
-- `/Users/a/Documents/opencode/tessera-docs/m2m/` still contains credentials; delete it.
-- The Auth0 tenant is a `dev-*.us.auth0.com` tenant, not a custom domain.
-- Logout is local-only; Auth0 SSO session may remain.
-- The old `Tessera` Auth0 application remains in addition to `Tessera Production`.
+Current live findings:
+
+- Auth0 Regular Web Application `Tessera Production` is live with callback, logout URL, web
+  origins, authorization-code flow, RS256, and `client_secret_basic`.
+- The temporary Management API M2M application and legacy `Tessera` application are disabled,
+  but not deleted. M2M credentials still exist at
+  `/Users/a/Documents/opencode/tessera-docs/m2m/`.
+- The tenant is a `dev-*.us.auth0.com` tenant, not a custom domain.
+- RP-initiated logout is implemented: `/auth/logout` returns the Auth0 `/v2/logout` URL and the
+  portal redirects. Live verification observed the Auth0 logout host.
+- First-admin bootstrap and the `@thetessera.xyz` domain allowlist are documented; existing
+  OIDC identities bypass the bootstrap gate.
 
 Do next:
 
-- Revoke the M2M app and delete the credential file.
-- Delete the unused Auth0 application.
+- Delete the unused Auth0 applications and the local credential file; revoke any M2M secret.
 - Configure a custom Auth0 domain and email provider for production branding/deliverability.
-- Implement RP-initiated logout with `id_token_hint` or a documented Auth0 logout flow.
-- Document the first-admin bootstrap and domain allowlist precisely.
+- Test logout with a full Auth0 SSO session, including `id_token_hint` if required.
 
-### 5. Deployment is not reproducible by image digest
+### 5. Deployment is digest-pinned live; rollback is still manual
 
-GHCR publishes `0.1.3` and `latest`, but the Compose deployment references mutable `0.1.3`.
-A rebuild overwrites the tag; a rollback cannot reliably identify the exact image that ran.
+Current live findings:
 
-Do next:
-
-- Publish immutable release tags (`0.1.4`, etc.) and record image digests.
-- Deploy by digest (or use immutable SHA tags in Compose).
-- Retain the previous image digest for rollback.
-- Add a deployment manifest containing image digests, migration version, and config hash.
-
-### 6. Environment deletion leaves broker credentials
-
-`revokeBrokerKey` in `apps/api/src/broker.ts` is currently a no-op. Deleting an environment removes
-the control-plane row but does not revoke its broker API key. The key is no longer retrievable,
-but it remains valid if it leaked.
+- Live API/broker/portal/verify/site images are pinned by digest in
+  `/opt/tessera/infra/docker/.env`; base Compose uses digest-pinned Postgres/Redis/Caddy images.
+- Compose supports `TESSERA_*_IMAGE` overrides and container hardening/logging limits.
+- The previous digest and a tested rollback manifest are not recorded; release tags remain
+  mutable, and the deploy is still a manual Compose pull/recreate.
 
 Do next:
 
-- Store the broker key id (not only the encrypted key) on the environment.
-- Revoke the broker key on delete/rotation.
-- Add a reconciliation job for orphan broker keys.
-- Audit environment deletion and key revocation.
+- Record a deployment manifest with image digests, migration version, and config hash.
+- Retain and test the previous digest for rollback.
+- Move to immutable release tags/SHA tags for all components.
 
-### 7. Redis has no persistence
+### 6. Environment deletion revocation — fixed and verified
 
-Redis holds the authority-token replay cache, rate-limit windows, and API-key cache. A Redis
-restart loses replay history and limits; a used authority token could become replayable inside
-its TTL after a restart.
-
-Do next:
-
-- Enable AOF (or equivalent) for the replay cache, or move replay prevention to Postgres.
-- Back up Redis or make its loss fail closed.
-- Document the single-node Redis RTO/RPO.
-
-### 8. RLS coverage is partial and manually applied
-
-Broker RLS is active on existing tables. `stripe_grants` did not exist and was skipped; missing
-tables created later will not automatically receive policies. Control-plane tables remain
-application-enforced only.
+`broker_key_id` is stored on environments via migration 011. Deleting an environment calls the
+broker admin API and revokes the key. Live test: create returned 201, delete returned 200, and
+the broker key had `revoked_at` set. A reconciliation job for orphan keys is still absent.
 
 Do next:
 
-- Re-apply the RLS script after every migration that creates broker tables.
-- Add a startup assertion for expected RLS tables.
+- Add a scheduled orphan-key reconciliation/audit.
+- Keep testing this path after broker-key changes.
+
+### 7. Redis persistence — enabled; RTO/RPO undocumented
+
+Live Redis now uses AOF (`appendonly yes`) with the `docker_redisdata` volume. Redis holds the
+authority-token replay cache, rate-limit windows, and API-key cache; loss still has availability
+impact, and single-node RTO/RPO is not documented.
+
+Do next:
+
+- Document the single-node Redis RTO/RPO and fail-closed behavior.
+- Back up Redis or move replay prevention to Postgres.
+
+### 8. RLS coverage is partial but active on broker tables
+
+Broker RLS is active and forced on 9 existing tables; `stripe_grants` is absent and the script
+skips missing optional tables. The script was re-applied after migration 011; control-plane tables
+remain application-enforced only.
+
+Do next:
+
+- Add a startup/deploy assertion for expected RLS tables.
+- Add a CI/deploy test that fails if a broker table lacks `ENABLE`/`FORCE ROW LEVEL SECURITY`.
 - Add control-plane RLS in a later phase; do not claim it today.
-- Add a test that fails if a tenant table lacks `ENABLE`/`FORCE ROW LEVEL SECURITY`.
 
-### 9. Broker admin bootstrap is a hidden operational dependency
+### 9. Broker admin bootstrap is documented, but manual
 
-The API needs a valid broker admin API key plus `TESSERA_ADMIN_TOKEN` to provision environments.
-The live deployment initially had a random non-key value and a token mismatch, causing
-environment creation 502s. This is now fixed, but the runbook is incomplete.
+The API needs a valid broker admin API key plus matching broker admin token to provision
+environments. The live deployment now has a valid key for tenant `tessera-admin` and matching
+tokens; the earlier 502 was caused by a random non-key value and token mismatch. The runbook
+documents this, but there is no automated preflight or dedicated bootstrap command.
 
 Do next:
 
-- Document broker admin key creation and token matching.
-- Add a preflight that calls broker admin authentication.
+- Add a preflight that calls broker admin authentication before deploy.
 - Prefer a dedicated bootstrap command/script over direct SQL.
-- Rotate the admin key and remove the old bootstrap records.
+- Rotate the admin key and remove old bootstrap records on a schedule.
 
 ### 10. CSP is report-only
 
@@ -205,14 +232,12 @@ Do next:
   this needs explicit product copy.
 - No SCIM, custom org SSO, email templates, or organization switching for multiple workspaces.
 - Evidence archives are stored on the local evidence volume; no S3/object-storage or retention UI.
-- Auth0 logout is local-only, so users may be silently signed back in through Auth0 SSO.
+- Auth0 logout now uses `/v2/logout`; test the full SSO-session path.
 - Provider integrations are not live until real AWS/GitHub/Stripe credentials are configured.
 - There is no public status page, support SLA, privacy policy, terms of service, DPA, or
   subprocessor list on the site.
 - No analytics or error tracking means product usage and failures are not observable.
 - `www.thetessera.xyz` has no DNS record; decide whether to redirect or not.
-- README, trust center, one-pager, and hardening report contain stale “live OIDC not yet
-  validated” language while Auth0 is now live.
 
 ## Technical findings
 
@@ -239,7 +264,7 @@ Do next:
 - No automatic dependency updates (Renovate/Dependabot) for images and dependencies.
 - Evidence/DB volumes are not encrypted by an application-managed key; confirm IONOS disk
   encryption.
-- No tested restore of the evidence volume into a clean host.
+- Evidence volume restore into a clean host is not tested; only the database restore drill ran.
 - No multi-replica webhook/scheduler/chain test in the live environment.
 - No migration rollback strategy; migrations are forward-only and manually triggered on deploy.
 - No external certificate-expiry monitor; Caddy renewal is working but unmonitored.
@@ -249,18 +274,18 @@ Do next:
 
 ### P0 — before inviting a design partner
 
-1. Harden SSH: non-root deploy user, key-only auth, firewall, fail2ban, break-glass access.
-2. Move the private deploy key out of the repository (done locally; rotate if exposed).
-3. Schedule and verify encrypted offsite Postgres/evidence backups.
-4. Add external uptime, metrics, alerting, log rotation, and error tracking.
-5. Pin deployed images by digest; retain a rollback image.
-6. Revoke the Auth0 M2M app and delete its credential file.
-7. Fix environment deletion to revoke the broker key.
-8. Enable Redis persistence or move replay state to Postgres.
-9. Add a deployment preflight that checks broker admin auth and token equality.
-10. Re-apply RLS after migrations and assert expected tables.
-11. Add explicit product copy for domain access vs invited workspace membership.
-12. Implement or document Auth0 RP-initiated logout.
+1. [x] Harden SSH: non-root deploy user, key-only auth, firewall, fail2ban. Residual: root key break-glass.
+2. [x] Move the private deploy key out of the repository; rotate if exposed.
+3. [~] Schedule local Postgres/evidence backups and verify restore. Missing: encrypted offsite retention, WAL/PITR, failure alert.
+4. [~] Add uptime checks and log rotation. Missing: metrics, alerting, error tracking, status page.
+5. [~] Pin live images by digest. Missing: retained rollback digest/manifest and immutable release tags.
+6. [~] Disable the Auth0 M2M and legacy apps. Missing: deletion, credential-file removal, custom domain.
+7. [x] Fix environment deletion to revoke the broker key; verified live.
+8. [x] Enable Redis AOF persistence. Missing: documented RTO/RPO.
+9. [~] Document broker admin key/token bootstrap. Missing: automated preflight/bootstrap command.
+10. [~] Re-apply RLS after migration and verify 9 forced tables. Missing: startup assertion/control-plane RLS.
+11. [x] Document domain allowlist vs invited workspace membership.
+12. [x] Implement Auth0 RP-initiated logout; verified live.
 
 ### P1 — design-partner readiness
 
@@ -322,10 +347,14 @@ Do not claim today:
 
 ## Verification run
 
-- Live `app`, `site`, and `verify` endpoints reachable; `/readyz` healthy.
-- Auth0 login redirect observed; first user/org exists.
-- Environment creation and deletion exercised successfully after broker-admin-key repair.
-- API tests: 24 passing; Rust: 343 passing; CI/Security/Images/SBOM green on `112f24c7`.
-- TLS certificate valid until 2027-02-10.
-- Postgres app role is non-superuser; broker RLS active.
-- Host: ~826 MB RAM, 1 GB swap, 1.7 GB free disk; no scheduled backups or monitoring.
+- Live `app`, `site`, and `verify` endpoints reachable; `/readyz` healthy after kernel reboot.
+- Auth0 login redirect observed; first user/org exists; Auth0 logout URL host observed.
+- Environment creation/deletion verified after migration 011: delete returned 200 and broker key
+  `revoked_at` was set.
+- Local scheduled backup + disposable restore drill passed: 11 migrations and one user restored.
+- API tests: 25 passing; Rust: 343 passing; portal: 10 passing; CI/Security/Images/SBOM green on
+  `b5add27c`; Uptime workflow manual run green.
+- TLS certificate valid until 2027-02-10; kernel `6.8.0-149-generic`; fail2ban active.
+- Postgres app role is non-superuser; 9 broker tables have forced RLS.
+- Host: ~826 MB RAM, 1 GB swap, 1.8 GB free disk (80%); local daily backups and GitHub uptime
+  checks active; Prometheus/Alertmanager/Sentry/status page still absent.

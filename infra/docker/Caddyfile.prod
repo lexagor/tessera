@@ -81,6 +81,9 @@
 		max_size 10MB
 	}
 
+	handle /v1/* {
+		reverse_proxy api:8788
+	}
 	handle /verify/* {
 		reverse_proxy verify:8080
 	}

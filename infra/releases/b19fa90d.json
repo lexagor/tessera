@@ -1,0 +1,28 @@
+{
+  "commit": "b19fa90d",
+  "deployedAt": "2026-11-13T14:00:00Z",
+  "environment": "production",
+  "migrations": ["016_scim_groups.sql"],
+  "flags": { "CONTROL_PLANE_RLS": "1" },
+  "images": {
+    "api": "ghcr.io/lexagor/tessera-api@sha256:deed876bed02e9bd50a4989f43debd0601a3cdcbdbed49b4fa07272c66dd3fdc",
+    "broker": "ghcr.io/lexagor/tessera-broker@sha256:5c126e46e30d16366ff00901351bfa19bf1be940e642d6c069cec0c1ffa44629",
+    "portal": "ghcr.io/lexagor/tessera-portal@sha256:4c1f479782f9cd4ad2c1741ff96b425bdfb239d349f8e1ad1d3b1eebb91722b5",
+    "verify": "ghcr.io/lexagor/tessera-verify@sha256:9b77165ede14c0c056d961f93f8d1d36ddc6bca7dcc424759d1b36651be17cd2",
+    "site": "ghcr.io/lexagor/tessera-site@sha256:25178b108639df2acc13e49ec001ab00cbbb849b77ee7d8d821e6dea8f9788d4"
+  },
+  "checks": [
+    "CI",
+    "Security",
+    "SBOM",
+    "Images",
+    "CodeQL",
+    "Scorecard",
+    "proof-link workflow",
+    "broker jsonwebtoken 10.4 authority-token smoke",
+    "RLS 19/19",
+    "host health",
+    "security.txt on all domains",
+    "post-reboot data integrity: 1 user, 1 org, 16 migrations, 0 active keys/tokens"
+  ]
+}

@@ -121,3 +121,13 @@ test, SOC 2 opinion, or proof that no vulnerabilities exist.
 `/.well-known/security.txt` is now served on the site, app, and verifier domains with a
 `security@thetessera.xyz` contact and a one-year expiry. It is metadata, not an incident response
 tool; the mailbox must remain monitored.
+
+
+## Post-reboot recovery note
+
+The VPS was rebooted after a local Docker/Rust image pull filled the small disk and wedged the
+host. Data integrity after reboot: 1 user, 1 org, 16 migrations, 2 signed proof actions, zero
+active agent keys, zero active SCIM tokens. The pull was removed, disk usage returned to ~77%,
+all containers are healthy, and `host-health.sh` passes. The dependency update was completed
+locally and deployed through CI; `jsonwebtoken` 10.4 authority-token verification was exercised
+live. No database data was lost.

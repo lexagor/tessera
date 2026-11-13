@@ -2,7 +2,7 @@
 
 **Date:** 2026-11-13  
 **Repository:** `lexagor/tessera`  
-**Code state:** `25b6f2bc` (working tree also contains pre-existing investor-doc/design changes)  
+**Code state:** `b19fa90d` (working tree also contains pre-existing investor-doc/design changes)  
 **Live deployment:** `https://app.thetessera.xyz` on IONOS VPS `198.71.63.45`  
 **Method:** source review, live endpoint checks, SSH host inspection, database checks, CI history,
 and live Auth0/control-plane validation.

@@ -1,7 +1,7 @@
 # Hardening report
 
 **Date:** 2026-11-13  
-**Base commit:** `25b6f2bc`  
+**Base commit:** `b19fa90d`  
 **Scope:** production configuration, auth/session, API edge, SSRF, webhook delivery, database
 roles, observability, containers, and release metadata. External IdP/KMS/pen-test validation
 is not included.

@@ -22,7 +22,7 @@ trusting Tessera or the vendor.
 | Tenancy | Tenant-scoped stores; broker RLS forced on 9 tables; control-plane RLS forced on 19 tables with org/admin transaction context |
 | Secrets | Provider secrets are encrypted at rest; Stripe grants are envelope-encrypted in the broker |
 | Keys | Per-environment broker keys encrypted in the control plane; agent keys hashed |
-| Access | Auth0 OIDC with first-admin bootstrap and `@thetessera.xyz` domain allowlist; invites for external workspaces; org-scoped SCIM Users token; HttpOnly sessions, RBAC, origin checks, audit log |
+| Access | Auth0 OIDC with first-admin bootstrap and exact-email/invite allowlists; org-scoped SCIM Users token; HttpOnly sessions, RBAC, origin checks, audit log |
 | Evidence export | Signed tenant archive with receipts, policy versions, authority transitions, key events, anchors |
 | Standards | Agent Receipts v0.5.0 / W3C VC export with Ed25519 proof and optional RFC 3161 timestamp |
 | API hardening | Request limits, timeouts, rate limits, no-store/nosniff headers, enforced CSP, sanitized errors |

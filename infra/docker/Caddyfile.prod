@@ -84,6 +84,9 @@
 	handle /v1/* {
 		reverse_proxy api:8788
 	}
+	handle /.well-known/* {
+		reverse_proxy site:8080
+	}
 	handle /verify/* {
 		reverse_proxy verify:8080
 	}

@@ -2,6 +2,7 @@
 
 **Status:** image signing, CodeQL, Scorecard, SBOM, provenance, and digest pinning are configured.
 GitHub Actions must be enabled for the new workflows before they appear in branch protection.
+Branch protection is currently a recommended follow-up; see the internal security assessment.
 
 ## Controls
 

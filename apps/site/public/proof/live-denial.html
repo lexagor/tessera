@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Tessera proof of action — policy denial</title>
+<meta name="description" content="A signed Tessera policy-denial record that can be verified offline." />
+<link rel="canonical" href="https://thetessera.xyz/proof/live-denial.html" />
+<link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+<style>
+  :root { --ink:#111; --muted:#666; --line:#e5e5e5; --surface:#fafafa; --accent:#087f5b; --bad:#b42318; --mono:ui-monospace,SFMono-Regular,Menlo,monospace; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--surface); color:var(--ink); font:15px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }
+  main { max-width:900px; margin:0 auto; padding:56px 24px 80px; }
+  .eyebrow { margin:0 0 8px; color:var(--muted); font:11px var(--mono); letter-spacing:.12em; text-transform:uppercase; }
+  h1 { margin:0 0 12px; font-size:clamp(32px,5vw,48px); line-height:1.05; letter-spacing:-.04em; }
+  h2 { margin:32px 0 10px; font-size:20px; letter-spacing:-.02em; }
+  p { color:#333; }
+  .status { display:inline-flex; gap:8px; align-items:center; margin:4px 0 20px; padding:5px 10px; border:1px solid rgba(8,127,91,.3); border-radius:999px; color:var(--accent); background:rgba(8,127,91,.06); font-size:13px; font-weight:600; }
+  .facts { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:16px; margin:24px 0; padding:20px; border:1px solid var(--line); border-radius:12px; background:#fff; }
+  .fact small { display:block; color:var(--muted); font:10px var(--mono); letter-spacing:.08em; text-transform:uppercase; }
+  .fact strong { display:block; margin-top:4px; font-size:14px; overflow-wrap:anywhere; }
+  .actions { display:flex; flex-wrap:wrap; gap:8px; margin:22px 0; }
+  .button { display:inline-block; padding:9px 13px; border:1px solid var(--ink); border-radius:7px; color:var(--ink); text-decoration:none; font-size:13px; font-weight:600; }
+  .button.primary { background:var(--ink); color:#fff; }
+  pre { margin:12px 0; padding:14px; border:1px solid var(--line); border-radius:9px; background:#fff; overflow:auto; font:12px/1.55 var(--mono); white-space:pre-wrap; overflow-wrap:anywhere; }
+  details { margin-top:18px; }
+  summary { cursor:pointer; font-weight:600; }
+  .note { padding:14px 16px; border-left:3px solid var(--bad); background:#fff; color:#333; }
+  .fine { color:var(--muted); font-size:13px; }
+  footer { margin-top:40px; padding-top:18px; border-top:1px solid var(--line); color:var(--muted); font-size:12px; }
+  @media (max-width:640px) { .facts { grid-template-columns:1fr 1fr; } }
+</style>
+</head>
+<body>
+<main>
+  <p class="eyebrow">Tessera · proof of action</p>
+  <h1>Valid policy-denial record</h1>
+  <div class="status">● Signed record · deny</div>
+  <p><strong>proof-refund-agent</strong> requested
+  <code>stripe.refunds.create</code> for
+  <strong>447df0de-f328-4cd3-b89b-2c537bf22847</strong>.
+  Policy <code>proof-refund-policy v1</code>
+  denied the call. The broker issued no credential and made no provider call.</p>
+
+  <div class="facts">
+    <div class="fact"><small>Decision</small><strong>deny</strong></div>
+    <div class="fact"><small>Outcome</small><strong>not recorded</strong></div>
+    <div class="fact"><small>Policy</small><strong>proof-refund-policy v1</strong></div>
+    <div class="fact"><small>Action ID</small><strong>28804d68-3b49-4f79-9211-6e395e21e739</strong></div>
+    <div class="fact"><small>Signer</small><strong>0xc35374b171e3be80b62c7612479f4d65e519f4e6</strong></div>
+    <div class="fact"><small>Domain</small><strong>Base Sepolia · 84532</strong></div>
+  </div>
+
+  <div class="actions">
+    <a class="button primary" href="/proof/live-denial.json" download>Download signed JSON</a>
+    <a class="button" href="https://verify.thetessera.xyz/verify/MF8r1-gEjpTqJkMXBftezBAfqhy6UORapo-xluIMlW4">Open interactive verifier</a>
+  </div>
+
+  <h2>Verify offline</h2>
+  <pre>npm install @tessera-verify/verify
+npx tessera-verify live-denial.json \
+  --expected-signer 0xc35374b171e3be80b62c7612479f4d65e519f4e6</pre>
+  <p class="fine">Expected: <code>valid: true</code> and the recovered signer above. The JSON contains the
+  EIP-712 domain, the signed receipt, and every binding needed for offline verification.</p>
+
+  <details>
+    <summary>Signed record JSON</summary>
+    <pre>{
+  &quot;domain&quot;: {
+    &quot;chainId&quot;: 84532,
+    &quot;verifyingContract&quot;: &quot;0x0000000000000000000000000000000000000000&quot;
+  },
+  &quot;receipt&quot;: {
+    &quot;actionId&quot;: &quot;28804d68-3b49-4f79-9211-6e395e21e739&quot;,
+    &quot;agent&quot;: &quot;proof-refund-agent&quot;,
+    &quot;agentMeta&quot;: {
+      &quot;agentId&quot;: &quot;proof-refund-agent&quot;
+    },
+    &quot;attestation&quot;: {
+      &quot;signatureAlg&quot;: &quot;secp256k1-eip712&quot;,
+      &quot;signerKeyId&quot;: &quot;0xc35374b171e3be80b62c7612479f4d65e519f4e6&quot;,
+      &quot;timestamp&quot;: &quot;2026-11-13T08:14:49Z&quot;
+    },
+    &quot;authorization&quot;: {
+      &quot;anomalyScore&quot;: 0,
+      &quot;decision&quot;: &quot;deny&quot;,
+      &quot;policy&quot;: &quot;proof-refund-policy&quot;,
+      &quot;policyHash&quot;: &quot;0xe1ad0151547d7e5614b9b24165807085958ff8f47125adec2f19f28a97f97489&quot;,
+      &quot;policyVersion&quot;: 1,
+      &quot;resource&quot;: &quot;stripe:refunds.create&quot;
+    },
+    &quot;call&quot;: {
+      &quot;argsHash&quot;: &quot;0xf8b997a824f446e93118422e9c4c66339f74c9b0d7008d6e4145ff9cf34e381c&quot;,
+      &quot;resultHash&quot;: null,
+      &quot;tool&quot;: &quot;stripe.refunds.create&quot;
+    },
+    &quot;grant&quot;: {
+      &quot;provider&quot;: &quot;stripe&quot;,
+      &quot;singleUse&quot;: true,
+      &quot;status&quot;: &quot;denied&quot;,
+      &quot;ttlS&quot;: 0
+    },
+    &quot;intent&quot;: {
+      &quot;declaredPurpose&quot;: &quot;Customer requested a refund for a duplicate charge.&quot;,
+      &quot;intentHash&quot;: &quot;0x91e3ac979d8ce349369e555411babb299d9eb0b440e0d59a65ce175a3892895f&quot;,
+      &quot;riskClass&quot;: &quot;high&quot;
+    },
+    &quot;intentHash&quot;: &quot;0x91e3ac979d8ce349369e555411babb299d9eb0b440e0d59a65ce175a3892895f&quot;,
+    &quot;nonce&quot;: &quot;0xc465204f4de1455194b564eb3af93f3c5ce2870479fcf28e716ec0599ead44bd&quot;,
+    &quot;policy&quot;: {
+      &quot;decision&quot;: &quot;deny&quot;,
+      &quot;evaluatedInputsHash&quot;: &quot;0x51cd988731d733f32059e070eea0552d6deb1613126e2631e56bd862381b85e4&quot;,
+      &quot;evaluatorVersion&quot;: &quot;tessera-policy-v1&quot;,
+      &quot;policyHash&quot;: &quot;0xe1ad0151547d7e5614b9b24165807085958ff8f47125adec2f19f28a97f97489&quot;,
+      &quot;policyId&quot;: &quot;proof-refund-policy&quot;,
+      &quot;policyVersion&quot;: 1,
+      &quot;reasonCode&quot;: &quot;&#x27;amount&#x27; = 4200 exceeds max 100&quot;
+    },
+    &quot;prev&quot;: null,
+    &quot;principal&quot;: {
+      &quot;authorityHash&quot;: &quot;0xec8fa36bd7cbfba6123c7f0b138bd8b4625197a48ae9d4fc6580abb3b137a684&quot;,
+      &quot;authorityRef&quot;: &quot;oidc:google-oauth2|113018472362238291892&quot;,
+      &quot;principalId&quot;: &quot;447df0de-f328-4cd3-b89b-2c537bf22847&quot;,
+      &quot;principalType&quot;: &quot;user&quot;,
+      &quot;verificationMethod&quot;: &quot;hmac-jwt&quot;,
+      &quot;verifiedAt&quot;: &quot;2026-11-13T08:14:49Z&quot;
+    },
+    &quot;signature&quot;: &quot;0x52457e3a4fadf6692cd5ce4004c5adc4e61dd00c694ac2f6c00ac719785125702b3a50602acad43ced7a3e54058dc138c9d88db892b4eafa52842629098b6e5f1b&quot;,
+    &quot;tenant&quot;: &quot;ale-s-workspace-public-proof-sandbox&quot;,
+    &quot;ts&quot;: &quot;2026-11-13T08:14:49Z&quot;,
+    &quot;user&quot;: &quot;447df0de-f328-4cd3-b89b-2c537bf22847&quot;,
+    &quot;v&quot;: 2
+  }
+}</pre>
+  </details>
+
+  <h2>What this proves</h2>
+  <p>The broker signed this exact call, the principal, the policy version/hash, the evaluated inputs,
+  the tool and arguments hash, the denial decision, the prior record, and the timestamp. Changing
+  any signed field invalidates the signature.</p>
+  <h2>What this does not prove</h2>
+  <p class="note">This is a policy-denial record, not an executed refund. No credential was issued,
+  no provider call was made, and no money moved. A valid signature does not prove the underlying
+  business intent was lawful, and Tessera records are tamper-evident, not tamper-proof.</p>
+  <p class="fine">This static page has no bearer-link expiration. The record can be downloaded and
+  verified offline for as long as the JSON and the EIP-712 domain are preserved. The hosted
+  interactive verifier link expires 2027-11-13; use the JSON after that.</p>
+  <footer>Apache-2.0 · <a href="https://thetessera.xyz/">thetessera.xyz</a> · <a href="https://github.com/lexagor/tessera/tree/main/examples/proof-of-action">source artifact</a></footer>
+</main>
+</body>
+</html>

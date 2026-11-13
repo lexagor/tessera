@@ -9,7 +9,14 @@ import { timeout } from "hono/timeout";
 import { type AppEnv, cleanupSessions, requireSession } from "./auth.js";
 import { authRoutes } from "./auth-routes.js";
 import { billingWebhookRoutes } from "./billing.js";
-import { assertProductionDatabaseRole, closeDb, db, migrate, withAdminContext } from "./db.js";
+import {
+  assertControlPlaneRlsPolicies,
+  assertProductionDatabaseRole,
+  closeDb,
+  db,
+  migrate,
+  withAdminContext,
+} from "./db.js";
 import { env, isProduction } from "./env.js";
 import { recordRequest, renderMetrics } from "./metrics.js";
 import { openapi } from "./openapi.js";
@@ -124,6 +131,7 @@ app.get("/v1/session", requireSession, (c) => {
 if (process.env.NODE_ENV !== "test") {
   await assertProductionDatabaseRole();
   await migrate();
+  await assertControlPlaneRlsPolicies();
   void withAdminContext(cleanupSessions).catch((error) => {
     console.error("session cleanup failed", error);
   });

@@ -43,6 +43,8 @@ Pre-revenue; recruiting design partners.
 
 ## Verify a proof of action
 
+Permanent static proof page: <https://thetessera.xyz/proof/live-denial.html>
+
 Two signed records are included in [`examples/proof-of-action`](examples/proof-of-action/):
 
 - live production policy-denial record with a hosted reviewer link;

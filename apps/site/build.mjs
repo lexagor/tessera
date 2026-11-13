@@ -184,6 +184,8 @@ if (existsSync(join(HERE, "public"))) {
 const sitemapUrls = [
   `${SITE_URL}/`,
   `${SITE_URL}/docs/index.html`,
+  `${SITE_URL}/proof/`,
+  `${SITE_URL}/proof/live-denial.html`,
   ...sources.map((source) => `${SITE_URL}/docs/${source.slug}.html`),
 ];
 writeFileSync(

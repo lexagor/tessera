@@ -1,7 +1,7 @@
 # Hardening report
 
 **Date:** 2026-11-13  
-**Base commit:** `828c8b9f`  
+**Base commit:** `ee62d63f`  
 **Scope:** production configuration, auth/session, API edge, SSRF, webhook delivery, database
 roles, observability, containers, and release metadata. External IdP/KMS/pen-test validation
 is not included.
@@ -67,7 +67,7 @@ is not included.
 | Pen test | Scope, rules of engagement, coverage matrix | Independent tester, report, retest |
 | KMS benchmark | `scripts/kms-bench.mjs`, test matrix | Real cloud KMS/HSM endpoint and key |
 | Multi-AZ/DR | Target topology, RPO/RTO table, drill plan | Managed Postgres/Redis, second zone, measured failover |
-| SCIM | Users + role Groups, org tokens, Settings UI, tests | Deprovisioning automation, IdP certification |
+| SCIM | Users + role Groups, org tokens, Settings UI, tests, live smoke | Deprovisioning automation, IdP certification |
 | Enterprise SSO | Auth0 Organizations model documented | Per-customer configuration and custom Auth0 domain |
 | Support/IR | Support policy, severity matrix, incident runbook | Contractual SLA, on-call rota, tabletop |
 | Case study/reviewer | Consent and acceptance templates | Real customer/reviewer evidence |

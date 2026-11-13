@@ -1,0 +1,26 @@
+{
+  "commit": "ee62d63f",
+  "deployedAt": "2026-11-13T12:00:00Z",
+  "environment": "production",
+  "migrations": ["016_scim_groups.sql"],
+  "flags": { "CONTROL_PLANE_RLS": "1" },
+  "images": {
+    "api": "ghcr.io/lexagor/tessera-api@sha256:18bae5a5348be8c6639f05507f62f58049ee3d29cec71da5e339851f5e4db021",
+    "broker": "ghcr.io/lexagor/tessera-broker@sha256:8395ed4bc443e4091f2051d209842987ee78e8ac67f2f9bb810d749e957b72ac",
+    "portal": "ghcr.io/lexagor/tessera-portal@sha256:abe19be86a67b46bfa03a6178107bdaee39e4c3eee6b4678ce0c8a82fce4e992",
+    "verify": "ghcr.io/lexagor/tessera-verify@sha256:cd5f39671b32248f87e56442c6c7f6e900ecb772c3360c1bc4c62f0619bc73eb",
+    "site": "ghcr.io/lexagor/tessera-site@sha256:18cfe27146b03e108f5fc95483bb150396ad2b4c8c8e3429a41669a12937d0c0"
+  },
+  "checks": [
+    "CI",
+    "Security",
+    "SBOM",
+    "Images",
+    "CodeQL",
+    "Scorecard",
+    "proof-link workflow",
+    "control-plane RLS 19/19",
+    "live SCIM Groups create/list/delete",
+    "host-health scripts"
+  ]
+}

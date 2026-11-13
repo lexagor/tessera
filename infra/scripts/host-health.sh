@@ -38,6 +38,10 @@ if command -v openssl >/dev/null 2>&1; then
   fi
 fi
 
+if command -v auditctl >/dev/null 2>&1; then
+  systemctl is-active --quiet auditd || { echo "FAIL auditd is not active"; failed=1; }
+fi
+
 for name in docker-api-1 docker-broker-1 docker-postgres-1 docker-caddy-1; do
   running="$(docker inspect -f '{{.State.Status}}' "$name" 2>/dev/null || echo missing)"
   health="$(docker inspect -f '{{if .State.Health}}{{.State.Health.Status}}{{end}}' "$name" 2>/dev/null || true)"

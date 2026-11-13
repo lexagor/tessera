@@ -33,6 +33,8 @@ prohibit-password`, and `KbdInteractiveAuthentication no`. `sshd -T` now reports
 - **React Router** was updated to 7.18.5; portal tests pass.
 - **Vite** was updated to 6.4.6 (dev server only), clearing the Vite/source-map-js advisories.
   `pnpm audit --prod` now leaves only the non-deployed LangChain/Vercel example Zod finding.
+- **jsonwebtoken** was upgraded from 9.3.1 to 10.4.0 with the `rust_crypto` backend; broker
+  authority-token tests pass. The Dependabot authorization-bypass advisory is cleared.
 
 ### Medium — identity/domain hardening gaps
 

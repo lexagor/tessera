@@ -67,7 +67,7 @@ is not included.
 | Pen test | Scope, rules of engagement, coverage matrix | Independent tester, report, retest |
 | KMS benchmark | `scripts/kms-bench.mjs`, test matrix | Real cloud KMS/HSM endpoint and key |
 | Multi-AZ/DR | Target topology, RPO/RTO table, drill plan | Managed Postgres/Redis, second zone, measured failover |
-| SCIM | Users endpoints, org tokens, Settings UI, tests | SCIM Groups, deprovisioning automation, IdP certification |
+| SCIM | Users endpoints, org tokens, Settings UI, tests, live smoke | SCIM Groups, deprovisioning automation, IdP certification |
 | Enterprise SSO | Auth0 Organizations model documented | Per-customer configuration and custom Auth0 domain |
 | Support/IR | Support policy, severity matrix, incident runbook | Contractual SLA, on-call rota, tabletop |
 | Case study/reviewer | Consent and acceptance templates | Real customer/reviewer evidence |

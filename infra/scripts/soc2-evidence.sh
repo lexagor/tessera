@@ -5,7 +5,7 @@ set -eu
 OUT="${1:-/tmp/tessera-soc2-$(date -u +%Y%m%dT%H%M%SZ)}"
 mkdir -p "$OUT"
 
-git rev-parse HEAD > "$OUT/git-sha.txt"
+git rev-parse HEAD > "$OUT/git-sha.txt" 2>/dev/null || echo "not a git worktree" > "$OUT/git-sha.txt"
 git status --short > "$OUT/git-status.txt" || true
 git log -1 --format='%H%n%an%n%ad%n%s' > "$OUT/git-last-commit.txt" || true
 

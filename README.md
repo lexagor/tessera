@@ -223,6 +223,7 @@ docs/              Architecture, threat model, receipt spec, controls, RFCs
 - [`docs/multi-az-dr.md`](docs/multi-az-dr.md) — HA/DR target and failover drill
 - [`docs/enterprise-sso.md`](docs/enterprise-sso.md) — Auth0 Organizations and SCIM model
 - [`docs/scim.md`](docs/scim.md) — SCIM Users API and token setup
+- [`docs/scim.md`](docs/scim.md) — SCIM Users API and token setup
 - [`docs/kms-benchmark.md`](docs/kms-benchmark.md) — KMS/HSM benchmark harness
 - [`docs/independent-security-review.md`](docs/independent-security-review.md) — external review package
 - [`docs/reviewer-acceptance.md`](docs/reviewer-acceptance.md) — reviewer acceptance evidence template

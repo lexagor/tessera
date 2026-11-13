@@ -20,8 +20,8 @@ form says so.
 | SEV-3 | Limited impact, single integration, non-critical bug | 1 business day | 5 business days |
 | SEV-4 | Question, documentation, enhancement | 2 business days | Next planned release |
 
-Security response targets are in [`security-sla.md`](security-sla.md). Incident handling is in
-[`incident-response.md`](incident-response.md).
+Security response targets are in [`security-sla.md`](security-sla.md). Incident handling
+is documented in the private operator pack.
 
 ## Escalation
 

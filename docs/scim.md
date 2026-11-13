@@ -64,5 +64,4 @@ SCIM Users `active`/DELETE for deprovisioning.
 - The API currently uses one OIDC issuer/client across tenants; customer-owned SSO is configured
   in Auth0 Organizations, not self-service in the portal.
 
-See [`enterprise-sso.md`](enterprise-sso.md) for the SSO model and
-[`pentest-scope.md`](pentest-scope.md) for the security test scope.
+See [`enterprise-sso.md`](enterprise-sso.md) for the SSO model.

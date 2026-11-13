@@ -192,6 +192,8 @@ docs/              Architecture, threat model, receipt spec, controls, RFCs
 
 ## Documentation
 
+Public documentation only. Operator, security-assessment, investor, and fundraising documents are kept in a private workspace and are not part of this repository.
+
 - [`CHANGELOG.md`](CHANGELOG.md) — release history
 - [`BENCHMARKS.md`](BENCHMARKS.md) — reproducible broker, HTTP, concurrency, and verifier benchmarks
 - [`docs/benchmarks-cloud.md`](docs/benchmarks-cloud.md) — cloud/KMS benchmark runbook
@@ -213,41 +215,18 @@ docs/              Architecture, threat model, receipt spec, controls, RFCs
 - [`docs/evidence-packs.md`](docs/evidence-packs.md) — framework coverage, reviewer reports, and share links
 - [`docs/distribution.md`](docs/distribution.md) — public repo, npm packages, and verifier rollout
 - [`docs/demo-script.md`](docs/demo-script.md) — product demo recording sequence
-- [`docs/deploy-thetessera-xyz.md`](docs/deploy-thetessera-xyz.md) — site/app/verifier deployment checklist
 - [`docs/pricing.md`](docs/pricing.md) — billing status and current plan limits
-- [`docs/billing.md`](docs/billing.md) — internal billing integration notes
 - [`docs/rls.md`](docs/rls.md) — broker row-level security and automated check
-- [`docs/control-plane-rls.md`](docs/control-plane-rls.md) — control-plane RLS design
 - [`docs/data-lifecycle.md`](docs/data-lifecycle.md) — export, deletion request, retention, and purge
-- [`docs/staging-rollback.md`](docs/staging-rollback.md) — staging and release rollback runbook
-- [`docs/load-testing.md`](docs/load-testing.md) — staging load harness
-- [`docs/monitoring.md`](docs/monitoring.md) — Prometheus/Grafana/host-health configuration
 - [`docs/dependency-updates.md`](docs/dependency-updates.md) — Renovate policy
 - [`docs/supply-chain.md`](docs/supply-chain.md) — signing, SBOM, CodeQL, Scorecard, and verification
-- `docs/security-assessment-2026-11-13.md` — internal live assessment (not public)
 - [`docs/privacy.md`](docs/privacy.md), [`docs/terms.md`](docs/terms.md), [`docs/dpa.md`](docs/dpa.md), [`docs/subprocessors.md`](docs/subprocessors.md) — legal and data-processing terms
 - [`docs/security-sla.md`](docs/security-sla.md) — security contact and response targets
-- [`docs/auth0-production.md`](docs/auth0-production.md) — custom domain and email-provider runbook
-- [`docs/kms-production.md`](docs/kms-production.md) — KMS/HSM migration runbook
-- [`docs/edge-and-dns.md`](docs/edge-and-dns.md) — WAF/DDoS options and DNS decision
-- [`docs/soc2-readiness.md`](docs/soc2-readiness.md) — SOC 2 readiness mapping and evidence cadence
-- [`docs/soc2-data-room.md`](docs/soc2-data-room.md) — auditor data-room index
-- [`docs/incident-tabletop.md`](docs/incident-tabletop.md) — incident tabletop scenario
-- [`docs/security-policies.md`](docs/security-policies.md) — draft security policy set for readiness
-- [`docs/pentest-scope.md`](docs/pentest-scope.md) — external penetration-test scope and rules
-- [`docs/incident-response.md`](docs/incident-response.md) — incident severity, roles, and runbook
 - [`docs/support-sla.md`](docs/support-sla.md) — support channels and response targets
-- [`docs/multi-az-dr.md`](docs/multi-az-dr.md) — HA/DR target and failover drill
-- [`docs/dr-drill.md`](docs/dr-drill.md) — database and evidence restore drill
 - [`docs/enterprise-sso.md`](docs/enterprise-sso.md) — Auth0 Organizations and SCIM model
-- [`docs/scim.md`](docs/scim.md) — SCIM Users API and token setup
-- [`docs/scim.md`](docs/scim.md) — SCIM Users API and token setup
-- [`docs/kms-benchmark.md`](docs/kms-benchmark.md) — KMS/HSM benchmark harness
-- [`docs/independent-security-review.md`](docs/independent-security-review.md) — external review package
-- [`docs/reviewer-acceptance.md`](docs/reviewer-acceptance.md) — reviewer acceptance evidence template
+- [`docs/scim.md`](docs/scim.md) — SCIM Users and Groups API
 - [`docs/golden-path.md`](docs/golden-path.md) — full loop against real providers
 - [`docs/rfcs/0001-action-broker.md`](docs/rfcs/0001-action-broker.md) — action broker spec
-- [`docs/governance-plane-plan.md`](docs/governance-plane-plan.md) — superseded historical plan
 
 ## License
 

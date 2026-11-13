@@ -57,7 +57,7 @@ account. Revoking the link does not alter the underlying records.
   protection.
 - The control plane is deployed on a single VPS for the first design partners.
 - Control-plane RLS is enabled behind `CONTROL_PLANE_RLS`; see
-  [`control-plane-rls.md`](control-plane-rls.md) for rollback and canary steps.
+  the internal operator pack for rollback and canary steps.
 
 ## Subprocessors and infrastructure
 
@@ -68,7 +68,7 @@ account. Revoking the link does not alter the underlying records.
 - No model provider receives customer action data from Tessera.
 
 See [`subprocessors.md`](subprocessors.md), [`privacy.md`](privacy.md), [`terms.md`](terms.md),
-[`dpa.md`](dpa.md), and the draft [`security-policies.md`](security-policies.md).
+and [`dpa.md`](dpa.md).
 
 ## Contact
 

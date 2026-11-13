@@ -35,20 +35,9 @@ const GITHUB_URL = (process.env.GITHUB_URL ?? "https://github.com/lexagor/tesser
 );
 const PARTNER_EMAIL = process.env.PARTNER_EMAIL ?? "partners@thetessera.xyz";
 const SECURITY_EMAIL = process.env.SECURITY_EMAIL ?? "security@thetessera.xyz";
-const EXCLUDED_DIRS = new Set(["strategy", "investor"]);
-const EXCLUDED_FILES = new Set([
-  "fundraise.md",
-  "interview-guide.md",
-  "governance-plane-plan.md",
-  "data-moat.md",
-  "due-diligence.md",
-  "hardening-report.md",
-  "financial-model.md",
-  "fundraise-checklist.md",
-  "case-study-template.md",
-  "soc2-data-room.md",
-  "security-assessment-2026-11-13.md",
-]);
+const PUBLIC_DOCS = new Set(
+  JSON.parse(readFileSync(join(HERE, "public-docs.json"), "utf8")),
+);
 
 rmSync(OUT, { recursive: true, force: true });
 mkdirSync(join(OUT, "docs"), { recursive: true });
@@ -57,8 +46,6 @@ mkdirSync(join(OUT, "docs"), { recursive: true });
 function listMarkdown(dir) {
   if (!existsSync(dir)) return [];
   return readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
-    if (entry.isDirectory() && EXCLUDED_DIRS.has(entry.name)) return [];
-    if (!entry.isDirectory() && EXCLUDED_FILES.has(entry.name)) return [];
     const full = join(dir, entry.name);
     if (entry.isDirectory()) return listMarkdown(full);
     return entry.name.endsWith(".md") ? [full] : [];
@@ -79,6 +66,7 @@ function rewriteLinks(html) {
 
 const sources = listMarkdown(DOCS)
   .map((file) => ({ file, slug: slugOf(file), title: titleOf(file) }))
+  .filter((source) => PUBLIC_DOCS.has(source.slug))
   .sort((a, b) => a.slug.localeCompare(b.slug));
 
 if (sources.some((s) => relative(DOCS, s.file).startsWith("strategy/"))) {

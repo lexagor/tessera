@@ -22,7 +22,7 @@ trusting Tessera or the vendor.
 | Tenancy | Tenant-scoped broker stores; Postgres RLS available for shared databases |
 | Secrets | Provider secrets stay in the broker; Stripe grants envelope-encrypted at rest |
 | Keys | Per-environment broker keys encrypted in the control plane; agent keys hashed |
-| Access | Invite-only OIDC, HttpOnly sessions, RBAC, origin checks, audit log |
+| Access | Auth0 OIDC with first-admin bootstrap and `@thetessera.xyz` domain allowlist; invites for external workspaces; HttpOnly sessions, RBAC, origin checks, audit log |
 | Evidence export | Signed tenant archive with receipts, policy versions, authority transitions, key events, anchors |
 | Standards | Agent Receipts v0.5.0 / W3C VC export with Ed25519 proof and optional RFC 3161 timestamp |
 | API hardening | Request limits, timeouts, rate limits, no-store/nosniff headers, sanitized errors |

@@ -2,8 +2,10 @@
 
 **Last updated:** 2026-11-13
 
-Renovate configuration is in [`renovate.json`](../renovate.json). It covers npm/pnpm, Cargo,
-GitHub Actions, Dockerfiles, Compose images, and Helm charts. Digest pinning is enabled so base
+Dependabot is active through [`.github/dependabot.yml`](../.github/dependabot.yml) for npm,
+Cargo, GitHub Actions, and Docker. Renovate configuration is also in
+[`renovate.json`](../renovate.json) for optional use; installing the Renovate app would add
+digest/Helm coverage. Do not run both bots on the same dependency set without grouping. Digest pinning is enabled so base
 images and actions are updateable without losing immutability.
 
 ## Operating rules

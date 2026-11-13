@@ -1,0 +1,15 @@
+{
+  "commit": "f69e6756",
+  "deployedAt": "2026-11-13T11:00:00Z",
+  "environment": "production",
+  "scope": "documentation/site only; API/portal/broker images remain from 828c8b9f",
+  "images": {
+    "api": "ghcr.io/lexagor/tessera-api@sha256:3a6d6c0892376674ddef1b452fecd7d1071368fd67bd5f74b621a0e2d26aaa38",
+    "broker": "ghcr.io/lexagor/tessera-broker@sha256:8395ed4bc443e4091f2051d209842987ee78e8ac67f2f9bb810d749e957b72ac",
+    "portal": "ghcr.io/lexagor/tessera-portal@sha256:abe19be86a67b46bfa03a6178107bdaee39e4c3eee6b4678ce0c8a82fce4e992",
+    "verify": "ghcr.io/lexagor/tessera-verify@sha256:2486dea72c27c633d1fb0a41699508a803b2cff09a2c8a343d226cdf00fbb4ab",
+    "site": "ghcr.io/lexagor/tessera-site@sha256:a7eb1df60e9b7affba53bad2b8b85c5c86a85d1a598205c01ee8320503999265"
+  },
+  "checks": ["CI", "Security", "Images", "enforced CSP", "docs/security-guarantees updated"],
+  "flags": { "CONTROL_PLANE_RLS": "1" }
+}

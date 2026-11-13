@@ -2,7 +2,7 @@
 
 **Date:** 2026-11-13  
 **Repository:** `lexagor/tessera`  
-**Code state:** `b5add27c` (working tree also contains pre-existing investor-doc/design changes)  
+**Code state:** current `main` after P1 implementation (working tree also contains pre-existing investor-doc/design changes)  
 **Live deployment:** `https://app.thetessera.xyz` on IONOS VPS `198.71.63.45`  
 **Method:** source review, live endpoint checks, SSH host inspection, database checks, CI history,
 and live Auth0/control-plane validation.
@@ -12,7 +12,7 @@ and live Auth0/control-plane validation.
 | Question | Answer |
 |---|---|
 | Is this a credible working demo? | **Yes** |
-| Is it ready for a controlled design partner? | **Conditional** — after the P0 operations/security items below |
+| Is it ready for a controlled design partner? | **Conditional** — P0/P1 code is in place; offsite backup, external monitoring/error tracking, KMS, and Auth0 cleanup remain |
 | Is it ready for public / self-serve production? | **No** |
 | Is it enterprise procurement-ready? | **No** — no SOC 2, external pen test, KMS/HSM deployment, HA, or DPA |
 
@@ -288,6 +288,26 @@ Do next:
 11. [x] Document domain allowlist vs invited workspace membership.
 12. [x] Implement Auth0 RP-initiated logout; verified live.
 
+### P1 implementation status (2026-11-13)
+
+| P1 item | Status | Notes |
+|---|---|---|
+| Staging environment + rollback | Config/runbook added; live staging blocked | `infra/docker/docker-compose.staging.yml`, `docs/staging-rollback.md`; separate host/Auth0 app still required |
+| Evidence object storage | Implemented code; bucket not configured | S3-compatible adapter + local fallback; no production bucket credentials |
+| KMS/HSM signing | Bridge exists; production not migrated | `HttpKmsSigner` and runbook; live still uses in-process `BROKER_SIGNING_KEY` |
+| Email delivery | Implemented code; provider disabled | Resend adapter for invites/deletion notices; no API key/sender domain live; Auth0 email provider external |
+| Stripe/paid messaging | Removed from public site/docs | Billing remains disabled; no checkout or public price list |
+| Privacy/terms/DPA/subprocessors/SLA | Published working docs | Counsel review and legal entity details still required |
+| Auth0 custom domain/email | Documented; not configured | Requires tenant admin access |
+| Tenant export/deletion/retention | Implemented export + 30-day request/cancel + retention setting | Purge is a documented operator workflow; no auto-purge |
+| WAF/DDoS/edge limits | Partial | Caddy request-body cap + API rate limits; no managed WAF/DDoS |
+| Load tests | Harness added; not run on staging | `scripts/load/authorize.mjs`, docs; staging target required |
+| RLS CI/deploy check | Implemented | `infra/scripts/check-rls.sh`; CI step added |
+| Control-plane RLS | Design only | `docs/control-plane-rls.md`; not enabled |
+| Dependency/image updates | Config added; app not installed | `renovate.json`, `docs/dependency-updates.md` |
+| Docs/one-pager/trust | Updated | Legal/security/runbook links added |
+| `www` DNS | Documented as intentionally absent | `docs/edge-and-dns.md` |
+
 ### P1 — design-partner readiness
 
 1. Create a staging environment and a release/rollback runbook.
@@ -353,7 +373,7 @@ Do not claim today:
 - Environment creation/deletion verified after migration 011: delete returned 200 and broker key
   `revoked_at` was set.
 - Local scheduled backup + disposable restore drill passed: 11 migrations and one user restored.
-- API tests: 25 passing; Rust: 343 passing; portal: 10 passing; CI/Security/Images/SBOM green on
+- API tests: 32 passing; Rust: 343 passing; portal: 10 passing; CI/Security/Images/SBOM green on
   `b5add27c`; Uptime workflow manual run green.
 - TLS certificate valid until 2027-02-10; kernel `6.8.0-149-generic`; fail2ban active.
 - Postgres app role is non-superuser; 9 broker tables have forced RLS.

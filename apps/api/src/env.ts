@@ -18,6 +18,25 @@ const schema = z.object({
   BROKER_DEMO_ALLOW: bool,
   PUBLIC_BASE_URL: z.string().default("http://localhost:5173"),
   EVIDENCE_DIR: z.string().default("./data/evidence"),
+  EVIDENCE_S3_BUCKET: z.preprocess(
+    (value) => (value === "" ? undefined : value),
+    z.string().optional(),
+  ),
+  EVIDENCE_S3_REGION: z.string().default("us-east-1"),
+  EVIDENCE_S3_ENDPOINT: z.preprocess(
+    (value) => (value === "" ? undefined : value),
+    z.string().url().optional(),
+  ),
+  EVIDENCE_S3_ACCESS_KEY: z.preprocess(
+    (value) => (value === "" ? undefined : value),
+    z.string().optional(),
+  ),
+  EVIDENCE_S3_SECRET_KEY: z.preprocess(
+    (value) => (value === "" ? undefined : value),
+    z.string().optional(),
+  ),
+  EVIDENCE_S3_PREFIX: z.string().default("evidence"),
+  EVIDENCE_S3_FORCE_PATH_STYLE: bool,
   TRUST_PROXY: bool,
   MAX_REQUEST_BYTES: z.coerce.number().int().min(1_024).default(2_097_152),
   REQUEST_TIMEOUT_MS: z.coerce.number().int().min(1_000).default(60_000),
@@ -55,7 +74,10 @@ const schema = z.object({
   OIDC_CLIENT_ID: z.string().optional(),
   OIDC_CLIENT_SECRET: z.string().optional(),
   OIDC_REDIRECT_URI: z.string().optional(),
-  OIDC_LOGOUT_URL: z.string().url().optional(),
+  OIDC_LOGOUT_URL: z.preprocess(
+    (value) => (value === "" ? undefined : value),
+    z.string().url().optional(),
+  ),
   OIDC_ALLOWED_DOMAINS: z.string().optional(),
   OIDC_STATE_SECRET: z.preprocess(
     (value) => (value === "" ? undefined : value),
@@ -73,6 +95,23 @@ const schema = z.object({
   STRIPE_PRICE_TEAM: z.string().optional(),
   STRIPE_PRICE_GROWTH: z.string().optional(),
   STRIPE_PORTAL_RETURN_URL: z.string().optional(),
+  EMAIL_PROVIDER: z.enum(["disabled", "resend"]).default("disabled"),
+  EMAIL_API_KEY: z.preprocess(
+    (value) => (value === "" ? undefined : value),
+    z.string().optional(),
+  ),
+  EMAIL_FROM: z.preprocess(
+    (value) => (value === "" ? undefined : value),
+    z.string().optional(),
+  ),
+  EMAIL_REPLY_TO: z.preprocess(
+    (value) => (value === "" ? undefined : value),
+    z.string().email().optional(),
+  ),
+  EMAIL_APP_URL: z.preprocess(
+    (value) => (value === "" ? undefined : value),
+    z.string().url().optional(),
+  ),
 });
 
 const validatedSchema = schema.superRefine((value, ctx) => {

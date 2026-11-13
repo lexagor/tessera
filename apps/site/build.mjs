@@ -41,6 +41,8 @@ const EXCLUDED_FILES = new Set([
   "interview-guide.md",
   "governance-plane-plan.md",
   "data-moat.md",
+  "due-diligence.md",
+  "hardening-report.md",
 ]);
 
 rmSync(OUT, { recursive: true, force: true });

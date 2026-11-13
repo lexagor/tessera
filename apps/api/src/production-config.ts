@@ -16,6 +16,12 @@ export interface ProductionConfigInput {
   SESSION_COOKIE_NAME?: string;
   BROKER_ADMIN_KEY?: string;
   BROKER_ADMIN_TOKEN?: string;
+  EMAIL_PROVIDER?: string;
+  EMAIL_API_KEY?: string;
+  EMAIL_FROM?: string;
+  EVIDENCE_S3_BUCKET?: string;
+  EVIDENCE_S3_ACCESS_KEY?: string;
+  EVIDENCE_S3_SECRET_KEY?: string;
 }
 
 const DEV_SECRETS = new Set([
@@ -105,6 +111,18 @@ export function productionConfigProblems(config: ProductionConfigInput): string[
   }
   if (config.SESSION_COOKIE_NAME && !config.SESSION_COOKIE_NAME.startsWith("__Host-")) {
     problems.push("SESSION_COOKIE_NAME must use the __Host- prefix in production");
+  }
+  if (config.EMAIL_PROVIDER && config.EMAIL_PROVIDER !== "disabled") {
+    if (config.EMAIL_PROVIDER !== "resend") {
+      problems.push("EMAIL_PROVIDER must be disabled or resend");
+    }
+    if (!config.EMAIL_API_KEY) problems.push("EMAIL_API_KEY is required when EMAIL_PROVIDER is enabled");
+    if (!config.EMAIL_FROM) problems.push("EMAIL_FROM is required when EMAIL_PROVIDER is enabled");
+  }
+  if (config.EVIDENCE_S3_BUCKET) {
+    if (!config.EVIDENCE_S3_ACCESS_KEY || !config.EVIDENCE_S3_SECRET_KEY) {
+      problems.push("EVIDENCE_S3_ACCESS_KEY and EVIDENCE_S3_SECRET_KEY are required when EVIDENCE_S3_BUCKET is set");
+    }
   }
 
   return problems;

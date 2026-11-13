@@ -177,8 +177,29 @@ ENV_FILE=.env VPS_IP=<vps-ip> sh infra/scripts/vps-preflight.sh
 
 This checks required variables, broker admin token equality, API-key shape, Docker Compose, free
 memory/disk, DNS A records, and port availability without printing secret values. It does not
-perform a live broker admin authentication call. On an
+perform a live broker admin authentication call. After migrations, run
+`infra/scripts/check-rls.sh`; it is also run in CI. On an
 already-running host, set `TESSERA_SKIP_PORT_CHECK=1` to avoid the expected 80/443 warning.
+
+
+Optional email and evidence storage settings:
+
+```bash
+EMAIL_PROVIDER=resend
+EMAIL_API_KEY=...
+EMAIL_FROM=Tessera <notifications@thetessera.xyz>
+EMAIL_REPLY_TO=partners@thetessera.xyz
+EVIDENCE_S3_BUCKET=tessera-evidence
+EVIDENCE_S3_REGION=eu-central-1
+EVIDENCE_S3_ENDPOINT=            # blank for AWS; set for S3-compatible storage
+EVIDENCE_S3_ACCESS_KEY=...
+EVIDENCE_S3_SECRET_KEY=...
+EVIDENCE_S3_PREFIX=evidence
+EVIDENCE_S3_FORCE_PATH_STYLE=0
+```
+
+Leave `EMAIL_PROVIDER` empty/disabled to keep the manual invite-link flow. Leave the
+`EVIDENCE_S3_*` bucket empty to use the local evidence volume.
 
 ## Smoke checks
 

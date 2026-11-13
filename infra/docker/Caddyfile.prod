@@ -17,6 +17,9 @@
 	encode gzip
 	tls {$ACME_EMAIL}
 	import security_headers
+	request_body {
+		max_size 10MB
+	}
 
 	handle /app {
 		redir https://{$APP_DOMAIN}/ 308
@@ -43,6 +46,9 @@
 	encode gzip
 	tls {$ACME_EMAIL}
 	import security_headers
+	request_body {
+		max_size 10MB
+	}
 
 	handle /v1/* {
 		reverse_proxy api:8788
@@ -68,6 +74,9 @@
 	encode gzip
 	tls {$ACME_EMAIL}
 	import security_headers
+	request_body {
+		max_size 10MB
+	}
 
 	handle /verify/* {
 		reverse_proxy verify:8080

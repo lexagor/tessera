@@ -48,7 +48,7 @@ automation, fintech ops, health admin, procurement, dev tools, sales ops).
 if the deal is large enough.
 
 **Why this buyer:** the purchase unblocks revenue, the technical buyer appreciates the proof,
-the approval path is short, and $1,500–$3,500/month fits an existing security/sales budget.
+the approval path is short, and a scoped pilot budget can be approved without a new platform procurement cycle.
 
 **Secondary:** regulated mid-market firms (fintech, insurance, health) that need an
 action-level audit trail and cannot afford a Big-4 integration.
@@ -78,10 +78,11 @@ open verifier; 10-minute integration; evidence mapped to the controls a reviewer
 | "Our customers don't ask for cryptographic proof." | They ask for audit trails, attribution, and retention. Tessera delivers those in a form their security team can verify. Cryptography is the how, not the what. |
 | "You're a solo founder." | The core is open source, the verifier is independent, the security docs and test suite are public, and we will do a joint security review with your team. |
 
-## Pricing
+## Billing status
 
-See [`pricing.md`](pricing.md). Land at $1,500/month (annualized ~$18k ACV), expand to
-$3,500/month, enterprise at $40k+/year. Do not price per seat.
+Billing is not enabled in the current design-partner deployment. See
+[`pricing.md`](pricing.md). Commercial terms are agreed after the pilot; do not publish a
+public price until checkout and support are live.
 
 ## What Tessera is not
 
@@ -97,15 +98,14 @@ hash chains, and offline verification.
 | 1–3 | Technical proof | Receipt v2, open verifier, tamper demo |
 | 3–6 | Design partners | 3 instrumented actions; verification page; tabletop security review |
 | 6–8 | Evidence | Evidence pack accepted by one security reviewer |
-| 8–10 | Convert | First paid pilot at $1,500/month |
+| 8–10 | Convert | Agree commercial terms for the first paid pilot |
 | 10–12 | Repeat | Second paid pilot; go/no-go on pre-seed or bootstrap |
 
-**Go criteria:** 20 interviews by day 30, 3 design partners by day 60, 2 paid pilots by day 90,
+**Go criteria:** 20 interviews by day 30, 3 design partners by day 60, 2 paid-pilot commitments by day 90,
 one security reviewer accepts the evidence pack, one case study approved.
 
 **Kill criteria (fallback if any two):** fewer than 3 of 20 interviews say security review is
-a top-3 blocker; fewer than 2 design partners will instrument; no partner will pay
-$1,500/month after a successful pilot; integration takes more than 2 days; an incumbent ships
+a top-3 blocker; fewer than 2 design partners will instrument; no partner will agree commercial terms after a successful pilot; integration takes more than 2 days; an incumbent ships
 vendor-side, offline-verifiable action receipts before day 90.
 
 **Fallback:** the fintech action-control wedge (same broker, Stripe adapter, quotas), or

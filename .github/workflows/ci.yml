@@ -81,6 +81,15 @@ jobs:
       - run: cargo fmt --all -- --check
       - run: cargo clippy --all-targets -- -D warnings
       - run: cargo test --all-targets
+      - name: Reapply RLS policies for the verification step
+        run: cargo test --test rls_postgres
+      - name: Install Postgres client for RLS check
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq postgresql-client
+      - name: Verify RLS policies
+        env:
+          DATABASE_URL: postgres://tessera:tessera@127.0.0.1:5432/tessera_test
+          RLS_REQUIRE_TABLES: "1"
+        run: sh ../../infra/scripts/check-rls.sh
       - run: cargo bench --no-run
 
   contracts:

@@ -61,20 +61,19 @@ provider adapters and an open verifier.
 - Broker implemented: authorize, Stripe/GitHub/AWS STS adapters, signed receipts, hash chains,
   Merkle anchoring, revocation, quotas, KMS signing, independent verifier.
 - 322 Rust tests; cross-language hashing parity with the TypeScript SDK.
-- Receipt v2, the control plane, evidence portal, public site, and Auth0 login are live; billing and design-partner evidence are the remaining rollout work.
+- Receipt v2, the control plane, evidence portal, public site, and Auth0 login are live; billing is disabled and design-partner evidence is the remaining rollout work.
 - **Pre-revenue.** Recruiting design partners.
 
 ## Business model
 
-Platform fee + included volume + overage. Land at $1,500/month (annualized ~$18k ACV),
-expand to $3,500/month with environments and evidence packs; enterprise at $40k+/year for
-VPC/HSM/DPA. Not per seat.
+Billing is disabled in the current design-partner deployment. Commercial terms are scoped
+after a successful pilot; no public price list is published yet. Not per seat.
 
 ## The ask
 
 - **Design partners:** AI-native teams with one consequential agent action to instrument.
-  Free 6-week pilot; convert to $1,500/month.
-- **Investors:** pre-seed to reach repeatable paid pilots; the model targets ~$550k ARR by
+  Free 6-week pilot; commercial terms follow the pilot.
+- **Investors:** pre-seed to reach repeatable paid pilots; the model targets paid-pilot conversion by
   year two.
 
 **Contact:** founders@thetessera.xyz

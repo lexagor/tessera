@@ -40,9 +40,28 @@ is not included.
 | SSH / host firewall | Implemented | Non-root deploy user, key-only auth, root `prohibit-password`, UFW, fail2ban active; root key break-glass remains |
 | Cloud KMS/HSM + pen test | Not started | External dependency |
 
+## P1 implementation snapshot
+
+| Area | Status | Evidence |
+|---|---|---|
+| Evidence object storage | Code complete; optional | S3-compatible SigV4 adapter with local fallback; `EVIDENCE_S3_*`; no production bucket configured |
+| Transactional email | Code complete; disabled | Resend HTTP adapter for invites/deletion notices; `EMAIL_PROVIDER=resend`; no live provider key |
+| Tenant lifecycle | Code + runbook | JSON export, 30-day deletion request/cancel, retention setting; operator purge in `docs/data-lifecycle.md` |
+| RLS automation | Implemented | `infra/scripts/check-rls.sh`; CI RLS step; 9 live broker tables verified |
+| Control-plane RLS | Design only | `docs/control-plane-rls.md`; not enabled |
+| Dependency updates | Config added | `renovate.json`, `docs/dependency-updates.md`; Renovate app installation pending |
+| Load testing | Harness added | `scripts/load/authorize.mjs`, `docs/load-testing.md`; no staging host yet |
+| Staging/rollback | Config + runbook | `docker-compose.staging.yml`, `docs/staging-rollback.md`; separate host/Auth0 app pending |
+| Legal/trust | Published working docs | Privacy, terms, DPA, subprocessors, security contact targets; counsel/entity details pending |
+| Billing messaging | Public prices removed | Billing remains disabled; site/docs no longer advertise a live price |
+| WAF/DDoS | Partial | Caddy request-body cap and API rate limits; managed WAF/DDoS not deployed |
+| Auth0 custom domain/email | Runbook only | Requires tenant admin access |
+| KMS/HSM | Bridge/runbook; not migrated | Live still uses in-process key |
+| `www` DNS | Documented | Intentionally absent; redirect if added |
+
 ## Verification snapshot
 
-- API: 25 tests passing with local Postgres.
+- API: 32 tests passing with local Postgres.
 - Broker: 144 unit tests plus all integration suites passing; `cargo fmt` and `cargo clippy -D warnings` clean.
 - Workspace: `pnpm typecheck`, `pnpm test`, `pnpm lint` passing.
 - Redis limiter: allow/allow/deny verified against local Redis.
@@ -53,7 +72,7 @@ is not included.
 - Multi-replica: two brokers handled 20 concurrent authorizes with a verified 20-entry chain and elected one scheduler leader; two APIs shared the Redis auth limit and delivered one webhook exactly once.
 - Helm chart rendered successfully with `helm template` (3 manifests, no Ingress).
 - CI Security workflow built and Trivy-scanned API and broker images successfully.
-- CI, Security, Images, and SBOM are green on `b5add27c`; Uptime manual run passed.
+- CI, Security, Images, and SBOM are green on `b5add27c`; Uptime manual run passed. P1 CI/RLS checks are pending the P1 commit.
 - Caddy production config validates.
 - Production compose config validates with a complete secret set.
 - `pnpm install --frozen-lockfile` passes.

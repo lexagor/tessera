@@ -88,3 +88,11 @@ After restore:
   Rotating it without re-encryption makes stored credentials unreadable.
 - Evidence archives are not pruned by the API. Apply the documented retention policy and keep
   backups outside the live volume.
+
+## S3 evidence storage
+
+If `EVIDENCE_S3_BUCKET` is configured, evidence packs are written to the bucket and the local
+`docker_evidence` archive is not the source of truth. Back up the bucket with versioning and
+replication (or an object-store lifecycle policy), test object restore separately, and keep the
+Postgres dump with the bucket snapshot. The control-plane dump stores an `s3://bucket/key`
+locator for each pack; restoring the database without the bucket loses archive downloads.

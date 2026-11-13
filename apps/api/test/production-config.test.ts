@@ -58,3 +58,14 @@ test("production config rejects missing OIDC, known secrets, and non-HTTPS URLs"
   assert.ok(problems.some((problem) => problem.includes("TESSERA_AUTHORITY_HMAC_SECRET")));
   assert.ok(problems.some((problem) => problem.includes("__Host-")));
 });
+
+test("production config rejects enabled email or S3 without required values", () => {
+  const problems = productionConfigProblems({
+    ...valid,
+    EMAIL_PROVIDER: "resend",
+    EVIDENCE_S3_BUCKET: "tessera-evidence",
+  });
+  assert.ok(problems.some((problem) => problem.includes("EMAIL_API_KEY")));
+  assert.ok(problems.some((problem) => problem.includes("EMAIL_FROM")));
+  assert.ok(problems.some((problem) => problem.includes("EVIDENCE_S3_ACCESS_KEY")));
+});

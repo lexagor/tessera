@@ -19,6 +19,9 @@ export interface Org {
   name: string;
   slug: string;
   plan: string;
+  retention_days?: number;
+  deletion_requested_at?: string | null;
+  deletion_scheduled_for?: string | null;
 }
 
 export interface Environment {

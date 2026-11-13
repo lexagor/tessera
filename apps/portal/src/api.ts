@@ -1,6 +1,14 @@
 export interface Me {
   user: { id: string; email: string; name: string | null };
-  org: { id: string; name: string; slug: string; plan: string };
+  org: {
+    id: string;
+    name: string;
+    slug: string;
+    plan: string;
+    retention_days?: number;
+    deletion_requested_at?: string | null;
+    deletion_scheduled_for?: string | null;
+  };
   role: "owner" | "admin" | "member" | "viewer";
   environments: Array<{ id: string; name: string; slug: string; broker_tenant: string }>;
 }

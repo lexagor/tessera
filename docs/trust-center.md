@@ -19,8 +19,8 @@ trusting Tessera or the vendor.
 | Evidence | EIP-712 signed authorization + linked outcome records; broker-observed proxy outcomes; hash chains |
 | Verification | Offline verifier for v1/v2 receipts, action pairs, chains, and Merkle proofs |
 | Human authority | OIDC session can bind an agent key; the API mints short-lived HS256 tokens; the broker verifies issuer/audience, tenant/agent scope, expiry, and replay, then records `hmac-jwt` |
-| Tenancy | Tenant-scoped broker stores; Postgres RLS available for shared databases |
-| Secrets | Provider secrets stay in the broker; Stripe grants envelope-encrypted at rest |
+| Tenancy | Tenant-scoped stores; broker RLS forced on 9 tables; control-plane isolation is application-enforced (RLS design only) |
+| Secrets | Provider secrets are encrypted at rest; Stripe grants are envelope-encrypted in the broker |
 | Keys | Per-environment broker keys encrypted in the control plane; agent keys hashed |
 | Access | Auth0 OIDC with first-admin bootstrap and `@thetessera.xyz` domain allowlist; invites for external workspaces; HttpOnly sessions, RBAC, origin checks, audit log |
 | Evidence export | Signed tenant archive with receipts, policy versions, authority transitions, key events, anchors |
@@ -43,6 +43,8 @@ account. Revoking the link does not alter the underlying records.
   the broker.
 - Evidence packs are generated on demand and can be stored in S3-compatible object storage.
 - Secrets are redacted from logs and debug output.
+- Tenant export, deletion requests, retention settings, and the operator purge runbook are
+  documented in [`data-lifecycle.md`](data-lifecycle.md).
 
 ## Current limitations
 
@@ -54,13 +56,19 @@ account. Revoking the link does not alter the underlying records.
   is per-process, so multi-replica deployments must configure Redis for cross-replica replay
   protection.
 - The control plane is deployed on a single VPS for the first design partners.
+- Control-plane RLS is a design, not an enabled control; see
+  [`control-plane-rls.md`](control-plane-rls.md).
 
 ## Subprocessors and infrastructure
 
-- Hosting: operator-selected VPS (first pilots); Postgres, Redis, and optional S3-compatible
-  object storage.
-- Identity: the customer's OIDC provider.
+- Hosting: IONOS VPS (European Union); Postgres, Redis, and optional S3-compatible object
+  storage.
+- Identity: Auth0 for the hosted service; customer-owned enterprise SSO is future work.
+- Email: optional Resend transactional email.
 - No model provider receives customer action data from Tessera.
+
+See [`subprocessors.md`](subprocessors.md), [`privacy.md`](privacy.md), [`terms.md`](terms.md),
+and [`dpa.md`](dpa.md).
 
 ## Contact
 

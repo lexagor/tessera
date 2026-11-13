@@ -5,6 +5,7 @@ set -eu
 ENV_FILE="${ENV_FILE:-/opt/tessera/infra/docker/.env}"
 BASE_URL="${BASE_URL:-https://app.thetessera.xyz}"
 BACKUP_DIR="${BACKUP_DIR:-/var/backups/tessera}"
+POSTGRES_CONTAINER="${POSTGRES_CONTAINER:-docker-postgres-1}"
 [ -r "$ENV_FILE" ] && { set -a; . "$ENV_FILE"; set +a; }
 
 failed=0

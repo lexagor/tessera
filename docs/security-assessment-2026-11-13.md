@@ -31,6 +31,8 @@ prohibit-password`, and `KbdInteractiveAuthentication no`. `sshd -T` now reports
 - **Hono** and `@hono/node-server` were updated to 4.13.18 / 2.1.8; middleware/static-path
   advisories no longer apply to the production API.
 - **React Router** was updated to 7.18.5; portal tests pass.
+- **Vite** was updated to 6.4.6 (dev server only), clearing the Vite/source-map-js advisories.
+  `pnpm audit --prod` now leaves only the non-deployed LangChain/Vercel example Zod finding.
 
 ### Medium — identity/domain hardening gaps
 
@@ -102,7 +104,8 @@ test, SOC 2 opinion, or proof that no vulnerabilities exist.
   possible. API/Actions tokens have `repo`/`workflow` scopes; no admin token is assumed.
 - During this assessment, **secret scanning, push protection, and Dependabot security updates**
   were enabled for the repository. Secret scanning reported no live credentials; source review
-  found only test/demo placeholders.
+  found only test/demo placeholders. Dependabot initially reported 10 open alerts; the remaining
+  high finding is confined to non-deployed LangChain/Vercel examples.
 - Workflows pin actions by commit SHA, but GitHub's `sha_pinning_required` setting is off. The
   repository's Actions policy allows all actions.
 - Dependabot version updates are active; a high advisory remains only in the non-deployed LangChain

@@ -20,6 +20,18 @@ psql "$DATABASE_URL" -c 'SELECT count(*) FROM users;'
 The restore must include migration `013` or later, RLS policies, and a valid `tessera_app` role.
 Run `infra/scripts/check-rls.sh` against the restored database before exposing it.
 
+## Encrypted bundle restore
+
+```bash
+BACKUP_FILE=/var/backups/tessera/tessera-backup-<stamp>.tar.gz.enc \
+BACKUP_ENCRYPTION_PASSPHRASE=... \
+POSTGRES_CONTAINER=docker-postgres-1 POSTGRES_PASSWORD=... \
+infra/scripts/verify-encrypted-backup.sh
+```
+
+This restores into a disposable database, checks migrations and forced RLS, and validates the
+evidence archive. It is non-destructive.
+
 ## Evidence restore
 
 ```bash

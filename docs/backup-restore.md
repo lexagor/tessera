@@ -30,14 +30,37 @@ infra/scripts/backup.sh
 Schedule it from the host or a sidecar. Keep the dump and evidence archive together; an
 archive without its evidence volume is incomplete.
 
-## Offsite copy
+## Encrypted bundle and offsite copy
 
-Set `BACKUP_OFFSITE_DIR` to a mounted remote/backup target to have the script copy the dump,
-evidence archive, and SHA-256 manifest there. For example, with an operator-installed
-`rclone`:
+Set `BACKUP_ENCRYPTION_PASSPHRASE` to produce an AES-256 encrypted bundle alongside the local
+dump/evidence archives. If `BACKUP_OFFSITE_DIR` is set, the script now **requires** encryption
+and copies only the encrypted bundle plus its SHA-256 manifest:
 
 ```bash
-rclone copy /var/backups/tessera remote:tessera-backups/$(date -u +%Y/%m/%d) --immutable
+BACKUP_ENCRYPTION_PASSPHRASE="$(openssl rand -hex 32)" \
+BACKUP_OFFSITE_DIR=/mnt/backup-target \
+infra/scripts/backup-docker.sh
+```
+
+Store the passphrase outside the backup target. Verify the bundle without touching production:
+
+```bash
+BACKUP_FILE=/var/backups/tessera/tessera-backup-<stamp>.tar.gz.enc \
+BACKUP_ENCRYPTION_PASSPHRASE=... \
+POSTGRES_CONTAINER=docker-postgres-1 POSTGRES_PASSWORD=... \
+infra/scripts/verify-encrypted-backup.sh
+```
+
+The verifier decrypts the bundle, restores Postgres into a disposable database, checks migrations
+and forced RLS, and lists the evidence archive. It removes the disposable database on exit.
+
+## Offsite copy
+
+For an external copy managed outside the script, copy the encrypted bundle and its manifest
+with an operator-installed `rclone`:
+
+```bash
+rclone copy /var/backups/tessera/tessera-backup-<stamp>.tar.gz.enc remote:tessera-backups/$(date -u +%Y/%m/%d) --immutable
 ```
 
 Do not put long-lived storage credentials in the application containers. Use a host-level

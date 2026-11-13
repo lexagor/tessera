@@ -10,7 +10,7 @@ export interface TrustEntity {
 }
 
 export interface EnforcementView {
-  level: "Level 1" | "Level 2" | "Caller-asserted";
+  level: "Level 1" | "Level 2" | "Caller-asserted" | "Policy denial";
   label: string;
   detail: string;
 }
@@ -113,14 +113,16 @@ export function buildTrustView(input: {
     {
       id: "credential",
       label: "Credential",
-      title: String(credential.credentialType ?? credential.issuer ?? "No credential"),
+      title: String(credential.credentialType ?? credential.issuer ?? (authorization.authorization?.decision === "deny" ? "No credential issued" : "No credential")),
       detail: [
         credential.issuer ? `Issuer ${credential.issuer}` : null,
         credential.ttlSeconds ? `${credential.ttlSeconds}s TTL` : null,
         credential.singleUse ? "single use" : null,
       ].filter(Boolean).join(" · ") || "Credential binding recorded",
       hash: credential.thumbprint,
-      state: credential.thumbprint || credential.issuer ? "valid" : "warning",
+      state: authorization.authorization?.decision === "deny"
+        ? "missing"
+        : credential.thumbprint || credential.issuer ? "valid" : "warning",
     },
     {
       id: "outcome",
@@ -152,7 +154,13 @@ export function buildTrustView(input: {
   const outcomeStatus = String(outcomeRef.status ?? "not recorded");
   const brokerObserved = outcomeRef.source === "broker_observed";
   const brokerHeld = credential.credentialType === "broker_grant" || Boolean(credential.thumbprint);
-  const enforcement: EnforcementView = brokerObserved
+  const enforcement: EnforcementView = decision === "deny"
+    ? {
+        level: "Policy denial",
+        label: "Denied by policy",
+        detail: "The broker denied this exact call; no credential was issued and no provider call was made.",
+      }
+    : brokerObserved
     ? {
         level: "Level 1",
         label: "Level 1 · broker-proxied",
@@ -177,7 +185,9 @@ export function buildTrustView(input: {
           };
   return {
     entities,
-    summary: `${enforcement.label}. ${entities[3]?.title ?? "The agent"} acted for ${entities[0]?.title ?? "a principal"} through ${entities[4]?.title ?? "a tool"}.`,
+    summary: decision === "deny"
+      ? `${enforcement.label}. ${entities[3]?.title ?? "The agent"} was denied for ${entities[0]?.title ?? "a principal"} on ${entities[4]?.title ?? "a tool"}.`
+      : `${enforcement.label}. ${entities[3]?.title ?? "The agent"} acted for ${entities[0]?.title ?? "a principal"} through ${entities[4]?.title ?? "a tool"}.`,
     decision,
     outcome: outcomeStatus,
     enforcement,

@@ -72,3 +72,18 @@ test("extractRecords supports direct receipts and chains", () => {
   assert.equal(chain.chainLength, 2);
   assert.equal(chain.authorization?.nonce, "0x02");
 });
+
+test("labels a denial as policy-denial, not an executed action", () => {
+  const denial = buildTrustView({
+    authorization: {
+      ...fixture.receipt,
+      authorization: { ...fixture.receipt.authorization, decision: "deny" },
+      credential: {},
+      grant: { ...fixture.receipt.grant, status: "denied", ttlS: 0 },
+    },
+    verification: { valid: true, recovered: fixture.expectedSigner },
+  });
+  assert.equal(denial.enforcement.level, "Policy denial");
+  assert.equal(denial.entities.find((entity) => entity.id === "credential")?.state, "missing");
+  assert.match(denial.summary, /denied/);
+});

@@ -51,6 +51,10 @@ const linkPanel = $<HTMLElement>("link-panel");
 const linkTitle = $<HTMLElement>("link-title");
 const linkSummary = $<HTMLElement>("link-summary");
 const linkFacts = $<HTMLElement>("link-facts");
+const linkRecord = $<HTMLElement>("link-record");
+const linkProofNote = $<HTMLElement>("link-proof-note");
+const downloadProof = $<HTMLButtonElement>("download-proof");
+const copyProof = $<HTMLButtonElement>("copy-proof");
 const trustPanel = $<HTMLElement>("trust-panel");
 const trustSummary = $<HTMLElement>("trust-summary");
 const enforcement = $<HTMLElement>("enforcement");
@@ -61,6 +65,7 @@ const tamperNote = $<HTMLElement>("tamper-note");
 
 let originalInput: string | null = null;
 let tampered = false;
+let currentProof: Record<string, any> | null = null;
 
 function escapeHtml(value: unknown): string {
   return String(value ?? "").replace(/[&<>"']/g, (character) => {
@@ -120,7 +125,7 @@ function renderTrust(
   });
   trustPanel.hidden = false;
   enforcement.hidden = false;
-  enforcement.className = `enforcement ${view.enforcement.level === "Level 1" ? "level-1" : view.enforcement.level === "Level 2" ? "level-2" : "caller"}`;
+  enforcement.className = `enforcement ${view.enforcement.level === "Level 1" ? "level-1" : view.enforcement.level === "Level 2" ? "level-2" : view.enforcement.level === "Policy denial" ? "denied" : "caller"}`;
   enforcement.textContent = view.enforcement.label;
   trustSummary.textContent = `${view.enforcement.detail} ${view.summary}`;
   trustFlow.innerHTML = view.entities
@@ -302,9 +307,18 @@ async function loadVerificationLink(token: string): Promise<void> {
     const principal = authorization?.principal as Record<string, any> | undefined;
     const policy = authorization?.policy as Record<string, any> | undefined;
     const valid = body.verification.valid;
-    linkTitle.textContent = valid ? "Valid action record" : "Record could not be verified";
+    const decision = String(authorization?.authorization?.decision ?? authorization?.policy?.decision ?? "unknown");
+    const isDenial = decision === "deny";
+    linkTitle.textContent = valid ? (isDenial ? "Valid policy-denial record" : "Valid action record") : "Record could not be verified";
     linkTitle.style.color = valid ? "var(--accent)" : "var(--bad)";
-    linkSummary.textContent = `${authorization?.agent ?? "The agent"} acted for ${principal?.principalId ?? authorization?.user ?? "a principal"} through ${authorization?.call?.tool ?? "a tool"}.`;
+    linkSummary.textContent = isDenial
+      ? `${authorization?.agent ?? "The agent"} was denied for ${principal?.principalId ?? authorization?.user ?? "a principal"} on ${authorization?.call?.tool ?? "a tool"} by policy ${policy?.policyId ?? "—"} v${policy?.policyVersion ?? "—"}.`
+      : `${authorization?.agent ?? "The agent"} acted for ${principal?.principalId ?? authorization?.user ?? "a principal"} through ${authorization?.call?.tool ?? "a tool"}.`;
+    linkProofNote.textContent = isDenial
+      ? "This signed record proves the policy decision and the exact call it evaluated. No credential was issued and no provider call was made."
+      : "The signed JSON below is the portable proof. Download it and verify it offline with the open-source verifier.";
+    currentProof = body.records;
+    linkRecord.textContent = JSON.stringify(body.records, null, 2);
     linkFacts.append(
       fact("Decision", String(authorization?.authorization?.decision ?? "—")),
       fact("Outcome", String(outcome?.outcome?.status ?? "not recorded")),
@@ -327,6 +341,28 @@ async function loadVerificationLink(token: string): Promise<void> {
     linkSummary.textContent = error instanceof Error ? error.message : String(error);
   }
 }
+
+downloadProof.addEventListener("click", () => {
+  if (!currentProof) return;
+  const actionId = String((currentProof.authorization as Record<string, any> | undefined)?.actionId ?? "record");
+  const blob = new Blob([JSON.stringify(currentProof, null, 2)], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement("a");
+  anchor.href = url;
+  anchor.download = `tessera-proof-${actionId}.json`;
+  anchor.click();
+  URL.revokeObjectURL(url);
+});
+copyProof.addEventListener("click", async () => {
+  if (!currentProof) return;
+  try {
+    await navigator.clipboard.writeText(JSON.stringify(currentProof, null, 2));
+    copyProof.textContent = "Copied";
+    setTimeout(() => { copyProof.textContent = "Copy proof JSON"; }, 1500);
+  } catch {
+    copyProof.textContent = "Copy failed";
+  }
+});
 
 const linkToken = window.location.pathname.match(/^\/verify\/([^/]+)$/)?.[1];
 if (linkToken) void loadVerificationLink(linkToken);

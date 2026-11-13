@@ -1,0 +1,48 @@
+name: Uptime
+
+on:
+  schedule:
+    - cron: "*/5 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check public endpoints
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -eu
+          failed=0
+          for target in \
+            "site|https://thetessera.xyz/" \
+            "api-health|https://app.thetessera.xyz/healthz" \
+            "api-ready|https://app.thetessera.xyz/readyz" \
+            "verifier|https://verify.thetessera.xyz/verify/"
+          do
+            name="${target%%|*}"
+            url="${target#*|}"
+            code="$(curl -L -sS -o /dev/null -w '%{http_code}' --max-time 20 "$url" || true)"
+            echo "$name $url -> $code"
+            if [ "$code" != "200" ]; then failed=1; fi
+          done
+
+          title="Production uptime check failed"
+          issue="$(gh issue list --state open --search "$title in:title" --json number --jq '.[0].number // empty')"
+          if [ "$failed" = "1" ]; then
+            if [ -n "$issue" ]; then
+              gh issue comment "$issue" --body "A scheduled check failed at $(date -u +%FT%TZ)."
+            else
+              gh issue create --title "$title" --body "A scheduled public endpoint check failed at $(date -u +%FT%TZ). Inspect the VPS and /readyz."
+            fi
+            exit 1
+          fi
+          if [ -n "$issue" ]; then
+            gh issue close "$issue" --comment "All scheduled public endpoint checks passed at $(date -u +%FT%TZ)."
+          fi

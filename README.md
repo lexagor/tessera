@@ -28,7 +28,7 @@ Provider API / proxy                 EIP-712 signed receipt
                               Public verifier / evidence pack
 ```
 
-Status: **broker + control plane + portal implemented; hosted hardening in progress.** The
+Status: **live at `thetessera.xyz` with Auth0 login; Stripe billing and design partners are the next rollout items.** The
 Rust broker ships the authorize → broker → receipt → chain → verify loop with provider
 adapters, broker-observed proxy outcomes, authority transitions, revocation, KMS/HSM bridge
 signing, quotas, and 300+ tests. The control plane (`apps/api`) and tenant portal (`apps/portal`)
@@ -38,8 +38,8 @@ Agent Receipts v0.5 specification export, LangChain tool wrapping, and the MCP a
 implemented. Agent keys can be owner-bound to an OIDC-authenticated human or use a short-lived
 per-call authority token. The broker validates issuer/audience, tenant/agent scope, expiry, and
 single-use `jti`, supports `kid` key rotation, and records `verificationMethod: hmac-jwt`.
-Remaining hosted/distribution pieces are live Okta/Entra/Auth0 validation, Stripe billing
-launch, and public domain rollout. Pre-revenue; recruiting design partners.
+Auth0 is live; Stripe billing and design-partner evidence are the next distribution steps.
+Pre-revenue; recruiting design partners.
 
 ## Packages
 

@@ -4,10 +4,17 @@
 # This stack enables dev auth + demo broker mode for local evaluation; use the
 # production overlay/runbook for real OIDC, stable secrets, and public TLS.
 
+x-logging: &default-logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
 services:
   postgres:
     image: postgres:16-alpine@sha256:aa6cb33cf4c19c765cefcf48d96176258800870a9a1e930ad126200f9d825139
     restart: unless-stopped
+    logging: *default-logging
     environment:
       POSTGRES_USER: tessera
       POSTGRES_PASSWORD: tessera
@@ -23,13 +30,18 @@ services:
   redis:
     image: redis:7-alpine@sha256:7f7d30b7fdd09467bac58198a1f166dd69789d348d4fe859cccb20e0cf287fbe
     restart: unless-stopped
+    logging: *default-logging
+    command: ["redis-server", "--appendonly", "yes", "--appendfsync", "everysec"]
+    volumes:
+      - redisdata:/data
 
   broker:
     build:
       context: ../..
       dockerfile: infra/docker/Dockerfile.broker
-    image: ghcr.io/lexagor/tessera-broker:0.1.3
+    image: ${TESSERA_BROKER_IMAGE:-ghcr.io/lexagor/tessera-broker:0.1.3}
     restart: unless-stopped
+    logging: *default-logging
     security_opt:
       - no-new-privileges:true
     cap_drop:
@@ -64,8 +76,9 @@ services:
     build:
       context: ../..
       dockerfile: infra/docker/Dockerfile.api
-    image: ghcr.io/lexagor/tessera-api:0.1.3
+    image: ${TESSERA_API_IMAGE:-ghcr.io/lexagor/tessera-api:0.1.3}
     restart: unless-stopped
+    logging: *default-logging
     security_opt:
       - no-new-privileges:true
     cap_drop:
@@ -134,8 +147,9 @@ services:
     build:
       context: ../..
       dockerfile: infra/docker/Dockerfile.portal
-    image: ghcr.io/lexagor/tessera-portal:0.1.3
+    image: ${TESSERA_PORTAL_IMAGE:-ghcr.io/lexagor/tessera-portal:0.1.3}
     restart: unless-stopped
+    logging: *default-logging
     security_opt:
       - no-new-privileges:true
     cap_drop:
@@ -153,8 +167,9 @@ services:
     build:
       context: ../..
       dockerfile: infra/docker/Dockerfile.verify
-    image: ghcr.io/lexagor/tessera-verify:0.1.3
+    image: ${TESSERA_VERIFY_IMAGE:-ghcr.io/lexagor/tessera-verify:0.1.3}
     restart: unless-stopped
+    logging: *default-logging
     security_opt:
       - no-new-privileges:true
     cap_drop:
@@ -175,8 +190,9 @@ services:
     build:
       context: ../..
       dockerfile: infra/docker/Dockerfile.site
-    image: ghcr.io/lexagor/tessera-site:0.1.3
+    image: ${TESSERA_SITE_IMAGE:-ghcr.io/lexagor/tessera-site:0.1.3}
     restart: unless-stopped
+    logging: *default-logging
     security_opt:
       - no-new-privileges:true
     cap_drop:
@@ -195,6 +211,7 @@ services:
   caddy:
     image: caddy:2-alpine@sha256:78bd35025c7ba85961dd149ae670315129954e77abe2383ac47c89106b35ade9
     restart: unless-stopped
+    logging: *default-logging
     security_opt:
       - no-new-privileges:true
     pids_limit: 256
@@ -214,3 +231,4 @@ services:
 volumes:
   pgdata:
   evidence:
+  redisdata:

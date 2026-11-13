@@ -55,6 +55,7 @@ const schema = z.object({
   OIDC_CLIENT_ID: z.string().optional(),
   OIDC_CLIENT_SECRET: z.string().optional(),
   OIDC_REDIRECT_URI: z.string().optional(),
+  OIDC_LOGOUT_URL: z.string().url().optional(),
   OIDC_ALLOWED_DOMAINS: z.string().optional(),
   OIDC_STATE_SECRET: z.preprocess(
     (value) => (value === "" ? undefined : value),

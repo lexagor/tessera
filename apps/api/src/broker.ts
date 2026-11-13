@@ -17,6 +17,7 @@ export class BrokerError extends Error {
 
 interface EnvironmentWithKey extends Environment {
   broker_key_enc: string | null;
+  broker_key_id: string | null;
 }
 
 function brokerHeaders(environment?: EnvironmentWithKey): Record<string, string> {
@@ -63,16 +64,19 @@ async function request<T>(
   return body as T;
 }
 
-export async function createBrokerKey(tenant: string, name: string): Promise<string> {
+export async function createBrokerKey(
+  tenant: string,
+  name: string,
+): Promise<{ key: string; id: string | null }> {
   if (!env.BROKER_ADMIN_KEY) {
-    if (env.BROKER_DEMO_ALLOW) return "";
+    if (env.BROKER_DEMO_ALLOW) return { key: "", id: null };
     throw new BrokerError(
       "BROKER_ADMIN_KEY is not configured; create an environment key manually",
       503,
       null,
     );
   }
-  const body = await request<{ key: string }>("/v1/keys", {
+  const body = await request<{ key: string; record?: { id?: string } }>("/v1/keys", {
     method: "POST",
     body: JSON.stringify({
       tenant,
@@ -80,17 +84,21 @@ export async function createBrokerKey(tenant: string, name: string): Promise<str
       allowedCapabilities: ["authorize", "record", "proxy", "read"],
     }),
   });
-  return body.key;
+  return { key: body.key, id: body.record?.id ?? null };
 }
 
-export async function revokeBrokerKey(
-  environment: EnvironmentWithKey,
-  keyPrefix: string,
-): Promise<void> {
-  // The broker only exposes keys by id; deleting an environment is best-effort here.
-  // The environment key remains valid until rotated if this lookup is unavailable.
-  void environment;
-  void keyPrefix;
+export async function revokeBrokerKey(environment: EnvironmentWithKey): Promise<void> {
+  if (!environment.broker_key_id || !environment.broker_key_enc) return;
+  await request(
+    `/v1/keys/${encodeURIComponent(environment.broker_key_id)}`,
+    {
+      method: "DELETE",
+      headers: env.BROKER_ADMIN_TOKEN
+        ? { "x-tessera-admin": env.BROKER_ADMIN_TOKEN }
+        : {},
+    },
+    environment,
+  );
 }
 
 export function authorize(

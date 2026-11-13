@@ -61,7 +61,7 @@ provider adapters and an open verifier.
 - Broker implemented: authorize, Stripe/GitHub/AWS STS adapters, signed receipts, hash chains,
   Merkle anchoring, revocation, quotas, KMS signing, independent verifier.
 - 322 Rust tests; cross-language hashing parity with the TypeScript SDK.
-- Receipt v2, the control plane, and the evidence portal are implemented; hosted OIDC onboarding and billing are the remaining rollout work.
+- Receipt v2, the control plane, evidence portal, public site, and Auth0 login are live; billing and design-partner evidence are the remaining rollout work.
 - **Pre-revenue.** Recruiting design partners.
 
 ## Business model

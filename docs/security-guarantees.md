@@ -55,7 +55,7 @@ Use these labels in reviews and demos. They describe the evidence path, not a ce
   local state if no external evidence exists.
 - **Control-plane isolation is application- and database-enforced.** The broker has Postgres RLS
   for broker tables; the API runs tenant requests in transactions with `app.org_id` and forces
-  RLS on 18 control-plane tables. Auth bootstrap/cleanup use an explicit admin context. Both
+  RLS on 19 control-plane tables. Auth bootstrap/cleanup use an explicit admin context. Both
   paths have dedicated RLS tests.
 
 ## Failure behavior

@@ -15,6 +15,8 @@ type ScimEnv = {
 };
 
 const USER_SCHEMA = "urn:ietf:params:scim:schemas:core:2.0:User";
+const GROUP_SCHEMA = "urn:ietf:params:scim:schemas:core:2.0:Group";
+const GROUP_ROLE_EXTENSION = "urn:tessera:params:scim:schemas:extension:2.0:Group";
 const LIST_SCHEMA = "urn:ietf:params:scim:api:messages:2.0:ListResponse";
 const ERROR_SCHEMA = "urn:ietf:params:scim:api:messages:2.0:Error";
 const PATCH_SCHEMA = "urn:ietf:params:scim:api:messages:2.0:PatchOp";
@@ -99,6 +101,20 @@ scimRoutes.get("/ResourceTypes", (c) =>
         description: "Tessera workspace member",
         schema: USER_SCHEMA,
         schemaExtensions: [],
+      },
+      {
+        schemas: ["urn:ietf:params:scim:schemas:core:2.0:ResourceType"],
+        id: "Group",
+        name: "Group",
+        endpoint: "/Groups",
+        description: "Tessera role group",
+        schema: GROUP_SCHEMA,
+        schemaExtensions: [
+          {
+            schema: GROUP_ROLE_EXTENSION,
+            required: false,
+          },
+        ],
       },
     ],
   }),
@@ -279,6 +295,175 @@ scimRoutes.delete("/Users/:id", async (c) => {
      WHERE org_id = ${orgId} AND user_id = ${c.req.param("id")}
   `;
   if (result.count === 0) return scimError(c, 404, "User not found");
+  return c.body(null, 204);
+});
+
+async function orgUsers(orgId: string): Promise<Map<string, string>> {
+  const rows = await db()`
+    SELECT u.id, u.email
+      FROM memberships m JOIN users u ON u.id = m.user_id
+     WHERE m.org_id = ${orgId}
+  `;
+  return new Map(rows.map((row) => [String(row.id), String(row.email)]));
+}
+
+function groupRole(body: Record<string, any>): ScimRole {
+  const extension = body[GROUP_ROLE_EXTENSION];
+  const raw = extension?.role ?? body.role;
+  return raw === "admin" || raw === "viewer" ? raw : "member";
+}
+
+function groupMemberIds(body: Record<string, any>): string[] {
+  const list = Array.isArray(body.members) ? body.members : [];
+  return Array.from(
+    new Set(
+      list
+        .map((member: any) => (typeof member === "string" ? member : member?.value))
+        .filter((value: unknown): value is string => typeof value === "string" && /^[0-9a-f-]{36}$/i.test(value)),
+    ),
+  );
+}
+
+function groupResource(row: Record<string, any>, users: Map<string, string>) {
+  const ids = Array.isArray(row.members) ? row.members.filter((value: unknown): value is string => typeof value === "string") : [];
+  return {
+    schemas: [GROUP_SCHEMA],
+    id: String(row.id),
+    displayName: String(row.display_name),
+    members: ids.map((id: string) => ({
+      value: id,
+      display: users.get(id) ?? id,
+      type: "User",
+    })),
+    meta: {
+      resourceType: "Group",
+      created: row.created_at,
+      lastModified: row.updated_at,
+      location: `/scim/v2/Groups/${String(row.id)}`,
+    },
+    [GROUP_ROLE_EXTENSION]: { role: String(row.role) },
+  };
+}
+
+async function applyGroupMembership(orgId: string, ids: string[], role: ScimRole): Promise<void> {
+  if (ids.length === 0) return;
+  for (const id of ids) {
+    const existing = await db()`
+      SELECT role FROM memberships WHERE org_id = ${orgId} AND user_id = ${id} LIMIT 1
+    `;
+    if (existing[0]?.role === "owner") continue;
+    if (existing[0]) {
+      await db()`UPDATE memberships SET role = ${role} WHERE org_id = ${orgId} AND user_id = ${id}`;
+    } else {
+      const user = await db()`SELECT 1 FROM users WHERE id = ${id} LIMIT 1`;
+      if (user[0]) {
+        await db()`
+          INSERT INTO memberships (org_id, user_id, role)
+          VALUES (${orgId}, ${id}, ${role})
+          ON CONFLICT (org_id, user_id) DO UPDATE SET role = EXCLUDED.role
+        `;
+      }
+    }
+  }
+}
+
+async function groupRow(orgId: string, id: string): Promise<Record<string, any> | undefined> {
+  const rows = await db()`
+    SELECT * FROM scim_groups WHERE org_id = ${orgId} AND id = ${id} LIMIT 1
+  `;
+  return rows[0] as Record<string, any> | undefined;
+}
+
+scimRoutes.get("/Groups", async (c) => {
+  const orgId = c.get("scimOrgId");
+  const rows = await db()`
+    SELECT * FROM scim_groups WHERE org_id = ${orgId} ORDER BY created_at
+  `;
+  const users = await orgUsers(orgId);
+  return c.json({
+    schemas: [LIST_SCHEMA],
+    totalResults: rows.length,
+    startIndex: 1,
+    itemsPerPage: rows.length,
+    Resources: rows.map((row) => groupResource(row as Record<string, any>, users)),
+  });
+});
+
+scimRoutes.get("/Groups/:id", async (c) => {
+  const orgId = c.get("scimOrgId");
+  const row = await groupRow(orgId, c.req.param("id"));
+  if (!row) return scimError(c, 404, "Group not found");
+  return c.json(groupResource(row, await orgUsers(orgId)));
+});
+
+scimRoutes.post("/Groups", async (c) => {
+  const orgId = c.get("scimOrgId");
+  const body = (await c.req.json().catch(() => null)) as Record<string, any> | null;
+  if (!body) return scimError(c, 400, "Invalid JSON body");
+  const displayName = typeof body.displayName === "string" ? body.displayName.trim() : "";
+  if (!displayName) return scimError(c, 400, "displayName is required");
+  const role = groupRole(body);
+  const id = uuid();
+  const memberIds = groupMemberIds(body);
+  await db()`
+    INSERT INTO scim_groups (id, org_id, display_name, role, members)
+    VALUES (${id}, ${orgId}, ${displayName}, ${role}, ${db().json(memberIds as never)})
+  `;
+  await applyGroupMembership(orgId, memberIds, role);
+  const row = await groupRow(orgId, id);
+  c.header("location", `/scim/v2/Groups/${id}`);
+  return c.json(groupResource(row as Record<string, any>, await orgUsers(orgId)), 201);
+});
+
+scimRoutes.patch("/Groups/:id", async (c) => {
+  const orgId = c.get("scimOrgId");
+  const id = c.req.param("id");
+  const row = await groupRow(orgId, id);
+  if (!row) return scimError(c, 404, "Group not found");
+  const body = (await c.req.json().catch(() => null)) as Record<string, any> | null;
+  if (!body?.schemas?.includes(PATCH_SCHEMA) && !Array.isArray(body?.Operations) && !Array.isArray(body?.operations)) {
+    return scimError(c, 400, "Expected a SCIM PatchOp body");
+  }
+  const operations = (body?.Operations ?? body?.operations ?? []) as Array<Record<string, any>>;
+  let displayName = String(row.display_name);
+  let role = String(row.role) as ScimRole;
+  let members = Array.isArray(row.members) ? row.members.filter((value: unknown): value is string => typeof value === "string") : [];
+  for (const operation of operations) {
+    const op = String(operation.op ?? "").toLowerCase();
+    const path = String(operation.path ?? "").toLowerCase();
+    const value = operation.value;
+    if (path === "displayname" || path === "displayName") {
+      if (typeof value === "string" && value.trim()) displayName = value.trim();
+    }
+    if (path === "role" || path === `${GROUP_ROLE_EXTENSION.toLowerCase()}.role`) {
+      role = groupRole({ role: value });
+    }
+    if (path === "members" || (path === "" && value?.members)) {
+      const raw = path === "" ? value.members : value;
+      const incoming = Array.isArray(raw)
+        ? raw.map((member: any) => (typeof member === "string" ? member : member?.value)).filter((item: unknown): item is string => typeof item === "string")
+        : [];
+      if (op === "add" || op === "replace") {
+        members = op === "replace" ? Array.from(new Set(incoming)) : Array.from(new Set([...members, ...incoming]));
+        await applyGroupMembership(orgId, incoming, role);
+      } else if (op === "remove") {
+        members = members.filter((member) => !incoming.includes(member));
+      }
+    }
+  }
+  await db()`
+    UPDATE scim_groups
+       SET display_name = ${displayName}, role = ${role}, members = ${db().json(members as never)}, updated_at = now()
+     WHERE org_id = ${orgId} AND id = ${id}
+  `;
+  await applyGroupMembership(orgId, members, role);
+  return c.json(groupResource((await groupRow(orgId, id)) as Record<string, any>, await orgUsers(orgId)));
+});
+
+scimRoutes.delete("/Groups/:id", async (c) => {
+  const orgId = c.get("scimOrgId");
+  const result = await db()`DELETE FROM scim_groups WHERE org_id = ${orgId} AND id = ${c.req.param("id")}`;
+  if (result.count === 0) return scimError(c, 404, "Group not found");
   return c.body(null, 204);
 });
 

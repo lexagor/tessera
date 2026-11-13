@@ -221,6 +221,7 @@ docs/              Architecture, threat model, receipt spec, controls, RFCs
 - [`docs/data-lifecycle.md`](docs/data-lifecycle.md) — export, deletion request, retention, and purge
 - [`docs/staging-rollback.md`](docs/staging-rollback.md) — staging and release rollback runbook
 - [`docs/load-testing.md`](docs/load-testing.md) — staging load harness
+- [`docs/monitoring.md`](docs/monitoring.md) — Prometheus/Grafana/host-health configuration
 - [`docs/dependency-updates.md`](docs/dependency-updates.md) — Renovate policy
 - [`docs/supply-chain.md`](docs/supply-chain.md) — signing, SBOM, CodeQL, Scorecard, and verification
 - [`docs/privacy.md`](docs/privacy.md), [`docs/terms.md`](docs/terms.md), [`docs/dpa.md`](docs/dpa.md), [`docs/subprocessors.md`](docs/subprocessors.md) — legal and data-processing terms

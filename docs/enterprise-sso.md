@@ -5,8 +5,10 @@
 - Auth0 OIDC login for the hosted service, with `@thetessera.xyz` domain allowlist and
   first-admin bootstrap.
 - SCIM 2.0 Users endpoint at `/scim/v2/Users` with an organization-scoped bearer token.
-- Supported SCIM operations: list/filter by `userName`, get, create, patch (`active`,
+- Supported SCIM users: list/filter by `userName`, get, create, patch (`active`,
   `name.formatted`, `roles`), and delete/remove membership.
+- Supported SCIM groups: list, create, patch members/display name, delete, with a Tessera role
+  extension (`admin`, `member`, `viewer`).
 - Token creation/revocation: `POST /v1/scim-tokens`, `DELETE /v1/scim-tokens/:id`.
 - SCIM role values: `admin`, `member`, `viewer`. Owner is not provisionable through SCIM.
 
@@ -38,12 +40,13 @@ The recommended model is Auth0 Organizations with an Enterprise connection per c
 2. Add the customer's SAML/OIDC enterprise connection and verify their domain.
 3. Enable organization discovery by email domain; require the organization on login.
 4. Map the customer's IdP groups to Tessera roles using Auth0 rules/actions or SCIM groups
-   (SCIM Groups are not yet implemented; map roles through SCIM Users for now).
+   with the Tessera SCIM Group role extension (or map roles through SCIM Users).
 5. Test JIT provisioning, deprovisioning, MFA, and domain takeover defenses.
 6. Configure the Auth0 custom domain and production email provider first.
 
 Current limitation: the API uses one issuer/client (`OIDC_ISSUER`, `OIDC_CLIENT_ID`) and does
-not yet expose per-org SSO configuration in the portal. Auth0 can route multiple enterprise
+not yet expose per-org SSO configuration in the portal. SCIM Groups are available for role
+mapping; self-service customer SSO remains a later feature. Auth0 can route multiple enterprise
 connections through the same application, but the customer-specific organization/connection
 setup requires Auth0 tenant administration. Do not claim self-service SSO until that UI and
 per-org issuer model exist.

@@ -53,6 +53,7 @@ const CONTROL_PLANE_RLS_TABLES = [
   "integration_connections",
   "billing_subscriptions",
   "scim_tokens",
+  "scim_groups",
 ] as const;
 
 /** Production must fail closed if migration 015 policies are missing. */

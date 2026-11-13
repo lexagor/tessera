@@ -118,9 +118,6 @@ authRoutes.get("/auth/callback", async (c) => {
   const subject = typeof claims.sub === "string" ? claims.sub : null;
   if (!subject) return c.json({ error: "OIDC response has no subject" }, 400);
   const emailVerified = claims.email_verified === true;
-  if (isProduction && !emailVerified) {
-    return c.json({ error: "OIDC email must be verified" }, 403);
-  }
   const allowedDomains = (env.OIDC_ALLOWED_DOMAINS ?? "")
     .split(",")
     .map((value) => value.trim().toLowerCase())
@@ -129,6 +126,17 @@ authRoutes.get("/auth/callback", async (c) => {
     .split(",")
     .map((value) => value.trim().toLowerCase())
     .filter(Boolean);
+  const unverifiedDemoEmails = (env.OIDC_UNVERIFIED_DEMO_EMAILS ?? "")
+    .split(",")
+    .map((value) => value.trim().toLowerCase())
+    .filter(Boolean);
+  const unverifiedDemoAllowed =
+    allowedEmails.includes(email) &&
+    unverifiedDemoEmails.includes(email) &&
+    !emailVerified;
+  if (isProduction && !emailVerified && !unverifiedDemoAllowed) {
+    return c.json({ error: "OIDC email must be verified" }, 403);
+  }
   const invite = await db()`
     SELECT 1 FROM invites
      WHERE lower(email) = ${email} AND accepted_at IS NULL AND expires_at > now()

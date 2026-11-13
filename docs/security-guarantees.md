@@ -19,7 +19,7 @@ the provider boundary, what it can only record, and what it cannot prove.
 | `/v1/record` | None | **No** — the agent reports the result hash/status | — | Caller-reported | — | The agent reported an outcome bound to the authorization receipt |
 | Receipt chain | EIP-712 signed records | Hash-bound to the recorded fields | — | Mixed | — | Records are tamper-evident from the point of the signed/anchored evidence; they are not an immutable database |
 | Anchored Merkle root | External chain transaction | — | — | — | — | A batch existed with a given root by the anchor time; it does not prove semantic correctness of the provider call |
-| Control plane | Org/environment scoping | — | — | — | Session/API-key revocation | The requested tenant scope was authorized by the API; control-plane tables are not currently under Postgres RLS |
+| Control plane | Org/environment scoping + Postgres RLS | — | — | — | Session/API-key revocation | The requested tenant scope is authorized by the API and enforced by control-plane RLS |
 
 ## Enforcement levels
 
@@ -53,9 +53,10 @@ Use these labels in reviews and demos. They describe the evidence path, not a ce
 - **Hash chains are tamper-evident, not tamper-proof.** Anchors, exports, and independent
   verification make retroactive edits detectable; a database administrator can still rewrite
   local state if no external evidence exists.
-- **Control-plane isolation is currently application-enforced.** The broker has Postgres RLS
-  for broker tables. The API enforces `org_id`/`environment_id` scoping in every query and is
-  covered by cross-tenant tests; control-plane tables are not under RLS today.
+- **Control-plane isolation is application- and database-enforced.** The broker has Postgres RLS
+  for broker tables; the API runs tenant requests in transactions with `app.org_id` and forces
+  RLS on 18 control-plane tables. Auth bootstrap/cleanup use an explicit admin context. Both
+  paths have dedicated RLS tests.
 
 ## Failure behavior
 
@@ -89,6 +90,9 @@ Use these labels in reviews and demos. They describe the evidence path, not a ce
   `apps/api/test/oidc.test.ts`, `apps/broker/tests/authorize_e2e.rs`
 - Cross-tenant API isolation: `apps/api/test/tenant-isolation.test.ts` (actions, reviews, evidence, keys, integrations, analytics, notifications, search)
 - Broker RLS: `infra/sql/rls.sql`, `apps/broker/tests/rls_postgres.rs`
+- Control-plane RLS: `apps/api/migrations/015_control_plane_rls.sql`,
+  `apps/api/src/db.ts`, `apps/api/test/control-plane-rls*.test.ts`,
+  `infra/scripts/check-control-plane-rls.sh`
 - KMS/HSM bridge: `apps/broker/src/signer.rs`, `apps/broker/tests/kms_signer.rs`
 
 ## Sales-safe wording

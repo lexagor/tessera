@@ -19,7 +19,7 @@ trusting Tessera or the vendor.
 | Evidence | EIP-712 signed authorization + linked outcome records; broker-observed proxy outcomes; hash chains |
 | Verification | Offline verifier for v1/v2 receipts, action pairs, chains, and Merkle proofs |
 | Human authority | OIDC session can bind an agent key; the API mints short-lived HS256 tokens; the broker verifies issuer/audience, tenant/agent scope, expiry, and replay, then records `hmac-jwt` |
-| Tenancy | Tenant-scoped stores; broker RLS forced on 9 tables; control-plane isolation is application-enforced (RLS design only) |
+| Tenancy | Tenant-scoped stores; broker RLS forced on 9 tables; control-plane RLS forced on 18 tables with org/admin transaction context |
 | Secrets | Provider secrets are encrypted at rest; Stripe grants are envelope-encrypted in the broker |
 | Keys | Per-environment broker keys encrypted in the control plane; agent keys hashed |
 | Access | Auth0 OIDC with first-admin bootstrap and `@thetessera.xyz` domain allowlist; invites for external workspaces; org-scoped SCIM Users token; HttpOnly sessions, RBAC, origin checks, audit log |
@@ -56,8 +56,8 @@ account. Revoking the link does not alter the underlying records.
   is per-process, so multi-replica deployments must configure Redis for cross-replica replay
   protection.
 - The control plane is deployed on a single VPS for the first design partners.
-- Control-plane RLS is a design, not an enabled control; see
-  [`control-plane-rls.md`](control-plane-rls.md).
+- Control-plane RLS is enabled behind `CONTROL_PLANE_RLS`; see
+  [`control-plane-rls.md`](control-plane-rls.md) for rollback and canary steps.
 
 ## Subprocessors and infrastructure
 

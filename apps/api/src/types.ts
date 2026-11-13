@@ -28,6 +28,7 @@ export interface Environment {
   slug: string;
   broker_tenant: string;
   broker_key_enc: string | null;
+  broker_key_id: string | null;
 }
 
 export interface SessionContext {

@@ -191,8 +191,8 @@ export function App() {
               className="tf-btn ghost"
               style={{ marginTop: 10, width: "100%" }}
               onClick={async () => {
-                await logout();
-                window.location.href = "/";
+                const result = await logout();
+                window.location.href = result.logoutUrl ?? "/";
               }}
             >
               Sign out

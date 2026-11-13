@@ -124,8 +124,8 @@ export async function getMe(): Promise<Me> {
   return api<Me>("/v1/me");
 }
 
-export async function logout(): Promise<void> {
-  await api("/auth/logout", { method: "POST" });
+export async function logout(): Promise<{ logoutUrl: string | null }> {
+  return api<{ logoutUrl: string | null }>("/auth/logout", { method: "POST" });
 }
 
 export function environmentQuery(environmentId?: string): string {

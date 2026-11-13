@@ -104,25 +104,35 @@ function session(c: any): SessionContext {
 async function getEnvironment(
   orgId: string,
   id: string,
-): Promise<(Environment & { broker_key_enc: string | null }) | null> {
+): Promise<(Environment & { broker_key_enc: string | null; broker_key_id: string | null }) | null> {
   const rows = await db()`
-    SELECT id, org_id, name, slug, broker_tenant, broker_key_enc
+    SELECT id, org_id, name, slug, broker_tenant, broker_key_enc, broker_key_id
       FROM environments WHERE id = ${id} AND org_id = ${orgId}
   `;
-  return (rows[0] as unknown as Environment & { broker_key_enc: string | null }) ?? null;
+  return (
+    (rows[0] as unknown as Environment & {
+      broker_key_enc: string | null;
+      broker_key_id: string | null;
+    }) ?? null
+  );
 }
 
 async function currentEnvironment(
   c: any,
   s: SessionContext,
-): Promise<(Environment & { broker_key_enc: string | null }) | null> {
+): Promise<(Environment & { broker_key_enc: string | null; broker_key_id: string | null }) | null> {
   const requested = c.req.query("environmentId");
   if (requested) return getEnvironment(s.org.id, requested);
   const rows = await db()`
-    SELECT id, org_id, name, slug, broker_tenant, broker_key_enc
+    SELECT id, org_id, name, slug, broker_tenant, broker_key_enc, broker_key_id
       FROM environments WHERE org_id = ${s.org.id} ORDER BY created_at LIMIT 1
   `;
-  return (rows[0] as unknown as Environment & { broker_key_enc: string | null }) ?? null;
+  return (
+    (rows[0] as unknown as Environment & {
+      broker_key_enc: string | null;
+      broker_key_id: string | null;
+    }) ?? null
+  );
 }
 
 function requestBody(c: any): Promise<unknown> {
@@ -429,9 +439,11 @@ routes.post("/v1/environments", requireRole("owner", "admin"), async (c) => {
   `;
   if (existing.length > 0) return fail(c, 409, "conflict", "That environment already exists");
   let encryptedKey: string | null = null;
+  let brokerKeyId: string | null = null;
   try {
     const brokerKey = await broker.createBrokerKey(brokerTenant, `${s.org.slug}/${slug}`);
-    if (brokerKey) encryptedKey = encryptSecret(brokerKey);
+    if (brokerKey.key) encryptedKey = encryptSecret(brokerKey.key);
+    brokerKeyId = brokerKey.id;
   } catch (error) {
     if (!env.BROKER_DEMO_ALLOW) {
       return fail(
@@ -444,8 +456,8 @@ routes.post("/v1/environments", requireRole("owner", "admin"), async (c) => {
   }
   const id = uuid();
   const rows = await db()`
-    INSERT INTO environments (id, org_id, name, slug, broker_tenant, broker_key_enc)
-    VALUES (${id}, ${s.org.id}, ${body.data.name}, ${slug}, ${brokerTenant}, ${encryptedKey})
+    INSERT INTO environments (id, org_id, name, slug, broker_tenant, broker_key_enc, broker_key_id)
+    VALUES (${id}, ${s.org.id}, ${body.data.name}, ${slug}, ${brokerTenant}, ${encryptedKey}, ${brokerKeyId})
     RETURNING id, name, slug, broker_tenant, created_at
   `;
   await audit({
@@ -465,6 +477,14 @@ routes.post("/v1/environments", requireRole("owner", "admin"), async (c) => {
 
 routes.delete("/v1/environments/:id", requireRole("owner"), async (c) => {
   const s = session(c);
+  const environment = await getEnvironment(s.org.id, c.req.param("id"));
+  if (environment?.broker_key_id) {
+    try {
+      await broker.revokeBrokerKey(environment);
+    } catch (error) {
+      console.error("broker key revocation failed", error);
+    }
+  }
   const result = await db()`
     DELETE FROM environments WHERE id = ${c.req.param("id")} AND org_id = ${s.org.id}
   `;
@@ -684,7 +704,8 @@ async function agentContext(c: any) {
     SELECT k.id, k.environment_id, k.scopes, k.expires_at, k.revoked_at,
            k.delegation_mode, k.delegated_user_id,
            u.email AS delegated_email, u.name AS delegated_name, u.oidc_subject,
-           e.id AS env_id, e.org_id, e.name, e.slug, e.broker_tenant, e.broker_key_enc
+           e.id AS env_id, e.org_id, e.name, e.slug, e.broker_tenant,
+           e.broker_key_enc, e.broker_key_id
       FROM agent_keys k
       JOIN environments e ON e.id = k.environment_id
       LEFT JOIN users u ON u.id = k.delegated_user_id
@@ -713,7 +734,8 @@ async function agentContext(c: any) {
       slug: row.slug as string,
       broker_tenant: row.broker_tenant as string,
       broker_key_enc: (row.broker_key_enc as string | null) ?? null,
-    } as Environment & { broker_key_enc: string | null },
+      broker_key_id: (row.broker_key_id as string | null) ?? null,
+    } as Environment & { broker_key_enc: string | null; broker_key_id: string | null },
   };
 }
 

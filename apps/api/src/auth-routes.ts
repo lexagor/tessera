@@ -166,5 +166,12 @@ authRoutes.post("/auth/logout", requireSession, async (c) => {
   }
   await destroySession(c);
   clearSessionCookie(c);
-  return c.json({ ok: true });
+  let logoutUrl: string | null = null;
+  if (env.OIDC_LOGOUT_URL) {
+    const url = new URL(env.OIDC_LOGOUT_URL);
+    if (env.OIDC_CLIENT_ID) url.searchParams.set("client_id", env.OIDC_CLIENT_ID);
+    url.searchParams.set("returnTo", env.PUBLIC_BASE_URL);
+    logoutUrl = url.toString();
+  }
+  return c.json({ ok: true, logoutUrl });
 });

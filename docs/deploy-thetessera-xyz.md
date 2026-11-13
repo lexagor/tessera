@@ -57,7 +57,8 @@ OIDC_ISSUER=https://...
 OIDC_CLIENT_ID=...
 OIDC_CLIENT_SECRET=...
 OIDC_REDIRECT_URI=https://app.thetessera.xyz/auth/callback
-OIDC_ALLOWED_DOMAINS=...
+OIDC_LOGOUT_URL=https://YOUR_TENANT.us.auth0.com/v2/logout
+OIDC_ALLOWED_DOMAINS=thetessera.xyz
 OIDC_STATE_SECRET=...
 # Keep automatic email linking off; use invites or an explicit admin bind.
 OIDC_ALLOW_EMAIL_LINKING=0
@@ -90,9 +91,19 @@ Keep them in the operator secret store, not in git. In production the API refuse
 with dev auth, insecure cookies, demo broker mode, private webhooks, missing OIDC config, or
 known development secret values.
 
+Domain allowlisting lets a verified `@thetessera.xyz` user sign in. A new domain user creates
+their own workspace unless they are invited into an existing organization.
+
 The Postgres init script creates `tessera_app` as `NOSUPERUSER NOBYPASSRLS` on a fresh volume.
 Apply the broker RLS policies after the first broker migration, then verify with the RLS test.
 RLS is not applied automatically; it is a required post-start step.
+
+`BROKER_ADMIN_KEY` must be a real broker API key, and `BROKER_ADMIN_TOKEN` must equal the
+broker's `TESSERA_ADMIN_TOKEN`. A fresh production database has no such key. Bootstrap one
+with a temporary `TESSERA_BOOTSTRAP_TENANT` on the broker, set the printed key as
+`BROKER_ADMIN_KEY`, then rotate/remove the bootstrap key after the API can provision
+environments. The deployment preflight should verify broker admin authentication before
+declaring the stack ready.
 
 ```bash
 docker compose -f infra/docker/docker-compose.yml \

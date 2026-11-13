@@ -36,7 +36,8 @@ is not included.
 | Image publishing | CI verified | GHCR images for API, broker, portal, verifier, and site; anonymous manifests return 200 |
 | Image scanning | CI verified | Buildx + Trivy job passed for API and broker images |
 | npm provenance / PyPI attestations | Implemented | Release workflow uses `--provenance` and trusted publishing with PEP 740 attestations; registry-side setup still required |
-| Live OIDC/KMS/pen test | Not started | External dependency |
+| Live OIDC | Live on Auth0 | Auth0 Regular Web Application, callback/login/logout configured |
+| Cloud KMS/HSM + pen test | Not started | External dependency |
 
 ## Verification snapshot
 
@@ -58,8 +59,8 @@ is not included.
 
 ## Residual risks
 
-1. Live OIDC provider behavior (Okta/Entra/Auth0), account linking, and logout are validated
-   only against the mock OIDC server. Run a real tenant before external publication.
+1. Auth0 login is live. Enterprise IdP validation (Okta/Entra), custom Auth0 domain, and
+   RP-initiated logout testing remain.
 2. Broker RLS is verified locally, but must still be applied in each target deployment after
    the first broker migration. Control-plane tables remain application-enforced.
 3. Local Docker was unavailable; images were built and Trivy-scanned in CI, so non-root

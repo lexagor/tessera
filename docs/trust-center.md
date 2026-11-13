@@ -47,9 +47,8 @@ account. Revoking the link does not alter the underlying records.
 ## Current limitations
 
 - SOC 2 Type I/II and a third-party pen test are on the roadmap, not current claims.
-- OIDC session login is implemented and tested against a mock issuer. Direct broker-side
-  OIDC/JWKS authority-token verification is the next step beyond the current API-minted HS256
-  mode; live Okta/Entra/Auth0 validation is still required before claiming a specific IdP.
+- Auth0 OIDC login is live. Direct broker-side OIDC/JWKS authority-token verification and
+  enterprise Okta/Entra validation remain future work beyond the current API-minted HS256 mode.
 - SAML/SCIM, approvals, and multi-region HA are post-pilot work.
 - The authority-token replay cache is Redis-backed when `REDIS_URL` is set; without Redis it
   is per-process, so multi-replica deployments must configure Redis for cross-replica replay

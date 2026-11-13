@@ -12,8 +12,8 @@ importers:
   .:
     devDependencies:
       turbo:
-        specifier: ^2.3.3
-        version: 2.10.13
+        specifier: ^2.11.10
+        version: 2.11.10
       typescript:
         specifier: ^5.6.3
         version: 5.9.3
@@ -58,8 +58,8 @@ importers:
         specifier: ^22.10.2
         version: 22.20.2
       tsx:
-        specifier: ^4.19.2
-        version: 4.23.13
+        specifier: ^4.23.15
+        version: 4.23.15
       typescript:
         specifier: ^5.6.3
         version: 5.9.3
@@ -84,7 +84,7 @@ importers:
     devDependencies:
       '@testing-library/jest-dom':
         specifier: ^7.0.1
-        version: 7.0.1(@testing-library/dom@10.4.2)(vitest@5.1.0(@types/node@22.20.2)(jsdom@31.0.0(@noble/hashes@1.8.0))(vite@6.4.6(@types/node@22.20.2)(tsx@4.23.13)))
+        version: 7.0.1(@testing-library/dom@10.4.2)(vitest@5.1.0(@types/node@22.20.2)(jsdom@31.0.0(@noble/hashes@1.8.0))(vite@6.4.6(@types/node@22.20.2)(tsx@4.23.15)))
       '@testing-library/react':
         specifier: ^16.3.3
         version: 16.3.3(@testing-library/dom@10.4.2)(@types/react-dom@18.3.7(@types/react@18.3.31))(@types/react@18.3.31)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
@@ -96,7 +96,7 @@ importers:
         version: 18.3.7(@types/react@18.3.31)
       '@vitejs/plugin-react':
         specifier: ^4.3.4
-        version: 4.7.0(vite@6.4.6(@types/node@22.20.2)(tsx@4.23.13))
+        version: 4.7.0(vite@6.4.6(@types/node@22.20.2)(tsx@4.23.15))
       jsdom:
         specifier: ^31.0.0
         version: 31.0.0(@noble/hashes@1.8.0)
@@ -105,10 +105,10 @@ importers:
         version: 5.9.3
       vite:
         specifier: ^6.4.6
-        version: 6.4.6(@types/node@22.20.2)(tsx@4.23.13)
+        version: 6.4.6(@types/node@22.20.2)(tsx@4.23.15)
       vitest:
         specifier: ^5.1.0
-        version: 5.1.0(@types/node@22.20.2)(jsdom@31.0.0(@noble/hashes@1.8.0))(vite@6.4.6(@types/node@22.20.2)(tsx@4.23.13))
+        version: 5.1.0(@types/node@22.20.2)(jsdom@31.0.0(@noble/hashes@1.8.0))(vite@6.4.6(@types/node@22.20.2)(tsx@4.23.15))
 
   apps/site:
     devDependencies:
@@ -126,14 +126,14 @@ importers:
         version: link:../../packages/verifier
     devDependencies:
       tsx:
-        specifier: ^4.19.2
-        version: 4.23.13
+        specifier: ^4.23.15
+        version: 4.23.15
       typescript:
         specifier: ^5.6.3
         version: 5.9.3
       vite:
         specifier: ^6.4.6
-        version: 6.4.6(@types/node@22.20.2)(tsx@4.23.13)
+        version: 6.4.6(@types/node@22.20.2)(tsx@4.23.15)
 
   examples/github-pr-agent:
     dependencies:
@@ -145,8 +145,8 @@ importers:
         specifier: ^22.10.2
         version: 22.20.2
       tsx:
-        specifier: ^4.19.2
-        version: 4.23.13
+        specifier: ^4.23.15
+        version: 4.23.15
       typescript:
         specifier: ^5.6.3
         version: 5.9.3
@@ -161,8 +161,8 @@ importers:
         specifier: ^22.10.2
         version: 22.20.2
       tsx:
-        specifier: ^4.19.2
-        version: 4.23.13
+        specifier: ^4.23.15
+        version: 4.23.15
       typescript:
         specifier: ^5.6.3
         version: 5.9.3
@@ -177,8 +177,8 @@ importers:
         specifier: ^22.10.2
         version: 22.20.2
       tsx:
-        specifier: ^4.19.2
-        version: 4.23.13
+        specifier: ^4.23.15
+        version: 4.23.15
       typescript:
         specifier: ^5.6.3
         version: 5.9.3
@@ -202,8 +202,8 @@ importers:
         specifier: ^22.10.2
         version: 22.20.2
       tsx:
-        specifier: ^4.19.2
-        version: 4.23.13
+        specifier: ^4.23.15
+        version: 4.23.15
       typescript:
         specifier: ^5.6.3
         version: 5.9.3
@@ -218,8 +218,8 @@ importers:
         specifier: ^22.10.2
         version: 22.20.2
       tsx:
-        specifier: ^4.19.2
-        version: 4.23.13
+        specifier: ^4.23.15
+        version: 4.23.15
       typescript:
         specifier: ^5.6.3
         version: 5.9.3
@@ -240,8 +240,8 @@ importers:
         specifier: ^22.10.2
         version: 22.20.2
       tsx:
-        specifier: ^4.19.2
-        version: 4.23.13
+        specifier: ^4.23.15
+        version: 4.23.15
       typescript:
         specifier: ^5.6.3
         version: 5.9.3
@@ -259,8 +259,8 @@ importers:
         specifier: ^22.10.2
         version: 22.20.2
       tsx:
-        specifier: ^4.19.2
-        version: 4.23.13
+        specifier: ^4.23.15
+        version: 4.23.15
       typescript:
         specifier: ^5.6.3
         version: 5.9.3
@@ -293,8 +293,8 @@ importers:
         specifier: ^22.10.2
         version: 22.20.2
       tsx:
-        specifier: ^4.19.2
-        version: 4.23.13
+        specifier: ^4.23.15
+        version: 4.23.15
       typescript:
         specifier: ^5.6.3
         version: 5.9.3
@@ -322,8 +322,8 @@ importers:
         specifier: ^22.10.2
         version: 22.20.2
       tsx:
-        specifier: ^4.19.2
-        version: 4.23.13
+        specifier: ^4.23.15
+        version: 4.23.15
       typescript:
         specifier: ^5.6.3
         version: 5.9.3
@@ -338,8 +338,8 @@ importers:
         specifier: ^22.10.2
         version: 22.20.2
       tsx:
-        specifier: ^4.19.2
-        version: 4.23.13
+        specifier: ^4.23.15
+        version: 4.23.15
       typescript:
         specifier: ^5.6.3
         version: 5.9.3
@@ -373,8 +373,8 @@ importers:
         specifier: ^22.10.2
         version: 22.20.2
       tsx:
-        specifier: ^4.19.2
-        version: 4.23.13
+        specifier: ^4.23.15
+        version: 4.23.15
       typescript:
         specifier: ^5.6.3
         version: 5.9.3
@@ -473,6 +473,10 @@ packages:
 
   '@babel/runtime@7.29.13':
     resolution: {integrity: sha512-v+oN26xP4YIlQsbQ/CbTH1WG5m/l/DjKKZNy/Kp3f/AFvbgt7Em/D0FeMM3O2hX0YzeN2M16W8lOpyhIkfCBcQ==}
+    engines: {node: '>=6.9.0'}
+
+  '@babel/runtime@7.29.14':
+    resolution: {integrity: sha512-Y5tqevQaUAZhhj82BpYMNC1ssvLQTVAfwKdm8iy8qwmhvC2/CpcAu8OC+QEtjM7pMk7knx83u1Qj8gzkicyelw==}
     engines: {node: '>=6.9.0'}
 
   '@babel/template@7.29.7':
@@ -1052,33 +1056,33 @@ packages:
       '@types/react-dom':
         optional: true
 
-  '@turbo/darwin-64@2.10.13':
-    resolution: {integrity: sha512-m5DBcpkxmcKpEJHHFUfqf9GLUjSmw3cDnBJM9nghPW3kjCNb5OyNKmzG7/yT5x5AwzOO+HMwKN+UI4iVKL87YA==}
+  '@turbo/darwin-64@2.11.10':
+    resolution: {integrity: sha512-By4idRap5+nLnMuRzLB4qkOPRlvNdyY1ne4VJYDyUoUB11H94k7uif9mbe3JT8JSNXs1D68uMcBj6hJ/jMQRvA==}
     cpu: [x64]
     os: [darwin]
 
-  '@turbo/darwin-arm64@2.10.13':
-    resolution: {integrity: sha512-vfKPvSuoY8BJGj8M8yN+a7aq1g+CejbEacDSDlJLDkSbPN3J/U1DbYAmPG8Ype5XvImI0SgfvUhIorNnFj67zw==}
+  '@turbo/darwin-arm64@2.11.10':
+    resolution: {integrity: sha512-pyEYlVcuexOPa92p0Wlwl9YT1Is5D60lxN3ItWm3g30YLvFaUq86TF4BBWg5ZAc0uMTnrOzCvuCsOBTdzUWnRQ==}
     cpu: [arm64]
     os: [darwin]
 
-  '@turbo/linux-64@2.10.13':
-    resolution: {integrity: sha512-Zp0N5M6j9iEjJtFLTA2L+52TLuYy0VbXT3zLZzfMeqqdKSUJ7pDo2pA1NhqjoQcF2dIsktZ8xZRW3pGI6T81fw==}
+  '@turbo/linux-64@2.11.10':
+    resolution: {integrity: sha512-1tYeR/IDZ5HEdsb0jNq2L2xam5nMQ+g80tlV2BZmv4OFw+pMcUM0mMmUcfc5wXPPNHVNPuDMjh9Y8G8HgXPLZA==}
     cpu: [x64]
     os: [android, linux]
 
-  '@turbo/linux-arm64@2.10.13':
-    resolution: {integrity: sha512-M8XcfWdS2D4EP3wzd5ehUyCANucMIOsRE6gZuV0Mr2NIn+FpsUjXFCh7r9HY7GnNcjXH4tUnT76OsCDg2c0Fng==}
+  '@turbo/linux-arm64@2.11.10':
+    resolution: {integrity: sha512-HuekQxvVGhUd46g1Im/DKdOtglHr4/gguZAvzEpPUgtxNkztSa8lWhQEGQ+EmPQ0n7w19qjThFU+OfEEd0uvlw==}
     cpu: [arm64]
     os: [android, linux]
 
-  '@turbo/windows-64@2.10.13':
-    resolution: {integrity: sha512-QFd3KBMpBBCc31TbxMnxgdBivie8lxJXV8EqmanH8fg8l2e1BdCLWpZJbxk48VNvcF4LHUnwO0FJOq+veKN1cw==}
+  '@turbo/windows-64@2.11.10':
+    resolution: {integrity: sha512-UJOP3BkbreY3/JlMgJR6ZiimxYIBn+c+B4tnBIxD0E9c3Estmk+XoVNVBNBottZLNRXe3/ScgOU4+/k8tIWysg==}
     cpu: [x64]
     os: [win32]
 
-  '@turbo/windows-arm64@2.10.13':
-    resolution: {integrity: sha512-rM+cFO1P8iAHXdasOdMyK9nDk0UGII7VEFLIA8+jwv/+rh48pnVBbF2OSjJDBOw57pxNLIOEDA0JyKcarTBcIw==}
+  '@turbo/windows-arm64@2.11.10':
+    resolution: {integrity: sha512-xOkEjF3ws/b/YNlc+bvJHMYBn+vL+QbEISZFVi0qS+ImmhA1X3/gmNmBrjjIG3dg6aeN+n6gQitzSkXQ286qJQ==}
     cpu: [arm64]
     os: [win32]
 
@@ -1655,13 +1659,13 @@ packages:
     resolution: {integrity: sha512-BcDSDW+SIGWVOns1Zm6Yg91q9AEj7eaID0QDY9oIqJD1A8dscNwMcl9Sms2DeuWCNov1X0/oXanHGYQBSLwZsg==}
     engines: {node: ^22.14.0 || >=24.0.0}
 
-  tsx@4.23.13:
-    resolution: {integrity: sha512-BL5MGkRln6aDYhb0xbQlEAGw743BaZYWdbWtdJOBriYJboKgUUYCadFp2/FpBBZquBC/ezNBn7wMMPx7FDZUDw==}
+  tsx@4.23.15:
+    resolution: {integrity: sha512-Yiex1Ovn8z2xPpOWckIiysV1SSyRMY9BkLF++q0yKiDxCqRhosKfMg3janKkiLBwZ5c/YryloKwGZcrEmtwxKw==}
     engines: {node: '>=18.0.0'}
     hasBin: true
 
-  turbo@2.10.13:
-    resolution: {integrity: sha512-69MkPbjk+G8oyC7pC2DeBk0rPdbLz51wuH5eAT0Q4BVJkzq/b1XM4kUUidsARbmDjwIELSJwd1ezITULY9kWNw==}
+  turbo@2.11.10:
+    resolution: {integrity: sha512-3GJYwig8ygEI89oaOZdduJX8/aw6O9eRPYHoIt6T3FZl9hkKjiyIspufJoVgqXihPoJu8M5CSV0DlZvzfohBCw==}
     hasBin: true
 
   typescript@5.9.3:
@@ -1918,6 +1922,8 @@ snapshots:
       '@babel/helper-plugin-utils': 7.29.7
 
   '@babel/runtime@7.29.13': {}
+
+  '@babel/runtime@7.29.14': {}
 
   '@babel/template@7.29.7':
     dependencies:
@@ -2269,7 +2275,7 @@ snapshots:
   '@testing-library/dom@10.4.2':
     dependencies:
       '@babel/code-frame': 7.29.7
-      '@babel/runtime': 7.29.13
+      '@babel/runtime': 7.29.14
       '@types/aria-query': 5.0.4
       aria-query: 5.3.0
       dom-accessibility-api: 0.5.16
@@ -2277,7 +2283,7 @@ snapshots:
       picocolors: 1.1.1
       pretty-format: 27.5.1
 
-  '@testing-library/jest-dom@7.0.1(@testing-library/dom@10.4.2)(vitest@5.1.0(@types/node@22.20.2)(jsdom@31.0.0(@noble/hashes@1.8.0))(vite@6.4.6(@types/node@22.20.2)(tsx@4.23.13)))':
+  '@testing-library/jest-dom@7.0.1(@testing-library/dom@10.4.2)(vitest@5.1.0(@types/node@22.20.2)(jsdom@31.0.0(@noble/hashes@1.8.0))(vite@6.4.6(@types/node@22.20.2)(tsx@4.23.15)))':
     dependencies:
       '@adobe/css-tools': 4.5.0
       '@testing-library/dom': 10.4.2
@@ -2287,7 +2293,7 @@ snapshots:
       picocolors: 1.1.1
       redent: 3.0.0
     optionalDependencies:
-      vitest: 5.1.0(@types/node@22.20.2)(jsdom@31.0.0(@noble/hashes@1.8.0))(vite@6.4.6(@types/node@22.20.2)(tsx@4.23.13))
+      vitest: 5.1.0(@types/node@22.20.2)(jsdom@31.0.0(@noble/hashes@1.8.0))(vite@6.4.6(@types/node@22.20.2)(tsx@4.23.15))
 
   '@testing-library/react@16.3.3(@testing-library/dom@10.4.2)(@types/react-dom@18.3.7(@types/react@18.3.31))(@types/react@18.3.31)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
     dependencies:
@@ -2299,22 +2305,22 @@ snapshots:
       '@types/react': 18.3.31
       '@types/react-dom': 18.3.7(@types/react@18.3.31)
 
-  '@turbo/darwin-64@2.10.13':
+  '@turbo/darwin-64@2.11.10':
     optional: true
 
-  '@turbo/darwin-arm64@2.10.13':
+  '@turbo/darwin-arm64@2.11.10':
     optional: true
 
-  '@turbo/linux-64@2.10.13':
+  '@turbo/linux-64@2.11.10':
     optional: true
 
-  '@turbo/linux-arm64@2.10.13':
+  '@turbo/linux-arm64@2.11.10':
     optional: true
 
-  '@turbo/windows-64@2.10.13':
+  '@turbo/windows-64@2.11.10':
     optional: true
 
-  '@turbo/windows-arm64@2.10.13':
+  '@turbo/windows-arm64@2.11.10':
     optional: true
 
   '@types/aria-query@5.0.4': {}
@@ -2366,7 +2372,7 @@ snapshots:
 
   '@vercel/oidc@3.2.0': {}
 
-  '@vitejs/plugin-react@4.7.0(vite@6.4.6(@types/node@22.20.2)(tsx@4.23.13))':
+  '@vitejs/plugin-react@4.7.0(vite@6.4.6(@types/node@22.20.2)(tsx@4.23.15))':
     dependencies:
       '@babel/core': 7.29.7
       '@babel/plugin-transform-react-jsx-self': 7.29.7(@babel/core@7.29.7)
@@ -2374,18 +2380,18 @@ snapshots:
       '@rolldown/pluginutils': 1.0.0-beta.27
       '@types/babel__core': 7.20.5
       react-refresh: 0.17.0
-      vite: 6.4.6(@types/node@22.20.2)(tsx@4.23.13)
+      vite: 6.4.6(@types/node@22.20.2)(tsx@4.23.15)
     transitivePeerDependencies:
       - supports-color
 
-  '@vitest/mocker@5.1.0(vite@6.4.6(@types/node@22.20.2)(tsx@4.23.13))':
+  '@vitest/mocker@5.1.0(vite@6.4.6(@types/node@22.20.2)(tsx@4.23.15))':
     dependencies:
       '@jridgewell/trace-mapping': 0.3.31
       '@vitest/spy': 5.1.0
       estree-walker: 3.0.3
       magic-string: 1.4.5
     optionalDependencies:
-      vite: 6.4.6(@types/node@22.20.2)(tsx@4.23.13)
+      vite: 6.4.6(@types/node@22.20.2)(tsx@4.23.15)
 
   '@vitest/spy@5.1.0': {}
 
@@ -2907,20 +2913,20 @@ snapshots:
     dependencies:
       punycode: 2.3.1
 
-  tsx@4.23.13:
+  tsx@4.23.15:
     dependencies:
       esbuild: 0.28.2
     optionalDependencies:
       fsevents: 2.3.3
 
-  turbo@2.10.13:
+  turbo@2.11.10:
     optionalDependencies:
-      '@turbo/darwin-64': 2.10.13
-      '@turbo/darwin-arm64': 2.10.13
-      '@turbo/linux-64': 2.10.13
-      '@turbo/linux-arm64': 2.10.13
-      '@turbo/windows-64': 2.10.13
-      '@turbo/windows-arm64': 2.10.13
+      '@turbo/darwin-64': 2.11.10
+      '@turbo/darwin-arm64': 2.11.10
+      '@turbo/linux-64': 2.11.10
+      '@turbo/linux-arm64': 2.11.10
+      '@turbo/windows-64': 2.11.10
+      '@turbo/windows-arm64': 2.11.10
 
   typescript@5.9.3: {}
 
@@ -2936,7 +2942,7 @@ snapshots:
       escalade: 3.2.0
       picocolors: 1.1.1
 
-  vite@6.4.6(@types/node@22.20.2)(tsx@4.23.13):
+  vite@6.4.6(@types/node@22.20.2)(tsx@4.23.15):
     dependencies:
       esbuild: 0.25.12
       fdir: 6.5.0(picomatch@4.0.7)
@@ -2947,12 +2953,12 @@ snapshots:
     optionalDependencies:
       '@types/node': 22.20.2
       fsevents: 2.3.3
-      tsx: 4.23.13
+      tsx: 4.23.15
 
-  vitest@5.1.0(@types/node@22.20.2)(jsdom@31.0.0(@noble/hashes@1.8.0))(vite@6.4.6(@types/node@22.20.2)(tsx@4.23.13)):
+  vitest@5.1.0(@types/node@22.20.2)(jsdom@31.0.0(@noble/hashes@1.8.0))(vite@6.4.6(@types/node@22.20.2)(tsx@4.23.15)):
     dependencies:
       '@types/chai': 5.2.3
-      '@vitest/mocker': 5.1.0(vite@6.4.6(@types/node@22.20.2)(tsx@4.23.13))
+      '@vitest/mocker': 5.1.0(vite@6.4.6(@types/node@22.20.2)(tsx@4.23.15))
       chai: 6.3.0
       es-module-lexer: 2.3.2
       expect-type: 1.4.0
@@ -2963,7 +2969,7 @@ snapshots:
       tinybench: 6.2.3
       tinyexec: 1.3.1
       tinyglobby: 0.2.17
-      vite: 6.4.6(@types/node@22.20.2)(tsx@4.23.13)
+      vite: 6.4.6(@types/node@22.20.2)(tsx@4.23.15)
       why-is-node-running: 3.2.1
     optionalDependencies:
       '@types/node': 22.20.2

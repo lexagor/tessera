@@ -41,6 +41,16 @@ single-use `jti`, supports `kid` key rotation, and records `verificationMethod: 
 Auth0 is live; billing is intentionally disabled and design-partner evidence is the next distribution step.
 Pre-revenue; recruiting design partners.
 
+## Verify a proof of action
+
+Two signed records are included in [`examples/proof-of-action`](examples/proof-of-action/):
+
+- live production policy-denial record with a hosted reviewer link;
+- sandbox allow + outcome record from the mock Stripe issuer.
+
+Both include the verifier command and expected output. They are real signed records, not
+screenshots; the README states exactly what each does and does not prove.
+
 ## Packages
 
 Registry state:

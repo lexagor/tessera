@@ -1,0 +1,67 @@
+{
+  "domain": {
+    "chainId": 84532,
+    "verifyingContract": "0x0000000000000000000000000000000000000000"
+  },
+  "receipt": {
+    "actionId": "28804d68-3b49-4f79-9211-6e395e21e739",
+    "agent": "proof-refund-agent",
+    "agentMeta": {
+      "agentId": "proof-refund-agent"
+    },
+    "attestation": {
+      "signatureAlg": "secp256k1-eip712",
+      "signerKeyId": "0xc35374b171e3be80b62c7612479f4d65e519f4e6",
+      "timestamp": "2026-11-13T08:14:49Z"
+    },
+    "authorization": {
+      "anomalyScore": 0,
+      "decision": "deny",
+      "policy": "proof-refund-policy",
+      "policyHash": "0xe1ad0151547d7e5614b9b24165807085958ff8f47125adec2f19f28a97f97489",
+      "policyVersion": 1,
+      "resource": "stripe:refunds.create"
+    },
+    "call": {
+      "argsHash": "0xf8b997a824f446e93118422e9c4c66339f74c9b0d7008d6e4145ff9cf34e381c",
+      "resultHash": null,
+      "tool": "stripe.refunds.create"
+    },
+    "grant": {
+      "provider": "stripe",
+      "singleUse": true,
+      "status": "denied",
+      "ttlS": 0
+    },
+    "intent": {
+      "declaredPurpose": "Customer requested a refund for a duplicate charge.",
+      "intentHash": "0x91e3ac979d8ce349369e555411babb299d9eb0b440e0d59a65ce175a3892895f",
+      "riskClass": "high"
+    },
+    "intentHash": "0x91e3ac979d8ce349369e555411babb299d9eb0b440e0d59a65ce175a3892895f",
+    "nonce": "0xc465204f4de1455194b564eb3af93f3c5ce2870479fcf28e716ec0599ead44bd",
+    "policy": {
+      "decision": "deny",
+      "evaluatedInputsHash": "0x51cd988731d733f32059e070eea0552d6deb1613126e2631e56bd862381b85e4",
+      "evaluatorVersion": "tessera-policy-v1",
+      "policyHash": "0xe1ad0151547d7e5614b9b24165807085958ff8f47125adec2f19f28a97f97489",
+      "policyId": "proof-refund-policy",
+      "policyVersion": 1,
+      "reasonCode": "'amount' = 4200 exceeds max 100"
+    },
+    "prev": null,
+    "principal": {
+      "authorityHash": "0xec8fa36bd7cbfba6123c7f0b138bd8b4625197a48ae9d4fc6580abb3b137a684",
+      "authorityRef": "oidc:google-oauth2|113018472362238291892",
+      "principalId": "447df0de-f328-4cd3-b89b-2c537bf22847",
+      "principalType": "user",
+      "verificationMethod": "hmac-jwt",
+      "verifiedAt": "2026-11-13T08:14:49Z"
+    },
+    "signature": "0x52457e3a4fadf6692cd5ce4004c5adc4e61dd00c694ac2f6c00ac719785125702b3a50602acad43ced7a3e54058dc138c9d88db892b4eafa52842629098b6e5f1b",
+    "tenant": "ale-s-workspace-public-proof-sandbox",
+    "ts": "2026-11-13T08:14:49Z",
+    "user": "447df0de-f328-4cd3-b89b-2c537bf22847",
+    "v": 2
+  }
+}

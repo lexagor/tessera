@@ -1,0 +1,7 @@
+{
+  "valid": true,
+  "recovered": "0xc35374b171e3be80b62c7612479f4d65e519f4e6",
+  "payloadHash": "0x337973897995adf16b3dfe61be70054d5b15e51bcc87454971adbaa8cbc8f275",
+  "matchesExpected": true,
+  "errors": []
+}

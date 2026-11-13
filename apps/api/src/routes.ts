@@ -45,6 +45,7 @@ import {
 import { db } from "./db.js";
 import { env, verifyBaseUrl } from "./env.js";
 import { evidenceStorage } from "./evidence-storage.js";
+import { newScimToken } from "./scim.js";
 import { deletionRequestEmail, inviteEmail, sendEmail } from "./email.js";
 import {
   IntegrationError,
@@ -465,6 +466,64 @@ routes.patch("/v1/org/retention", requireRole("owner"), async (c) => {
     details: { retentionDays: body.data.retentionDays },
   });
   return c.json({ retentionDays: body.data.retentionDays });
+});
+
+routes.get("/v1/scim-tokens", requireRole("owner", "admin"), async (c) => {
+  const s = session(c);
+  const rows = await db()`
+    SELECT id, name, created_at, last_used_at, revoked_at
+      FROM scim_tokens WHERE org_id = ${s.org.id}
+     ORDER BY created_at DESC
+  `;
+  return c.json({ items: rows, endpoint: "/scim/v2" });
+});
+
+routes.post("/v1/scim-tokens", requireRole("owner", "admin"), async (c) => {
+  const s = session(c);
+  const body = z
+    .object({ name: z.string().min(1).max(80).default("Identity provider") })
+    .safeParse(await requestBody(c));
+  if (!body.success) return fail(c, 400, "invalid_request", "Token name is required");
+  const generated = newScimToken();
+  const id = uuid();
+  await db()`
+    INSERT INTO scim_tokens (id, org_id, name, token_hash, created_by)
+    VALUES (${id}, ${s.org.id}, ${body.data.name}, ${generated.hash}, ${s.user.id})
+  `;
+  await audit({
+    orgId: s.org.id,
+    actorUserId: s.user.id,
+    action: "scim_token.created",
+    target: id,
+    details: { name: body.data.name },
+  });
+  return c.json(
+    {
+      id,
+      name: body.data.name,
+      token: generated.token,
+      endpoint: "/scim/v2",
+      notice: "Store this SCIM token now; it will not be shown again.",
+    },
+    201,
+  );
+});
+
+routes.delete("/v1/scim-tokens/:id", requireRole("owner", "admin"), async (c) => {
+  const s = session(c);
+  const result = await db()`
+    UPDATE scim_tokens SET revoked_at = now()
+     WHERE id = ${c.req.param("id")} AND org_id = ${s.org.id} AND revoked_at IS NULL
+  `;
+  if (result.count > 0) {
+    await audit({
+      orgId: s.org.id,
+      actorUserId: s.user.id,
+      action: "scim_token.revoked",
+      target: c.req.param("id"),
+    });
+  }
+  return c.json({ revoked: result.count > 0 });
 });
 
 routes.get("/v1/members", async (c) => {

@@ -308,6 +308,21 @@ Do next:
 | Docs/one-pager/trust | Updated | Legal/security/runbook links added |
 | `www` DNS | Documented as intentionally absent | `docs/edge-and-dns.md` |
 
+### P2 implementation status (2026-11-13)
+
+| P2 item | Status | Notes |
+|---|---|---|
+| SOC 2 readiness | Readiness mapping + evidence cadence added | `docs/soc2-readiness.md`; no auditor, policies, or report yet |
+| External penetration test | Scope/rules added; not run | `docs/pentest-scope.md`; independent engagement still required |
+| Cloud KMS/HSM benchmark | Harness + matrix added; no real KMS | `scripts/kms-bench.mjs`, `docs/kms-benchmark.md`; live signer still in-process |
+| Multi-AZ/managed data + DR | Target design + failover plan added | `docs/multi-az-dr.md`; live remains single VPS |
+| SCIM + customer-owned SSO | SCIM Users implemented/tested; SSO design only | `/scim/v2`, org-scoped tokens, Settings UI; SCIM Groups and self-service per-org SSO remain |
+| Named support/SLA + incident response | Working docs added | `docs/support-sla.md`, `docs/incident-response.md`; no contractual SLA |
+| Case study/reviewer acceptance | Consent/template only | `docs/case-study-template.md`, `docs/reviewer-acceptance.md`; no real acceptance |
+| Independent security review | Package/scoping added | `docs/independent-security-review.md`; no engagement |
+| Financial model | Transparent calculator/template added | `scripts/finance-model.mjs`, `docs/financial-model.md`; founder must validate inputs |
+| Raise/SAFE/team/IP | Founder checklist added | `docs/fundraise-checklist.md`; founder-controlled |
+
 ### P1 — design-partner readiness
 
 1. Create a staging environment and a release/rollback runbook.

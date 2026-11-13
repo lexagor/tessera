@@ -43,6 +43,9 @@ const EXCLUDED_FILES = new Set([
   "data-moat.md",
   "due-diligence.md",
   "hardening-report.md",
+  "financial-model.md",
+  "fundraise-checklist.md",
+  "case-study-template.md",
 ]);
 
 rmSync(OUT, { recursive: true, force: true });

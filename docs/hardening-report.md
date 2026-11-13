@@ -59,6 +59,21 @@ is not included.
 | KMS/HSM | Bridge/runbook; not migrated | Live still uses in-process key |
 | `www` DNS | Documented | Intentionally absent; redirect if added |
 
+## P2 implementation snapshot
+
+| Area | Delivered | External/remaining |
+|---|---|---|
+| SOC 2 | Readiness control mapping, evidence cadence | Policies, auditor, operating period, report |
+| Pen test | Scope, rules of engagement, coverage matrix | Independent tester, report, retest |
+| KMS benchmark | `scripts/kms-bench.mjs`, test matrix | Real cloud KMS/HSM endpoint and key |
+| Multi-AZ/DR | Target topology, RPO/RTO table, drill plan | Managed Postgres/Redis, second zone, measured failover |
+| SCIM | Users endpoints, org tokens, Settings UI, tests | SCIM Groups, deprovisioning automation, IdP certification |
+| Enterprise SSO | Auth0 Organizations model documented | Per-customer configuration and custom Auth0 domain |
+| Support/IR | Support policy, severity matrix, incident runbook | Contractual SLA, on-call rota, tabletop |
+| Case study/reviewer | Consent and acceptance templates | Real customer/reviewer evidence |
+| Independent review | Scope/package/questions | Engagement and report |
+| Financial/fundraise | Calculator, assumptions template, checklist | Founder validation, legal/entity inputs |
+
 ## Verification snapshot
 
 - API: 32 tests passing with local Postgres.

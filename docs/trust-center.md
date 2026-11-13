@@ -22,7 +22,7 @@ trusting Tessera or the vendor.
 | Tenancy | Tenant-scoped stores; broker RLS forced on 9 tables; control-plane isolation is application-enforced (RLS design only) |
 | Secrets | Provider secrets are encrypted at rest; Stripe grants are envelope-encrypted in the broker |
 | Keys | Per-environment broker keys encrypted in the control plane; agent keys hashed |
-| Access | Auth0 OIDC with first-admin bootstrap and `@thetessera.xyz` domain allowlist; invites for external workspaces; HttpOnly sessions, RBAC, origin checks, audit log |
+| Access | Auth0 OIDC with first-admin bootstrap and `@thetessera.xyz` domain allowlist; invites for external workspaces; org-scoped SCIM Users token; HttpOnly sessions, RBAC, origin checks, audit log |
 | Evidence export | Signed tenant archive with receipts, policy versions, authority transitions, key events, anchors |
 | Standards | Agent Receipts v0.5.0 / W3C VC export with Ed25519 proof and optional RFC 3161 timestamp |
 | API hardening | Request limits, timeouts, rate limits, no-store/nosniff headers, sanitized errors |
@@ -51,7 +51,7 @@ account. Revoking the link does not alter the underlying records.
 - SOC 2 Type I/II and a third-party pen test are on the roadmap, not current claims.
 - Auth0 OIDC login is live. Direct broker-side OIDC/JWKS authority-token verification and
   enterprise Okta/Entra validation remain future work beyond the current API-minted HS256 mode.
-- SAML/SCIM, approvals, and multi-region HA are post-pilot work.
+- SCIM Users is implemented; SCIM Groups, self-service customer SSO, approvals, and multi-region HA are post-pilot work.
 - The authority-token replay cache is Redis-backed when `REDIS_URL` is set; without Redis it
   is per-process, so multi-replica deployments must configure Redis for cross-replica replay
   protection.

@@ -10,7 +10,7 @@ COPY apps/broker/benches ./benches
 # `--locked` keeps the image reproducible; only the server binary is needed at runtime.
 RUN cargo build --release --locked --bin tessera-broker
 
-FROM debian:bookworm-slim@sha256:734a72b3d6142a71993b4bc580ca01d8ca687f77a2c422d96a961d3376b179bc AS runtime
+FROM debian:trixie-slim@sha256:a72b4433de1cf7d6bae0c4cee74d0547f58601a643b3375f070c51600d63b6b2 AS runtime
 RUN useradd -r -u 10001 tessera
 COPY --from=build /app/target/release/tessera-broker /usr/local/bin/tessera-broker
 USER tessera

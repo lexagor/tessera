@@ -24,8 +24,7 @@ Fintech, dev-tool, and vertical-agent companies are the best first fits.
   end and produce a verification page.
 - **Evidence pack.** JSON + human-readable export mapped to SOC 2, ISO 42001, EU AI Act
   Art. 12/26, FINRA, SEC 17a-4, and DORA.
-- **Convert to a paid pilot** at $1,500/month for 3 months (convertible to $18k annual) if the
-  evidence answers the reviewer.
+- **Discuss a paid pilot** after the pilot if the evidence answers the reviewer.
 
 ## What we need
 
@@ -74,7 +73,7 @@ Fintech, dev-tool, and vertical-agent companies are the best first fits.
 >
 > We're working with three AI-native teams to instrument one action, produce a verification
 > page, and run a tabletop security review. Free for six weeks; if it answers the reviewer, we
-> convert to a $1,500/month pilot.
+> discuss commercial terms for a paid deployment.
 >
 > Worth a 20-minute call?
 >

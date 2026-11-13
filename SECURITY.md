@@ -7,7 +7,7 @@ Do **not** open a public issue. Email `security@thetessera.xyz` with:
 - reproduction steps or a proof of concept,
 - affected versions/components.
 
-We aim to acknowledge within 48 hours and will coordinate disclosure.
+Response targets are in [`docs/security-sla.md`](docs/security-sla.md). We will coordinate disclosure.
 
 ## Scope
 

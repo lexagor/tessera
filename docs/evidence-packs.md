@@ -72,3 +72,29 @@ npx @tessera-verify/verify --archive . --expect-signer <signer-from-manifest>
 ```
 
 The public verifier remains available for single-action links and offline receipt files.
+
+## Object storage (optional)
+
+By default, evidence archives are written under `EVIDENCE_DIR` on the API host. For off-host
+retention, configure an S3-compatible bucket:
+
+```bash
+EVIDENCE_S3_BUCKET=tessera-evidence
+EVIDENCE_S3_REGION=eu-central-1
+EVIDENCE_S3_ENDPOINT=            # blank for AWS; set for MinIO/R2/B2 S3 API
+EVIDENCE_S3_ACCESS_KEY=...
+EVIDENCE_S3_SECRET_KEY=...
+EVIDENCE_S3_PREFIX=evidence
+EVIDENCE_S3_FORCE_PATH_STYLE=0   # 1 for most MinIO-style endpoints
+```
+
+The API stores the returned `s3://bucket/key` locator in `evidence_packs.object_key` and uses
+the same locator for authenticated and reviewer-link downloads. Existing local packs continue
+to work; new packs use the configured storage. Use a bucket policy that denies public access,
+enables default encryption, and applies a lifecycle/retention rule that matches the tenant
+retention period. Do not put long-lived object-storage credentials in the portal or broker.
+
+When S3 evidence storage is enabled, the local `docker_evidence` volume is no longer the source
+of truth. Back up the bucket with versioning/replication and test restore separately; do not
+claim the local evidence archive covers it. The Postgres dump still contains the locator, so a
+database restore requires the matching bucket objects.

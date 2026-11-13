@@ -31,12 +31,19 @@ interface Invite {
   created_at: string;
 }
 
+interface InviteResult {
+  inviteUrl: string;
+  emailSent: boolean;
+  notice: string;
+}
+
 export function TeamPage() {
   const { me } = useWorkspace();
   const queryClient = useQueryClient();
   const [email, setEmail] = useState("");
   const [role, setRole] = useState("member");
   const [inviteUrl, setInviteUrl] = useState<string | null>(null);
+  const [inviteNotice, setInviteNotice] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const members = useQuery({
@@ -50,12 +57,13 @@ export function TeamPage() {
 
   const invite = useMutation({
     mutationFn: () =>
-      api<{ inviteUrl: string }>("/v1/invites", {
+      api<InviteResult>("/v1/invites", {
         method: "POST",
         body: JSON.stringify({ email, role }),
       }),
     onSuccess: async (data) => {
-      setInviteUrl(data.inviteUrl);
+      setInviteUrl(data.emailSent ? null : data.inviteUrl);
+      setInviteNotice(data.notice);
       setEmail("");
       setError(null);
       await queryClient.invalidateQueries({ queryKey: ["invites"] });
@@ -69,7 +77,7 @@ export function TeamPage() {
     <>
       <PageHeader
         title="Team"
-        subtitle="Invite-only access. Members sign in with the email you invite."
+        subtitle="Invite teammates or let verified @thetessera.xyz users create their own workspace."
       />
       <ErrorBanner message={error} />
 
@@ -101,10 +109,13 @@ export function TeamPage() {
               {invite.isPending ? "Inviting…" : "Invite"}
             </Button>
           </div>
+          {inviteNotice ? (
+            <p className="tf-muted" style={{ marginTop: 12 }}>{inviteNotice}</p>
+          ) : null}
           {inviteUrl ? (
             <div style={{ marginTop: 14 }}>
               <p className="tf-muted" style={{ marginBottom: 6 }}>
-                Invite created. Share this URL with the invited teammate.
+                Email delivery is not configured. Share this URL with the invited teammate.
               </p>
               <CopyRow value={inviteUrl} />
             </div>

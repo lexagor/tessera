@@ -40,6 +40,8 @@ export function SettingsPage() {
   const [webhookUrl, setWebhookUrl] = useState("");
   const [webhookSecret, setWebhookSecret] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState("");
+  const [retentionDays, setRetentionDays] = useState(String(me.org.retention_days ?? 365));
 
   const usage = useQuery({
     queryKey: ["usage", environmentId],
@@ -123,6 +125,44 @@ export function SettingsPage() {
     mutationFn: () => api<{ url: string }>("/v1/billing/portal", { method: "POST", body: "{}" }),
     onSuccess: (data) => {
       if (data.url) window.location.href = data.url;
+    },
+    onError: (err) => setError(err instanceof Error ? err.message : String(err)),
+  });
+
+  const requestDeletion = useMutation({
+    mutationFn: () =>
+      api<{ purgeAfter: string }>("/v1/org/deletion-request", {
+        method: "POST",
+        body: JSON.stringify({ confirm: confirmDelete }),
+      }),
+    onSuccess: async () => {
+      setConfirmDelete("");
+      setError(null);
+      refresh();
+      await queryClient.invalidateQueries();
+    },
+    onError: (err) => setError(err instanceof Error ? err.message : String(err)),
+  });
+
+  const cancelDeletion = useMutation({
+    mutationFn: () => api("/v1/org/deletion-cancel", { method: "POST", body: "{}" }),
+    onSuccess: async () => {
+      setError(null);
+      refresh();
+      await queryClient.invalidateQueries();
+    },
+    onError: (err) => setError(err instanceof Error ? err.message : String(err)),
+  });
+
+  const saveRetention = useMutation({
+    mutationFn: () =>
+      api("/v1/org/retention", {
+        method: "PATCH",
+        body: JSON.stringify({ retentionDays: Number(retentionDays) }),
+      }),
+    onSuccess: async () => {
+      setError(null);
+      await queryClient.invalidateQueries();
     },
     onError: (err) => setError(err instanceof Error ? err.message : String(err)),
   });
@@ -259,38 +299,110 @@ export function SettingsPage() {
               {billing.data.usage.used.toLocaleString()} of{" "}
               {billing.data.usage.limit.toLocaleString()} actions this month
             </p>
-            <div className="tf-actions">
-              <Button
-                variant="primary"
-                onClick={() => checkout.mutate("team")}
-                disabled={!billing.data.stripeConfigured || checkout.isPending}
-              >
-                Upgrade to Team
-              </Button>
-              <Button
-                onClick={() => checkout.mutate("growth")}
-                disabled={!billing.data.stripeConfigured || checkout.isPending}
-              >
-                Upgrade to Growth
-              </Button>
-              {billing.data.customerId ? (
-                <Button onClick={() => portal.mutate()} disabled={portal.isPending}>
-                  Manage billing
+            {billing.data.stripeConfigured ? (
+              <div className="tf-actions">
+                <Button
+                  variant="primary"
+                  onClick={() => checkout.mutate("team")}
+                  disabled={checkout.isPending}
+                >
+                  Upgrade to Team
                 </Button>
-              ) : null}
-            </div>
-            {!billing.data.stripeConfigured ? (
+                <Button
+                  onClick={() => checkout.mutate("growth")}
+                  disabled={checkout.isPending}
+                >
+                  Upgrade to Growth
+                </Button>
+                {billing.data.customerId ? (
+                  <Button onClick={() => portal.mutate()} disabled={portal.isPending}>
+                    Manage billing
+                  </Button>
+                ) : null}
+              </div>
+            ) : (
               <p className="tf-muted">
-                Stripe billing is not configured for this deployment. Usage and plan limits are
-                still enforced.
+                Tessera is in design-partner mode. Billing is disabled until the pilot program
+                converts; usage limits still apply.
               </p>
-            ) : null}
+            )}
           </>
         ) : (
           <p className="tf-muted">Loading billing…</p>
         )}
       </Card>
 
+      {me.role === "owner" || me.role === "admin" ? (
+      <Card style={{ marginTop: 16 }}>
+        <div className="tf-actions" style={{ justifyContent: "space-between" }}>
+          <h2 style={{ margin: 0, fontSize: 18 }}>Data controls</h2>
+          <Badge tone="muted">owner/admin</Badge>
+        </div>
+        <p className="tf-muted">
+          Export tenant metadata and the action read model as JSON. Broker receipts remain in the
+          broker tenant and are available through evidence packs.
+        </p>
+        <div className="tf-actions">
+          <Button onClick={() => window.location.assign("/v1/org/export")}>Export data</Button>
+          <input
+            className="tf-input"
+            style={{ maxWidth: 160 }}
+            type="number"
+            min={30}
+            max={3650}
+            value={retentionDays}
+            onChange={(event) => setRetentionDays(event.target.value)}
+            aria-label="Retention days"
+          />
+          <Button
+            onClick={() => saveRetention.mutate()}
+            disabled={saveRetention.isPending || Number(retentionDays) < 30}
+          >
+            Save retention
+          </Button>
+        </div>
+        {me.role === "owner" ? (
+          <div style={{ marginTop: 18, borderTop: "1px solid var(--tf-border)", paddingTop: 14 }}>
+            {me.org.deletion_scheduled_for ? (
+              <>
+                <p className="tf-muted">
+                  Deletion requested. Purge date: <strong>{formatDate(me.org.deletion_scheduled_for)}</strong>.
+                  Export anything you need before then.
+                </p>
+                <Button variant="danger" onClick={() => cancelDeletion.mutate()} disabled={cancelDeletion.isPending}>
+                  Cancel deletion
+                </Button>
+              </>
+            ) : (
+              <>
+                <p className="tf-muted">
+                  Request workspace deletion. This records a 30-day grace period; it does not delete
+                  broker receipts or evidence automatically. Operator purge follows the documented
+                  data-lifecycle runbook.
+                </p>
+                <div className="tf-actions">
+                  <input
+                    className="tf-input"
+                    style={{ maxWidth: 220 }}
+                    placeholder={`Type "${me.org.name}"`}
+                    value={confirmDelete}
+                    onChange={(event) => setConfirmDelete(event.target.value)}
+                  />
+                  <Button
+                    variant="danger"
+                    onClick={() => requestDeletion.mutate()}
+                    disabled={requestDeletion.isPending || confirmDelete !== me.org.name}
+                  >
+                    Request deletion
+                  </Button>
+                </div>
+              </>
+            )}
+          </div>
+        ) : null}
+      </Card>
+
+      ) : null}
       <Card style={{ marginTop: 16 }}>
         <div className="tf-actions" style={{ justifyContent: "space-between" }}>
           <h2 style={{ margin: 0, fontSize: 18 }}>Webhooks</h2>

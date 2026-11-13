@@ -81,3 +81,19 @@ TEST_DATABASE_URL=postgres://user@127.0.0.1:5432/tessera_test \
 The test applies `rls.sql`, writes rows for two tenants, and asserts that an **unfiltered**
 `SELECT count(*) FROM receipt_chain` returns only the current tenant's rows while an
 administrative query still sees all of them.
+
+## Automated check
+
+`infra/scripts/check-rls.sh` is a read-only readiness check. It fails if a present tenant table
+lacks `ENABLE`/`FORCE ROW LEVEL SECURITY` or has no policy; missing optional tables are skipped.
+
+```bash
+DATABASE_URL="$DATABASE_URL" RLS_REQUIRE_TABLES=1 infra/scripts/check-rls.sh
+
+# On a Compose host:
+POSTGRES_CONTAINER=docker-postgres-1 POSTGRES_PASSWORD="$POSTGRES_PASSWORD" \
+  infra/scripts/check-rls.sh
+```
+
+CI runs this after the Rust/Postgres tests. Run it after applying migrations and after any
+migration that creates a broker tenant table. A failure blocks the release.

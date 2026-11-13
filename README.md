@@ -28,7 +28,7 @@ Provider API / proxy                 EIP-712 signed receipt
                               Public verifier / evidence pack
 ```
 
-Status: **live at `thetessera.xyz` with Auth0 login; Stripe billing and design partners are the next rollout items.** The
+Status: **live at `thetessera.xyz` with Auth0 login; billing is disabled and design partners are the next rollout step.** The
 Rust broker ships the authorize → broker → receipt → chain → verify loop with provider
 adapters, broker-observed proxy outcomes, authority transitions, revocation, KMS/HSM bridge
 signing, quotas, and 300+ tests. The control plane (`apps/api`) and tenant portal (`apps/portal`)
@@ -38,7 +38,7 @@ Agent Receipts v0.5 specification export, LangChain tool wrapping, and the MCP a
 implemented. Agent keys can be owner-bound to an OIDC-authenticated human or use a short-lived
 per-call authority token. The broker validates issuer/audience, tenant/agent scope, expiry, and
 single-use `jti`, supports `kid` key rotation, and records `verificationMethod: hmac-jwt`.
-Auth0 is live; Stripe billing and design-partner evidence are the next distribution steps.
+Auth0 is live; billing is intentionally disabled and design-partner evidence is the next distribution step.
 Pre-revenue; recruiting design partners.
 
 ## Packages
@@ -185,7 +185,7 @@ docs/              Architecture, threat model, receipt spec, controls, RFCs
 - [`docs/benchmarks-cloud.md`](docs/benchmarks-cloud.md) — cloud/KMS benchmark runbook
 - [`examples/vercel-ai-agent`](examples/vercel-ai-agent) — Vercel AI SDK tool wrapper example
 - [`examples/pydantic-ai-agent`](examples/pydantic-ai-agent) — PydanticAI tool wrapper example
-- [`docs/proof-of-action.md`](docs/proof-of-action.md) — positioning, ICP, pricing, objections
+- [`docs/proof-of-action.md`](docs/proof-of-action.md) — positioning, ICP, objections, and 90-day plan
 - [`docs/receipt-spec.md`](docs/receipt-spec.md) — receipt schema and chain
 - [`docs/architecture.md`](docs/architecture.md) — system design
 - [`docs/threat-model.md`](docs/threat-model.md) — threats and controls
@@ -202,8 +202,19 @@ docs/              Architecture, threat model, receipt spec, controls, RFCs
 - [`docs/distribution.md`](docs/distribution.md) — public repo, npm packages, and verifier rollout
 - [`docs/demo-script.md`](docs/demo-script.md) — product demo recording sequence
 - [`docs/deploy-thetessera-xyz.md`](docs/deploy-thetessera-xyz.md) — site/app/verifier deployment checklist
-- [`docs/billing.md`](docs/billing.md) — plans, usage limits, and Stripe billing
-- [`docs/rls.md`](docs/rls.md) — Postgres row-level security (defense in depth)
+- [`docs/pricing.md`](docs/pricing.md) — billing status and current plan limits
+- [`docs/billing.md`](docs/billing.md) — internal billing integration notes
+- [`docs/rls.md`](docs/rls.md) — broker row-level security and automated check
+- [`docs/control-plane-rls.md`](docs/control-plane-rls.md) — control-plane RLS design
+- [`docs/data-lifecycle.md`](docs/data-lifecycle.md) — export, deletion request, retention, and purge
+- [`docs/staging-rollback.md`](docs/staging-rollback.md) — staging and release rollback runbook
+- [`docs/load-testing.md`](docs/load-testing.md) — staging load harness
+- [`docs/dependency-updates.md`](docs/dependency-updates.md) — Renovate policy
+- [`docs/privacy.md`](docs/privacy.md), [`docs/terms.md`](docs/terms.md), [`docs/dpa.md`](docs/dpa.md), [`docs/subprocessors.md`](docs/subprocessors.md) — legal and data-processing terms
+- [`docs/security-sla.md`](docs/security-sla.md) — security contact and response targets
+- [`docs/auth0-production.md`](docs/auth0-production.md) — custom domain and email-provider runbook
+- [`docs/kms-production.md`](docs/kms-production.md) — KMS/HSM migration runbook
+- [`docs/edge-and-dns.md`](docs/edge-and-dns.md) — WAF/DDoS options and DNS decision
 - [`docs/golden-path.md`](docs/golden-path.md) — full loop against real providers
 - [`docs/rfcs/0001-action-broker.md`](docs/rfcs/0001-action-broker.md) — action broker spec
 - [`docs/governance-plane-plan.md`](docs/governance-plane-plan.md) — superseded historical plan

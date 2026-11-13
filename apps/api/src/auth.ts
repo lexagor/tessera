@@ -122,7 +122,7 @@ async function loadSession(c: Context<AppEnv>): Promise<SessionContext | null> {
   }
   if (!orgId || !role) return null;
   const orgRows = await db()`
-    SELECT id, name, slug, plan FROM orgs WHERE id = ${orgId}
+    SELECT id, name, slug, plan, retention_days, deletion_requested_at, deletion_scheduled_for FROM orgs WHERE id = ${orgId}
   `;
   const org = orgRows[0] as unknown as Org | undefined;
   if (!org) return null;

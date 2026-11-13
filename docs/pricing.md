@@ -1,39 +1,27 @@
-# Pricing
+# Plans and Billing Status
 
-Platform fee + included volume + overage. The price tracks the value of the enterprise deal it
-unblocks, not the cost of compute. Never per seat.
+**Billing is not enabled in the current design-partner deployment.** There is no checkout,
+subscription, or card charge. Usage limits still apply to protect the shared service.
 
-| Tier | Price | Included | Target |
-|---|---:|---|---|
-| **Developer** | $0 | 1,000 actions/month, 1 environment, community support | Open-source adoption |
-| **Team** | **$1,500/month** (annual) | 250,000 actions/month, 3 environments, SSO, evidence packs, email support | AI-native vendor closing its first enterprise deals |
-| **Growth** | **$3,500/month** (annual) | 1,000,000 actions/month, 10 environments, custom policies, Slack support, quarterly review | Scaling vendor with multiple enterprise customers |
-| **Enterprise** | **$40k+/year** | 5M+ actions, VPC/self-hosted, HSM, DPA, pen-test report, named support | Regulated enterprise / platform |
-| **Overage** | $0.004/action | Beyond included volume | Aligns price with value |
+## Current offer
 
-## Why $1,500/month works
+The design-partner program is a free six-week pilot: one consequential action, sandbox
+credentials, a verification page, and a tabletop security review. Commercial terms for a paid
+deployment are agreed in a written order form after the pilot. Public list pricing is
+intentionally withheld until billing and the support model are live.
 
-It is roughly 1–2% of a $100k–$200k enterprise deal, and it is expensed as sales/security
-enablement rather than a new security platform. The buyer can approve it without a CISO
-procurement cycle. The account expands as the vendor adds enterprise customers and
-environments.
+## Plan limits
 
-## Pilot terms
+The hosted evaluation uses internal plan limits for actions, environments, and seats. The
+API returns the current limits on `GET /v1/billing`; the portal shows usage in Settings.
+Limits are operational controls, not a public price list.
 
-- 3-month paid pilot at $1,500/month, convertible to $18k annual.
-- Free 6-week design-partner pilot before the paid pilot.
-- Success criteria: one consequential action instrumented; a security reviewer accepts the
-  verification page or evidence pack; integration under two days.
+## Enterprise
 
-## Frequently asked
+Enterprise deployment, customer-managed keys/KMS, VPC/self-hosting, DPA terms, and named
+support are scoped separately. Contact `partners@thetessera.xyz`.
 
-**Do you charge per agent or per human?** No. Price per environment and action volume.
+## Open source
 
-**Is verification free?** Yes. The verifier and schema are open source; issuance at scale,
-evidence packs, policy, and the hosted service are paid.
-
-**What counts as an action?** One authorize + record pair for one tool call. Retries with the
-same idempotency key count once.
-
-**Can we self-host?** Enterprise includes VPC/self-hosted. Team/Growth use the hosted service.
-The broker core is open source.
+The verifier, receipt schemas, and broker core are open source under their repository
+licenses. The hosted service, evidence packs, policy management, and support are separate.

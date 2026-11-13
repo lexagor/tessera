@@ -2,6 +2,21 @@
 
 ## Unreleased
 
+### Added — P1 design-partner readiness
+
+- Evidence packs can use an S3-compatible bucket (`EVIDENCE_S3_*`) with a local fallback.
+- Transactional invite/deletion email via Resend (`EMAIL_PROVIDER=resend`).
+- Tenant JSON export, 30-day deletion request/cancel, and retention setting.
+- Automated broker RLS verification (`infra/scripts/check-rls.sh`) in CI.
+- Staging Compose overlay and release/rollback runbook.
+- Privacy, terms, DPA, subprocessor, security-contact, data-lifecycle, control-plane RLS,
+  Auth0 production, KMS production, edge/DNS, load-testing, and dependency-update docs.
+- Renovate config and a dependency-free authorize load harness.
+
+### Changed
+
+- Public pricing and paid-plan messaging were removed while billing remains disabled.
+
 ### Security
 
 - Authority tokens now carry and validate `tenant`/`agent_id` scope, enforce `iss`/`aud`,

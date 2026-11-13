@@ -22,6 +22,11 @@ docker exec -e PGPASSWORD="$POSTGRES_PASSWORD" "$POSTGRES_CONTAINER" \
 docker cp "$POSTGRES_CONTAINER:/tmp/postgres-$STAMP.dump" "$BACKUP_DIR/postgres-$STAMP.dump"
 docker exec "$POSTGRES_CONTAINER" rm -f "/tmp/postgres-$STAMP.dump"
 
+if [ -n "${EVIDENCE_S3_BUCKET:-}" ]; then
+  echo "WARN: EVIDENCE_S3_BUCKET is set; evidence is in object storage, not docker_evidence." >&2
+  echo "WARN: back up/replicate the bucket separately; the local archive may be empty." >&2
+fi
+
 docker run --rm \
   -v "$EVIDENCE_VOLUME:/data:ro" \
   -v "$BACKUP_DIR:/backup" \

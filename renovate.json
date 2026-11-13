@@ -1,0 +1,57 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:recommended",
+    ":dependencyDashboard",
+    ":semanticCommits",
+    "schedule:weekly"
+  ],
+  "rangeStrategy": "pin",
+  "pinDigests": true,
+  "rebaseWhen": "behind-base-branch",
+  "separateMajorMinor": true,
+  "packageRules": [
+    {
+      "description": "Review runtime and auth/signing majors manually.",
+      "matchUpdateTypes": ["major"],
+      "dependencyDashboardApproval": true
+    },
+    {
+      "description": "Keep GitHub Actions pinned to commit SHAs.",
+      "matchManagers": ["github-actions"],
+      "pinDigests": true,
+      "groupName": "GitHub Actions"
+    },
+    {
+      "description": "Keep container and Compose images digest-pinned.",
+      "matchDatasources": ["docker"],
+      "pinDigests": true,
+      "groupName": "Container images"
+    },
+    {
+      "description": "Group routine patch updates.",
+      "matchUpdateTypes": ["patch", "minor"],
+      "groupName": "patch and minor updates"
+    },
+    {
+      "description": "Do not auto-merge sensitive runtime and security dependencies.",
+      "matchPackageNames": [
+        "node",
+        "rust",
+        "postgres",
+        "redis",
+        "caddy",
+        "stripe",
+        "openid-client",
+        "hono",
+        "zod"
+      ],
+      "automerge": false
+    }
+  ],
+  "vulnerabilityAlerts": {
+    "enabled": true,
+    "labels": ["security"]
+  },
+  "osvVulnerabilityAlerts": true
+}

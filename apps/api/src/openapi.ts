@@ -12,6 +12,10 @@ export const openapi = {
     "/readyz": { get: { summary: "Readiness (database + broker)" } },
     "/v1/me": { get: { summary: "Current user, org, role, environments" } },
     "/v1/org": { patch: { summary: "Rename the active organization" } },
+    "/v1/org/export": { get: { summary: "Export organization metadata, members, and action read model as JSON" } },
+    "/v1/org/deletion-request": { post: { summary: "Request deletion with a 30-day grace period" } },
+    "/v1/org/deletion-cancel": { post: { summary: "Cancel a pending deletion request" } },
+    "/v1/org/retention": { patch: { summary: "Set the organization retention period" } },
     "/v1/members": { get: { summary: "Organization members" } },
     "/v1/invites": {
       get: { summary: "Pending invites" },

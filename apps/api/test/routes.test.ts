@@ -200,13 +200,46 @@ test("control plane routes: auth, actions, evidence, billing, webhooks", { skip:
 
   const members = await app.request("/v1/members", { headers: auth });
   assert.equal(members.status, 200);
+
+  const exported = await app.request("/v1/org/export", { headers: auth });
+  assert.equal(exported.status, 200);
+  assert.match(exported.headers.get("content-disposition") ?? "", /tessera-export-/);
+  assert.equal(((await exported.json()) as { org: { name: string } }).org.name, "Test Workspace");
+
+  const wrongDelete = await app.request("/v1/org/deletion-request", {
+    method: "POST",
+    headers: { ...auth, "content-type": "application/json" },
+    body: JSON.stringify({ confirm: "wrong" }),
+  });
+  assert.equal(wrongDelete.status, 400);
+  const requestedDelete = await app.request("/v1/org/deletion-request", {
+    method: "POST",
+    headers: { ...auth, "content-type": "application/json" },
+    body: JSON.stringify({ confirm: "Test Workspace" }),
+  });
+  assert.equal(requestedDelete.status, 200);
+  assert.match(((await requestedDelete.json()) as { purgeAfter: string }).purgeAfter, /T/);
+  const cancelledDelete = await app.request("/v1/org/deletion-cancel", {
+    method: "POST",
+    headers: { ...auth, "content-type": "application/json" },
+    body: "{}",
+  });
+  assert.equal(cancelledDelete.status, 200);
+  const retention = await app.request("/v1/org/retention", {
+    method: "PATCH",
+    headers: { ...auth, "content-type": "application/json" },
+    body: JSON.stringify({ retentionDays: 90 }),
+  });
+  assert.equal(retention.status, 200);
+
   const invite = await app.request("/v1/invites", {
     method: "POST",
     headers: { ...auth, "content-type": "application/json" },
     body: JSON.stringify({ email: `reviewer-${Date.now()}@example.com`, role: "viewer" }),
   });
   assert.equal(invite.status, 200);
-  const inviteBody = (await invite.json()) as { id: string };
+  const inviteBody = (await invite.json()) as { id: string; emailSent: boolean };
+  assert.equal(inviteBody.emailSent, false);
   assert.equal((await app.request(`/v1/invites/${inviteBody.id}`, { method: "DELETE", headers: auth })).status, 200);
 
   const envName = `api-${Date.now()}`;

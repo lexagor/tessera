@@ -1,6 +1,3 @@
-import { mkdir, readFile, writeFile } from "node:fs/promises";
-import { join, resolve } from "node:path";
-
 import { Hono } from "hono";
 import {
   buildAgentReceipt,
@@ -47,6 +44,8 @@ import {
 } from "./crypto.js";
 import { db } from "./db.js";
 import { env, verifyBaseUrl } from "./env.js";
+import { evidenceStorage } from "./evidence-storage.js";
+import { deletionRequestEmail, inviteEmail, sendEmail } from "./email.js";
 import {
   IntegrationError,
   PROVIDERS,
@@ -228,12 +227,12 @@ routes.get("/v1/public/evidence/:token", async (c) => {
 routes.get("/v1/public/evidence/:token/download", async (c) => {
   const pack = await sharedEvidencePack(c.req.param("token"));
   if (!pack?.object_key) return fail(c, 404, "not_found", "Reviewer link is invalid or expired");
-  const root = resolve(env.EVIDENCE_DIR);
-  const filePath = resolve(pack.object_key as string);
-  if (!filePath.startsWith(`${root}/`)) {
+  let file: Uint8Array;
+  try {
+    file = await evidenceStorage().get(pack.object_key as string);
+  } catch {
     return fail(c, 404, "not_found", "Evidence pack not found");
   }
-  const file = await readFile(filePath);
   return new Response(file, {
     status: 200,
     headers: {
@@ -322,6 +321,152 @@ routes.patch("/v1/org", requireRole("owner", "admin"), async (c) => {
   return c.json(rows[0]);
 });
 
+routes.get("/v1/org/export", requireRole("owner", "admin"), async (c) => {
+  const s = session(c);
+  const [orgRows, members, invites, environments, agents, actions, auditRows, usage, webhookRows] =
+    await Promise.all([
+      db()`
+        SELECT id, name, slug, plan, retention_days, deletion_requested_at, deletion_scheduled_for, created_at
+          FROM orgs WHERE id = ${s.org.id}
+      `,
+      db()`
+        SELECT u.id, u.email, u.name, m.role, m.created_at
+          FROM memberships m JOIN users u ON u.id = m.user_id
+         WHERE m.org_id = ${s.org.id} ORDER BY m.created_at
+      `,
+      db()`
+        SELECT id, email, role, expires_at, accepted_at, created_at
+          FROM invites WHERE org_id = ${s.org.id} ORDER BY created_at DESC
+      `,
+      db()`
+        SELECT id, name, slug, broker_tenant, created_at
+          FROM environments WHERE org_id = ${s.org.id} ORDER BY created_at
+      `,
+      db()`
+        SELECT a.id, a.environment_id, a.agent_id, a.name, a.created_at, a.last_seen_at
+          FROM agents a JOIN environments e ON e.id = a.environment_id
+         WHERE e.org_id = ${s.org.id} ORDER BY a.created_at
+      `,
+      db()`
+        SELECT action_id, environment_id, agent_id, principal_id, tool, decision, outcome_status,
+               policy_id, policy_version, policy_hash, credential_issuer, credential_thumbprint,
+               receipt_id, outcome_receipt_id, created_at, completed_at, verified, payload
+          FROM actions WHERE org_id = ${s.org.id}
+         ORDER BY created_at DESC LIMIT 10000
+      `,
+      db()`
+        SELECT id, actor_user_id, actor_type, action, target, details, created_at
+          FROM audit_log WHERE org_id = ${s.org.id}
+         ORDER BY created_at DESC LIMIT 10000
+      `,
+      db()`
+        SELECT environment_id, day, actions, allowed, denied
+          FROM usage_daily WHERE org_id = ${s.org.id} ORDER BY day DESC LIMIT 3660
+      `,
+      db()`
+        SELECT id, url, events, active, created_at
+          FROM webhook_endpoints WHERE org_id = ${s.org.id} ORDER BY created_at DESC
+      `,
+    ]);
+  const payload = {
+    version: 1,
+    generatedAt: new Date().toISOString(),
+    scope: { type: "org", orgId: s.org.id },
+    org: orgRows[0] ?? s.org,
+    members,
+    invites,
+    environments,
+    agents,
+    actions,
+    auditLog: auditRows,
+    usage,
+    webhooks: webhookRows,
+    limits: {
+      actions: 10000,
+      actionsTruncated: actions.length >= 10000,
+      auditTruncated: auditRows.length >= 10000,
+    },
+    notes: [
+      "Broker receipts remain in the broker tenant and are included in evidence packs.",
+      "Secrets, broker keys, webhook signing secrets, and session tokens are not exported.",
+    ],
+  };
+  await audit({
+    orgId: s.org.id,
+    actorUserId: s.user.id,
+    action: "org.exported",
+    target: s.org.id,
+    details: { actions: actions.length, auditEvents: auditRows.length },
+  });
+  c.header("content-disposition", `attachment; filename="tessera-export-${s.org.slug}.json"`);
+  c.header("cache-control", "no-store");
+  return c.json(payload);
+});
+
+routes.post("/v1/org/deletion-request", requireRole("owner"), async (c) => {
+  const s = session(c);
+  const body = z.object({ confirm: z.string() }).safeParse(await requestBody(c));
+  if (!body.success || body.data.confirm !== s.org.name) {
+    return fail(c, 400, "invalid_request", "Type the workspace name exactly to confirm");
+  }
+  const rows = await db()`
+    UPDATE orgs
+       SET deletion_requested_at = now(),
+           deletion_scheduled_for = now() + interval '30 days'
+     WHERE id = ${s.org.id}
+    RETURNING deletion_scheduled_for
+  `;
+  const purgeAfter = String(rows[0]?.deletion_scheduled_for);
+  await audit({
+    orgId: s.org.id,
+    actorUserId: s.user.id,
+    action: "org.deletion_requested",
+    target: s.org.id,
+    details: { purgeAfter },
+  });
+  void sendEmail(
+    deletionRequestEmail({
+      to: s.user.email,
+      orgName: s.org.name,
+      purgeAfter,
+    }),
+  ).catch(() => undefined);
+  return c.json({ deletionRequestedAt: new Date().toISOString(), purgeAfter });
+});
+
+routes.post("/v1/org/deletion-cancel", requireRole("owner"), async (c) => {
+  const s = session(c);
+  await db()`
+    UPDATE orgs
+       SET deletion_requested_at = NULL,
+           deletion_scheduled_for = NULL
+     WHERE id = ${s.org.id}
+  `;
+  await audit({
+    orgId: s.org.id,
+    actorUserId: s.user.id,
+    action: "org.deletion_cancelled",
+    target: s.org.id,
+    details: {},
+  });
+  return c.json({ deletionRequestedAt: null, purgeAfter: null });
+});
+
+routes.patch("/v1/org/retention", requireRole("owner"), async (c) => {
+  const s = session(c);
+  const body = z.object({ retentionDays: z.number().int().min(30).max(3650) }).safeParse(await requestBody(c));
+  if (!body.success) return fail(c, 400, "invalid_request", "retentionDays must be 30–3650");
+  await db()`UPDATE orgs SET retention_days = ${body.data.retentionDays} WHERE id = ${s.org.id}`;
+  await audit({
+    orgId: s.org.id,
+    actorUserId: s.user.id,
+    action: "org.retention_updated",
+    target: s.org.id,
+    details: { retentionDays: body.data.retentionDays },
+  });
+  return c.json({ retentionDays: body.data.retentionDays });
+});
+
 routes.get("/v1/members", async (c) => {
   const s = session(c);
   const rows = await db()`
@@ -373,9 +518,11 @@ routes.post("/v1/invites", requireRole("owner", "admin"), async (c) => {
   if (existing.length > 0) return fail(c, 409, "conflict", "That email is already a member");
   const token = randomToken(32);
   const id = uuid();
+  const expiresAt = new Date(Date.now() + 7 * 86_400_000).toISOString();
+  const inviteUrl = `${env.PUBLIC_BASE_URL.replace(/\/$/, "")}/invite/${token}`;
   await db()`
     INSERT INTO invites (id, org_id, email, role, token_hash, expires_at)
-    VALUES (${id}, ${s.org.id}, ${email}, ${body.data.role}, ${sha256(token)}, now() + interval '7 days')
+    VALUES (${id}, ${s.org.id}, ${email}, ${body.data.role}, ${sha256(token)}, ${expiresAt})
   `;
   await audit({
     orgId: s.org.id,
@@ -384,13 +531,26 @@ routes.post("/v1/invites", requireRole("owner", "admin"), async (c) => {
     target: id,
     details: { email, role: body.data.role },
   });
+  const delivery = await sendEmail(
+    inviteEmail({
+      to: email,
+      inviteUrl,
+      orgName: s.org.name,
+      inviterEmail: s.user.email,
+      role: body.data.role,
+    }),
+  ).catch(() => ({ sent: false, provider: "resend" as const }));
   return c.json({
     id,
     email,
     role: body.data.role,
-    expiresAt: new Date(Date.now() + 7 * 86_400_000).toISOString(),
-    inviteUrl: `${env.PUBLIC_BASE_URL.replace(/\/$/, "")}/invite/${token}`,
-    notice: "The invited user must sign in with this email; share the invite URL if needed.",
+    expiresAt,
+    inviteUrl,
+    emailSent: delivery.sent,
+    emailProvider: delivery.provider,
+    notice: delivery.sent
+      ? "Invite email sent. The invited user must sign in with this email."
+      : "The invited user must sign in with this email; share the invite URL if needed.",
   });
 });
 
@@ -1490,10 +1650,7 @@ routes.post("/v1/evidence-packs", requireRole("owner", "admin", "member"), async
   }
   try {
     const archive = await broker.exportTenantArchive(environment);
-    const directory = resolve(env.EVIDENCE_DIR);
-    await mkdir(directory, { recursive: true });
-    const objectKey = join(directory, `${id}.tar.gz`);
-    await writeFile(objectKey, archive);
+    const objectKey = await evidenceStorage().put(`${id}.tar.gz`, archive);
     await db()`
       INSERT INTO evidence_packs (id, org_id, environment_id, status, object_key, filters, summary, created_by)
       VALUES (${id}, ${s.org.id}, ${environment.id}, 'ready', ${objectKey}, ${db().json(filters as never)}, ${db().json(summary as never)}, ${s.user.id})
@@ -1646,12 +1803,12 @@ routes.get("/v1/evidence-packs/:id/download", async (c) => {
   if (!pack || pack.status !== "ready" || !pack.object_key) {
     return fail(c, 404, "not_found", "Evidence pack not found");
   }
-  const root = resolve(env.EVIDENCE_DIR);
-  const filePath = resolve(pack.object_key as string);
-  if (!filePath.startsWith(`${root}/`)) {
+  let file: Uint8Array;
+  try {
+    file = await evidenceStorage().get(pack.object_key as string);
+  } catch {
     return fail(c, 404, "not_found", "Evidence pack not found");
   }
-  const file = await readFile(filePath);
   return new Response(file, {
     status: 200,
     headers: {

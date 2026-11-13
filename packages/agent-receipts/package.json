@@ -16,7 +16,7 @@
     "clean": "rm -rf dist"
   },
   "dependencies": {
-    "@noble/curves": "^1.9.0",
+    "@noble/curves": "^2.4.0",
     "@tessera-verify/receipt-schema": "workspace:*"
   },
   "devDependencies": {

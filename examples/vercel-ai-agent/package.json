@@ -14,7 +14,7 @@
   "dependencies": {
     "@tessera-verify/sdk-ts": "workspace:*",
     "ai": "^7.0.170",
-    "zod": "^3.25.76"
+    "zod": "^4.6.6"
   },
   "devDependencies": {
     "@types/node": "^22.10.2",

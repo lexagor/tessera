@@ -1,0 +1,28 @@
+{
+  "commit": "2989db82",
+  "deployedAt": "2026-11-13T09:00:00Z",
+  "environment": "production",
+  "migrations": ["013_scim.sql"],
+  "images": {
+    "api": "ghcr.io/lexagor/tessera-api@sha256:a8c66b57b69fa399b19b9b6209f82a9d5de21147050d2600d102beaa41436cf9",
+    "broker": "ghcr.io/lexagor/tessera-broker@sha256:8395ed4bc443e4091f2051d209842987ee78e8ac67f2f9bb810d749e957b72ac",
+    "portal": "ghcr.io/lexagor/tessera-portal@sha256:491e8fa0d5e5f35581b1a641bd682acc14891c64584858927b287b6e35789cb9",
+    "verify": "ghcr.io/lexagor/tessera-verify@sha256:2486dea72c27c633d1fb0a41699508a803b2cff09a2c8a343d226cdf00fbb4ab",
+    "site": "ghcr.io/lexagor/tessera-site@sha256:f8d4b0720d198b4e117faf51e8c51d3d224e703dcfc6751c43b632ef2913164b"
+  },
+  "previous": {
+    "api": "ghcr.io/lexagor/tessera-api@sha256:7976c9dc2076f5ca1c3b9573cc018d1c3fc4bf5097f834b10b465c459ce3680b",
+    "portal": "ghcr.io/lexagor/tessera-portal@sha256:969fd5e44d65f0c832ab7c59ccc0b5541dee3cab6f37dfb2ec3a5f17e3556122",
+    "site": "ghcr.io/lexagor/tessera-site@sha256:a12b96bad0bbeab0adddb3c879c1fbbb5ff83174944f90cba6122789958e9e8e"
+  },
+  "checks": [
+    "CI",
+    "Security",
+    "SBOM",
+    "Images",
+    "RLS check",
+    "live /readyz",
+    "live SCIM token/list/create/delete/revoke",
+    "live legal pages"
+  ]
+}

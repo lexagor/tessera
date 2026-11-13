@@ -61,10 +61,11 @@ it is evidence metadata, not an audit opinion.
 
 ## Auditor request pack
 
-Prepare: system description, architecture diagram, data-flow diagram, control matrix, policy
-set, subprocessor list, DPA, risk register, incident log, access-review evidence, change/release
-records, backup/restore results, vulnerability scans, penetration-test report, and a list of
-carve-outs. The current repository provides drafts for several of these, not an audit opinion.
+Prepare the artifacts indexed in [`soc2-data-room.md`](soc2-data-room.md): system description,
+architecture/data-flow diagrams, control matrix, policy set, subprocessor/DPA, risk register,
+incident log, access reviews, change/release records, backup/restore results, vulnerability
+scans, penetration-test report, and carve-outs. The current repository provides drafts for
+several of these, not an audit opinion.
 
 ## Claim boundary
 

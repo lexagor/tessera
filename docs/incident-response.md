@@ -1,6 +1,7 @@
 # Incident Response Runbook
 
-**Status:** operational draft. Test with a tabletop before a paid production commitment.
+**Status:** operational draft. Run the [`incident-tabletop.md`](incident-tabletop.md) scenario
+before a paid production commitment.
 
 ## Severity
 

@@ -31,6 +31,8 @@ jobs:
           }
           check "static-proof" "https://thetessera.xyz/proof/live-denial.html"
           check "proof-json" "https://thetessera.xyz/proof/live-denial.json"
+          check "sandbox-proof" "https://thetessera.xyz/proof/sandbox-action.html"
+          check "sandbox-json" "https://thetessera.xyz/proof/sandbox-action.json"
           check "interactive-verifier" "https://verify.thetessera.xyz/verify/MF8r1-gEjpTqJkMXBftezBAfqhy6UORapo-xluIMlW4"
           check "public-api" "https://app.thetessera.xyz/v1/public/verify/MF8r1-gEjpTqJkMXBftezBAfqhy6UORapo-xluIMlW4"
 
@@ -38,6 +40,10 @@ jobs:
           npx -y -p @tessera-verify/verify@0.1.3 tessera-verify /tmp/live-denial.json \
             --expected-signer 0xc35374b171e3be80b62c7612479f4d65e519f4e6 > /tmp/proof-result.json || failed=1
           cat /tmp/proof-result.json || true
+          curl -fsS --max-time 20 https://thetessera.xyz/proof/sandbox-action.json -o /tmp/sandbox-action.json
+          npx -y -p @tessera-verify/verify@0.1.3 tessera-verify /tmp/sandbox-action.json \
+            --expected-signer 0x70997970c51812dc3a010c7d01b50e0d17dc79c8 > /tmp/sandbox-result.json || failed=1
+          cat /tmp/sandbox-result.json || true
 
           title="Public proof verification failed"
           issue="$(gh issue list --state open --search "$title in:title" --json number --jq '.[0].number // empty')"

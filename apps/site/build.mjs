@@ -175,6 +175,7 @@ const sitemapUrls = [
   `${SITE_URL}/docs/index.html`,
   `${SITE_URL}/proof/`,
   `${SITE_URL}/proof/live-denial.html`,
+  `${SITE_URL}/proof/sandbox-action.html`,
   ...sources.map((source) => `${SITE_URL}/docs/${source.slug}.html`),
 ];
 writeFileSync(

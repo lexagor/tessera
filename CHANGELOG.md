@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+### Added — P2 hardening follow-up
+
+- Control-plane RLS behind `CONTROL_PLANE_RLS`, with org/admin transaction helpers and tests.
+- SCIM token expiry and per-token rate limiting.
+- Keyless cosign image signing, CodeQL, OpenSSF Scorecard, and image signature verification.
+- Backup freshness check, evidence restore drill, tenant purge script, and DR runbook.
+- Enforced CSP with a hashed JSON-LD allowance and externalized docs search script.
+
 ### Added — P2 enterprise readiness
 
 - SCIM 2.0 Users provisioning with organization-scoped bearer tokens and Settings UI.

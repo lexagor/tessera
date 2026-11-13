@@ -25,7 +25,7 @@ trusting Tessera or the vendor.
 | Access | Auth0 OIDC with first-admin bootstrap and `@thetessera.xyz` domain allowlist; invites for external workspaces; org-scoped SCIM Users token; HttpOnly sessions, RBAC, origin checks, audit log |
 | Evidence export | Signed tenant archive with receipts, policy versions, authority transitions, key events, anchors |
 | Standards | Agent Receipts v0.5.0 / W3C VC export with Ed25519 proof and optional RFC 3161 timestamp |
-| API hardening | Request limits, timeouts, rate limits, no-store/nosniff headers, sanitized errors |
+| API hardening | Request limits, timeouts, rate limits, no-store/nosniff headers, enforced CSP, sanitized errors |
 
 ## Reviewer evidence
 

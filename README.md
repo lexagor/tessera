@@ -210,6 +210,7 @@ docs/              Architecture, threat model, receipt spec, controls, RFCs
 - [`docs/staging-rollback.md`](docs/staging-rollback.md) — staging and release rollback runbook
 - [`docs/load-testing.md`](docs/load-testing.md) — staging load harness
 - [`docs/dependency-updates.md`](docs/dependency-updates.md) — Renovate policy
+- [`docs/supply-chain.md`](docs/supply-chain.md) — signing, SBOM, CodeQL, Scorecard, and verification
 - [`docs/privacy.md`](docs/privacy.md), [`docs/terms.md`](docs/terms.md), [`docs/dpa.md`](docs/dpa.md), [`docs/subprocessors.md`](docs/subprocessors.md) — legal and data-processing terms
 - [`docs/security-sla.md`](docs/security-sla.md) — security contact and response targets
 - [`docs/auth0-production.md`](docs/auth0-production.md) — custom domain and email-provider runbook
@@ -221,6 +222,7 @@ docs/              Architecture, threat model, receipt spec, controls, RFCs
 - [`docs/incident-response.md`](docs/incident-response.md) — incident severity, roles, and runbook
 - [`docs/support-sla.md`](docs/support-sla.md) — support channels and response targets
 - [`docs/multi-az-dr.md`](docs/multi-az-dr.md) — HA/DR target and failover drill
+- [`docs/dr-drill.md`](docs/dr-drill.md) — database and evidence restore drill
 - [`docs/enterprise-sso.md`](docs/enterprise-sso.md) — Auth0 Organizations and SCIM model
 - [`docs/scim.md`](docs/scim.md) — SCIM Users API and token setup
 - [`docs/scim.md`](docs/scim.md) — SCIM Users API and token setup

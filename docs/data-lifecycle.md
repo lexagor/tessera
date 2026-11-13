@@ -44,16 +44,28 @@ After the purge date, an operator must run the purge deliberately. The repositor
 expose an internet-facing hard-delete endpoint because broker receipts and anchors have
 retention and legal-hold implications.
 
+`infra/scripts/purge-tenant.sh` performs a guarded dry run by default and requires
+`APPLY=1`, an exact workspace-name confirmation, and `LEGAL_HOLD_CLEARED=1`. It deletes broker
+tenant rows, cascades the control-plane organization, and removes local evidence objects. If
+`EVIDENCE_S3_BUCKET` is set, the operator must purge the bucket prefix separately and acknowledge
+it with `S3_PURGE_ACK=<bucket>`.
+
 1. Confirm the request is past `deletion_scheduled_for` and no legal hold applies.
 2. Export any final evidence required by contract or law.
-3. Revoke the environment broker keys and agent keys.
-4. Delete broker tenant rows through the broker's tenant-scoped admin path, or use the
-   documented database procedure for the deployment.
-5. Delete evidence objects for the tenant (`EVIDENCE_DIR` or the S3 prefix).
-6. Delete the control-plane organization; cascades remove memberships, environments, actions,
-   packs, webhooks, and audit rows. Users remain as identities.
-7. Remove the organization from backups according to the backup retention schedule.
-8. Record the purge in the operator incident/change log with counts and date.
+3. Run the dry run and review counts:
+
+   ```bash
+   ORG_SLUG=acme ORG_CONFIRM='Acme' LEGAL_HOLD_CLEARED=1 \
+     POSTGRES_CONTAINER=docker-postgres-1 POSTGRES_PASSWORD=... \
+     EVIDENCE_VOLUME=docker_evidence infra/scripts/purge-tenant.sh
+   ```
+
+4. Apply with the same environment plus `APPLY=1`.
+5. Remove the organization from backups according to the backup retention schedule.
+6. Record the purge in the operator change log with counts and date.
+
+The script does not delete the global user identities; membership and tenant data are removed.
+Backups can retain a copy until their retention window expires.
 
 ```sql
 -- Inspect first; do not run blindly.

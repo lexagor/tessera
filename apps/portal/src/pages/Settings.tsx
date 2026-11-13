@@ -67,7 +67,7 @@ export function SettingsPage() {
   });
   const scimTokens = useQuery({
     queryKey: ["scim-tokens"],
-    queryFn: () => api<{ items: Array<{ id: string; name: string; created_at: string; last_used_at: string | null; revoked_at: string | null }> }>("/v1/scim-tokens"),
+    queryFn: () => api<{ items: Array<{ id: string; name: string; created_at: string; last_used_at: string | null; expires_at: string | null; revoked_at: string | null }> }>("/v1/scim-tokens"),
     enabled: me.role === "owner" || me.role === "admin",
   });
   const deliveries = useQuery({
@@ -461,6 +461,7 @@ export function SettingsPage() {
                   <div className="tf-muted">
                     created {formatDate(token.created_at)}
                     {token.last_used_at ? ` · last used ${formatDate(token.last_used_at)}` : ""}
+                    {token.expires_at ? ` · expires ${formatDate(token.expires_at)}` : ""}
                   </div>
                 </div>
                 <Button variant="danger" onClick={() => revokeScimToken.mutate(token.id)} disabled={revokeScimToken.isPending}>

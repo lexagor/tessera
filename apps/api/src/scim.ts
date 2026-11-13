@@ -1,7 +1,9 @@
 import { Hono, type Context, type MiddlewareHandler } from "hono";
 
-import { db } from "./db.js";
+import { db, withAdminContext, withOrgContext } from "./db.js";
 import { randomToken, sha256, uuid } from "./crypto.js";
+import { env } from "./env.js";
+import { rateLimit } from "./rate-limit.js";
 
 export type ScimRole = "admin" | "member" | "viewer";
 
@@ -19,6 +21,15 @@ const PATCH_SCHEMA = "urn:ietf:params:scim:api:messages:2.0:PatchOp";
 
 export const scimRoutes = new Hono<ScimEnv>();
 
+scimRoutes.use(
+  "*",
+  rateLimit({
+    name: "SCIM",
+    limit: env.RATE_LIMIT_SCIM_PER_MINUTE,
+    key: (c) => `scim:${sha256(c.req.header("authorization") ?? "")}`,
+  }) as unknown as MiddlewareHandler<ScimEnv>,
+);
+
 function scimError(c: Context<ScimEnv>, status: number, detail: string) {
   return c.json(
     { schemas: [ERROR_SCHEMA], detail, status: String(status) },
@@ -30,19 +41,23 @@ const requireScimToken: MiddlewareHandler<ScimEnv> = async (c, next) => {
   const auth = c.req.header("authorization") ?? "";
   const match = /^Bearer\s+(.+)$/i.exec(auth.trim());
   if (!match) return scimError(c, 401, "A SCIM bearer token is required");
-  const rows = await db()`
-    SELECT t.id, t.org_id
-      FROM scim_tokens t
-     WHERE t.token_hash = ${sha256(match[1] ?? "")}
-       AND t.revoked_at IS NULL
-     LIMIT 1
-  `;
-  const token = rows[0] as { id: string; org_id: string } | undefined;
+  const token = await withAdminContext(async () => {
+    const rows = await db()`
+      SELECT t.id, t.org_id
+        FROM scim_tokens t
+       WHERE t.token_hash = ${sha256(match[1] ?? "")}
+         AND t.revoked_at IS NULL
+         AND (t.expires_at IS NULL OR t.expires_at > now())
+       LIMIT 1
+    `;
+    const found = rows[0] as { id: string; org_id: string } | undefined;
+    if (found) await db()`UPDATE scim_tokens SET last_used_at = now() WHERE id = ${found.id}`;
+    return found;
+  });
   if (!token) return scimError(c, 401, "Invalid or revoked SCIM token");
-  await db()`UPDATE scim_tokens SET last_used_at = now() WHERE id = ${token.id}`;
   c.set("scimOrgId", token.org_id);
   c.set("scimTokenId", token.id);
-  await next();
+  return withOrgContext(token.org_id, next);
 };
 
 scimRoutes.use("*", requireScimToken);

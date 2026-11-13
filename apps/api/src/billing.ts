@@ -1,7 +1,7 @@
 import { Hono } from "hono";
 import Stripe from "stripe";
 
-import { db } from "./db.js";
+import { db, withAdminContext } from "./db.js";
 import { env } from "./env.js";
 import { monthlyActionCount, planFor } from "./plans.js";
 
@@ -105,6 +105,8 @@ export async function applySubscription(input: {
 }
 
 export const billingWebhookRoutes = new Hono();
+
+billingWebhookRoutes.use("*", async (_c, next) => withAdminContext(next));
 
 billingWebhookRoutes.post("/v1/webhooks/stripe", async (c) => {
   const client = getStripe();

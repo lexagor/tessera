@@ -107,9 +107,10 @@ test, SOC 2 opinion, or proof that no vulnerabilities exist.
 - During this assessment, **secret scanning, push protection, and Dependabot security updates**
   were enabled for the repository. Secret scanning reported no live credentials; source review
   found only test/demo placeholders. After dependency and override updates, `pnpm audit --prod`
-  reports no known vulnerabilities; Dependabot alert refresh is asynchronous.
-- Workflows pin actions by commit SHA, but GitHub's `sha_pinning_required` setting is off. The
-  repository's Actions policy allows all actions.
+  reports no known vulnerabilities and Dependabot has zero open alerts.
+- Workflows pin actions by commit SHA, and GitHub's `sha_pinning_required` setting is now on.
+  The repository's Actions policy still allows all actions; restrict to selected/verified actions
+  only if that matches the release workflow.
 - Dependabot version updates are active; a high advisory remains only in the non-deployed LangChain
   example (`@langchain/core` embedding Zod 3). Production API uses patched Zod 4.
 - Recommended: enable branch protection/rulesets, require CI/Security/CodeQL status checks, and

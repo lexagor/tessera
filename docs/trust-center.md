@@ -68,7 +68,7 @@ account. Revoking the link does not alter the underlying records.
 - No model provider receives customer action data from Tessera.
 
 See [`subprocessors.md`](subprocessors.md), [`privacy.md`](privacy.md), [`terms.md`](terms.md),
-and [`dpa.md`](dpa.md).
+[`dpa.md`](dpa.md), and the draft [`security-policies.md`](security-policies.md).
 
 ## Contact
 

@@ -47,7 +47,8 @@ docker compose -f infra/docker/docker-compose.yml \
 ```
 
 `up --build` is only appropriate on a larger host/with swap; do not compile Rust on a 2 GB VPS.
-Run `ENV_FILE=.env VPS_IP=<vps-ip> sh infra/scripts/vps-preflight.sh` before changing DNS.
+Run `ENV_FILE=.env VPS_IP=<vps-ip> sh infra/scripts/vps-preflight.sh` before changing DNS;
+on a live host add `TESSERA_SKIP_PORT_CHECK=1`.
 
 Caddy obtains TLS automatically for all three domains and routes:
 `$SITE_DOMAIN` → site/docs, `$APP_DOMAIN` → portal + API, `$VERIFY_DOMAIN` → verifier.

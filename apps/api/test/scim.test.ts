@@ -54,6 +54,33 @@ test("SCIM users are org-scoped, provisionable, and revocable", { skip: !canRun 
   const createdUser = (await created.json()) as { id: string; userName: string; active: boolean };
   assert.equal(createdUser.active, true);
 
+  const group = await app.request("/scim/v2/Groups", {
+    method: "POST",
+    headers: { ...bearer, "content-type": "application/scim+json" },
+    body: JSON.stringify({
+      schemas: ["urn:ietf:params:scim:schemas:core:2.0:Group"],
+      displayName: `proof-admins-${Date.now()}`,
+      members: [{ value: createdUser.id }],
+      "urn:tessera:params:scim:schemas:extension:2.0:Group": { role: "admin" },
+    }),
+  });
+  assert.equal(group.status, 201);
+  const groupBody = (await group.json()) as { id: string; members: Array<{ value: string }> };
+  assert.equal(groupBody.members[0]?.value, createdUser.id);
+  const groups = await app.request("/scim/v2/Groups", { headers: bearer });
+  assert.equal(groups.status, 200);
+  assert.equal(((await groups.json()) as { totalResults: number }).totalResults, 1);
+  const groupPatch = await app.request(`/scim/v2/Groups/${groupBody.id}`, {
+    method: "PATCH",
+    headers: { ...bearer, "content-type": "application/scim+json" },
+    body: JSON.stringify({
+      schemas: ["urn:ietf:params:scim:api:messages:2.0:PatchOp"],
+      Operations: [{ op: "replace", path: "members", value: [] }],
+    }),
+  });
+  assert.equal(groupPatch.status, 200);
+  assert.equal((await app.request(`/scim/v2/Groups/${groupBody.id}`, { method: "DELETE", headers: bearer })).status, 204);
+
   const patched = await app.request(`/scim/v2/Users/${createdUser.id}`, {
     method: "PATCH",
     headers: { ...bearer, "content-type": "application/scim+json" },

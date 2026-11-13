@@ -54,7 +54,7 @@ broker tables forced); images are digest-pinned; local backups and uptime checks
 | Environment key revocation | Done and verified live | Migration 011 stores `broker_key_id`; delete returned 200 and key `revoked_at` was set |
 | Redis persistence | Done | AOF + `docker_redisdata`; document RTO/RPO |
 | Broker admin bootstrap | Partial | Valid admin key/token live; preflight now checks token equality/key shape; actual broker auth still checked manually |
-| RLS | Implemented | 9 broker tables + 18 control-plane tables `ENABLE`+`FORCE`; control-plane RLS enabled and canaried; rollback flag exists |
+| RLS | Implemented | 9 broker tables + 19 control-plane tables `ENABLE`+`FORCE`; control-plane RLS enabled and canaried; rollback flag exists |
 | Domain access copy | Done | Domain allowlist and invited-workspace behavior documented |
 | Auth0 RP-initiated logout | Done and verified live | `/auth/logout` returns Auth0 `/v2/logout`; portal redirects; host observed |
 
@@ -284,7 +284,7 @@ Do next:
 7. [x] Fix environment deletion to revoke the broker key; verified live.
 8. [x] Enable Redis AOF persistence. Missing: documented RTO/RPO.
 9. [~] Document broker admin key/token bootstrap; preflight checks token equality/key shape. Missing: live broker-auth call/bootstrap command.
-10. [x] Re-apply RLS after migration and verify 9 broker + 18 control-plane forced tables. Startup assertion pending.
+10. [x] Re-apply RLS after migration and verify 9 broker + 19 control-plane forced tables; startup assertion deployed.
 11. [x] Document domain allowlist vs invited workspace membership.
 12. [x] Implement Auth0 RP-initiated logout; verified live.
 
@@ -316,7 +316,7 @@ Do next:
 | External penetration test | Scope/rules added; not run | `docs/pentest-scope.md`; independent engagement still required |
 | Cloud KMS/HSM benchmark | Harness + matrix added; no real KMS | `scripts/kms-bench.mjs`, `docs/kms-benchmark.md`; live signer still in-process |
 | Multi-AZ/managed data + DR | Target design + failover plan added | `docs/multi-az-dr.md`; live remains single VPS |
-| SCIM + customer-owned SSO | SCIM Users implemented/tested; SSO design only | `/scim/v2`, org-scoped tokens, Settings UI; SCIM Groups and self-service per-org SSO remain |
+| SCIM + customer-owned SSO | SCIM Users and role Groups implemented/tested; SSO design only | `/scim/v2`, org-scoped tokens, Settings UI; self-service per-org SSO remains |
 | Named support/SLA + incident response | Working docs added | `docs/support-sla.md`, `docs/incident-response.md`; no contractual SLA |
 | Case study/reviewer acceptance | Consent/template only | `docs/case-study-template.md`, `docs/reviewer-acceptance.md`; no real acceptance |
 | Independent security review | Package/scoping added | `docs/independent-security-review.md`; no engagement |

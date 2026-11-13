@@ -1,0 +1,46 @@
+{
+  "annotations": { "list": [] },
+  "editable": true,
+  "graphTooltip": 1,
+  "panels": [
+    {
+      "title": "API request rate",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
+      "targets": [{ "expr": "sum(rate(tessera_api_requests_total[5m]))", "legendFormat": "requests/s" }]
+    },
+    {
+      "title": "API 5xx rate",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
+      "targets": [{ "expr": "sum(rate(tessera_api_errors_total[5m])) / clamp_min(sum(rate(tessera_api_requests_total[5m])), 1)", "legendFormat": "5xx ratio" }]
+    },
+    {
+      "title": "API average latency",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 8 },
+      "targets": [{ "expr": "sum(rate(tessera_api_request_duration_seconds_sum[5m])) / clamp_min(sum(rate(tessera_api_request_duration_seconds_count[5m])), 1)", "legendFormat": "seconds" }]
+    },
+    {
+      "title": "Rate-limited requests",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 8 },
+      "targets": [{ "expr": "sum(rate(tessera_api_rate_limited_total[5m]))", "legendFormat": "rate-limited/s" }]
+    },
+    {
+      "title": "Webhook failures",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 16 },
+      "targets": [{ "expr": "sum(rate(tessera_api_webhook_failed_total[5m]))", "legendFormat": "failures/s" }]
+    },
+    {
+      "title": "Readiness",
+      "type": "stat",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 16 },
+      "targets": [{ "expr": "probe_success{job=\"tessera-readyz\"}", "legendFormat": "ready" }]
+    }
+  ],
+  "schemaVersion": 39,
+  "title": "Tessera — service health",
+  "version": 1
+}

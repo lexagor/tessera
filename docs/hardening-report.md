@@ -67,7 +67,7 @@ is not included.
 | Pen test | Scope, rules of engagement, coverage matrix | Independent tester, report, retest |
 | KMS benchmark | `scripts/kms-bench.mjs`, test matrix | Real cloud KMS/HSM endpoint and key |
 | Multi-AZ/DR | Target topology, RPO/RTO table, drill plan | Managed Postgres/Redis, second zone, measured failover |
-| SCIM | Users endpoints, org tokens, Settings UI, tests, live smoke | SCIM Groups, deprovisioning automation, IdP certification |
+| SCIM | Users + role Groups, org tokens, Settings UI, tests | Deprovisioning automation, IdP certification |
 | Enterprise SSO | Auth0 Organizations model documented | Per-customer configuration and custom Auth0 domain |
 | Support/IR | Support policy, severity matrix, incident runbook | Contractual SLA, on-call rota, tabletop |
 | Case study/reviewer | Consent and acceptance templates | Real customer/reviewer evidence |
@@ -96,7 +96,7 @@ is not included.
 
 1. Auth0 login and RP-initiated logout are live. Enterprise IdP validation (Okta/Entra) and a
    custom Auth0 domain remain; the temporary M2M app is disabled but not deleted.
-2. Broker RLS is active on 9 tables; control-plane RLS is active on 18 tables. Both are checked
+2. Broker RLS is active on 9 tables; control-plane RLS is active on 19 tables. Both are checked
    in CI/deploy; a startup assertion remains follow-up work.
 3. Local Docker was unavailable; images were built and Trivy-scanned in CI, so non-root
    runtime verification is covered there rather than on this machine.

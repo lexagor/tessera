@@ -4,7 +4,7 @@ set -eu
 # Verify the control-plane RLS policies installed by migration 015.
 # Read-only. Run after migrations; `CONTROL_PLANE_RLS` enforcement is a separate runtime flag.
 
-TABLES="orgs memberships invites sessions environments agents agent_keys actions action_reviews usage_daily verification_links evidence_packs audit_log webhook_endpoints webhook_deliveries integration_connections billing_subscriptions scim_tokens"
+TABLES="orgs memberships invites sessions environments agents agent_keys actions action_reviews usage_daily verification_links evidence_packs audit_log webhook_endpoints webhook_deliveries integration_connections billing_subscriptions scim_tokens scim_groups"
 if [ -n "${POSTGRES_CONTAINER:-}" ]; then
   : "${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required with POSTGRES_CONTAINER}"
   psql_cmd() { docker exec -i -e PGPASSWORD="$POSTGRES_PASSWORD" "$POSTGRES_CONTAINER" psql -U "${POSTGRES_USER:-tessera}" -d "${POSTGRES_DB:-tessera}" -tAc "$1"; }

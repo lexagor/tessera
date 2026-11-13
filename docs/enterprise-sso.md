@@ -2,7 +2,7 @@
 
 ## What is live
 
-- Auth0 OIDC login for the hosted service, with `@thetessera.xyz` domain allowlist and
+- Auth0 OIDC login for the hosted service, with exact-email and invite allowlists and
   first-admin bootstrap.
 - SCIM 2.0 Users endpoint at `/scim/v2/Users` with an organization-scoped bearer token.
 - Supported SCIM users: list/filter by `userName`, get, create, patch (`active`,

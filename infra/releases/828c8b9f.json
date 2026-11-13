@@ -1,0 +1,35 @@
+{
+  "commit": "828c8b9f",
+  "deployedAt": "2026-11-13T10:00:00Z",
+  "environment": "production",
+  "migrations": ["014_scim_token_expiry.sql", "015_control_plane_rls.sql"],
+  "flags": { "CONTROL_PLANE_RLS": "1" },
+  "images": {
+    "api": "ghcr.io/lexagor/tessera-api@sha256:3a6d6c0892376674ddef1b452fecd7d1071368fd67bd5f74b621a0e2d26aaa38",
+    "broker": "ghcr.io/lexagor/tessera-broker@sha256:8395ed4bc443e4091f2051d209842987ee78e8ac67f2f9bb810d749e957b72ac",
+    "portal": "ghcr.io/lexagor/tessera-portal@sha256:abe19be86a67b46bfa03a6178107bdaee39e4c3eee6b4678ce0c8a82fce4e992",
+    "verify": "ghcr.io/lexagor/tessera-verify@sha256:2486dea72c27c633d1fb0a41699508a803b2cff09a2c8a343d226cdf00fbb4ab",
+    "site": "ghcr.io/lexagor/tessera-site@sha256:3022053b9ea1c00528511c4743c0508c835ad718fbb3d5afea1e994b4eea5eb2"
+  },
+  "previous": {
+    "api": "ghcr.io/lexagor/tessera-api@sha256:a8c66b57b69fa399b19b9b6209f82a9d5de21147050d2600d102beaa41436cf9",
+    "portal": "ghcr.io/lexagor/tessera-portal@sha256:491e8fa0d5e5f35581b1a641bd682acc14891c64584858927b287b6e35789cb9",
+    "site": "ghcr.io/lexagor/tessera-site@sha256:f8d4b0720d198b4e117faf51e8c51d3d224e703dcfc6751c43b632ef2913164b"
+  },
+  "signatures": "keyless cosign; workflow images.yml@refs/heads/main",
+  "checks": [
+    "CI",
+    "Security",
+    "SBOM",
+    "Images",
+    "CodeQL",
+    "Scorecard",
+    "RLS check 9/9",
+    "control-plane RLS canary",
+    "live SCIM token/list/create/delete/revoke",
+    "live webhook enqueue under RLS",
+    "enforced CSP",
+    "backup freshness",
+    "evidence restore drill"
+  ]
+}

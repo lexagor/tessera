@@ -125,6 +125,10 @@ authRoutes.get("/auth/callback", async (c) => {
     .split(",")
     .map((value) => value.trim().toLowerCase())
     .filter(Boolean);
+  const allowedEmails = (env.OIDC_ALLOWED_EMAILS ?? "")
+    .split(",")
+    .map((value) => value.trim().toLowerCase())
+    .filter(Boolean);
   const invite = await db()`
     SELECT 1 FROM invites
      WHERE lower(email) = ${email} AND accepted_at IS NULL AND expires_at > now()
@@ -133,13 +137,20 @@ authRoutes.get("/auth/callback", async (c) => {
   const domainAllowed =
     allowedDomains.length > 0 &&
     allowedDomains.some((domain) => email.endsWith(`@${domain}`));
+  const exactEmailAllowed = allowedEmails.includes(email);
   const existing = await findOidcUser({ issuer: config.issuer, subject });
   let bootstrapAllowed = false;
   if (!existing && env.BOOTSTRAP_EMAIL?.toLowerCase() === email) {
     const users = await db()`SELECT 1 FROM users LIMIT 1`;
     bootstrapAllowed = users.length === 0;
   }
-  if (!existing && invite.length === 0 && !domainAllowed && !bootstrapAllowed) {
+  if (
+    !existing &&
+    invite.length === 0 &&
+    !domainAllowed &&
+    !exactEmailAllowed &&
+    !bootstrapAllowed
+  ) {
     return c.json({ error: "This email is not invited to this workspace" }, 403);
   }
   let user: Awaited<ReturnType<typeof upsertOidcUser>>;

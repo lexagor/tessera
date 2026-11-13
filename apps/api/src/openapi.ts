@@ -16,6 +16,11 @@ export const openapi = {
     "/v1/org/deletion-request": { post: { summary: "Request deletion with a 30-day grace period" } },
     "/v1/org/deletion-cancel": { post: { summary: "Cancel a pending deletion request" } },
     "/v1/org/retention": { patch: { summary: "Set the organization retention period" } },
+    "/v1/scim-tokens": {
+      get: { summary: "List organization-scoped SCIM provisioning tokens" },
+      post: { summary: "Create a SCIM bearer token (shown once)" },
+    },
+    "/v1/scim-tokens/{id}": { delete: { summary: "Revoke a SCIM token" } },
     "/v1/members": { get: { summary: "Organization members" } },
     "/v1/invites": {
       get: { summary: "Pending invites" },

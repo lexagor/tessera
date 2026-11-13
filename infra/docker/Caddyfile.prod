@@ -53,6 +53,9 @@
 	handle /v1/* {
 		reverse_proxy api:8788
 	}
+	handle /scim/* {
+		reverse_proxy api:8788
+	}
 	handle /auth/* {
 		reverse_proxy api:8788
 	}

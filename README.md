@@ -215,6 +215,16 @@ docs/              Architecture, threat model, receipt spec, controls, RFCs
 - [`docs/auth0-production.md`](docs/auth0-production.md) — custom domain and email-provider runbook
 - [`docs/kms-production.md`](docs/kms-production.md) — KMS/HSM migration runbook
 - [`docs/edge-and-dns.md`](docs/edge-and-dns.md) — WAF/DDoS options and DNS decision
+- [`docs/soc2-readiness.md`](docs/soc2-readiness.md) — SOC 2 readiness mapping and evidence cadence
+- [`docs/pentest-scope.md`](docs/pentest-scope.md) — external penetration-test scope and rules
+- [`docs/incident-response.md`](docs/incident-response.md) — incident severity, roles, and runbook
+- [`docs/support-sla.md`](docs/support-sla.md) — support channels and response targets
+- [`docs/multi-az-dr.md`](docs/multi-az-dr.md) — HA/DR target and failover drill
+- [`docs/enterprise-sso.md`](docs/enterprise-sso.md) — Auth0 Organizations and SCIM model
+- [`docs/scim.md`](docs/scim.md) — SCIM Users API and token setup
+- [`docs/kms-benchmark.md`](docs/kms-benchmark.md) — KMS/HSM benchmark harness
+- [`docs/independent-security-review.md`](docs/independent-security-review.md) — external review package
+- [`docs/reviewer-acceptance.md`](docs/reviewer-acceptance.md) — reviewer acceptance evidence template
 - [`docs/golden-path.md`](docs/golden-path.md) — full loop against real providers
 - [`docs/rfcs/0001-action-broker.md`](docs/rfcs/0001-action-broker.md) — action broker spec
 - [`docs/governance-plane-plan.md`](docs/governance-plane-plan.md) — superseded historical plan

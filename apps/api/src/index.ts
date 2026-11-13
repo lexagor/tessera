@@ -14,6 +14,7 @@ import { env, isProduction } from "./env.js";
 import { recordRequest, renderMetrics } from "./metrics.js";
 import { openapi } from "./openapi.js";
 import { routes } from "./routes.js";
+import { scimRoutes } from "./scim.js";
 import { closeRateLimiter } from "./rate-limit.js";
 import { cleanupWebhookDeliveries, processWebhookDeliveries } from "./webhooks.js";
 
@@ -109,6 +110,7 @@ app.get("/metrics", (c) => c.text(renderMetrics()));
 app.route("/", billingWebhookRoutes);
 app.route("/", authRoutes);
 app.route("/", routes);
+app.route("/scim/v2", scimRoutes);
 
 app.get("/v1/session", requireSession, (c) => {
   const session = c.get("session");

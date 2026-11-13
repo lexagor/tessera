@@ -18,6 +18,7 @@
     "bench:http": "node scripts/bench-http.mjs",
     "bench:concurrency": "node scripts/bench-concurrency.mjs",
     "bench:verify": "pnpm --filter @tessera-verify/verify bench",
+    "bench:kms": "node scripts/kms-bench.mjs",
     "load:authorize": "node scripts/load/authorize.mjs"
   },
   "devDependencies": {

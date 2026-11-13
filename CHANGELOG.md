@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+### Added — P2 enterprise readiness
+
+- SCIM 2.0 Users provisioning with organization-scoped bearer tokens and Settings UI.
+- SOC 2 readiness mapping, penetration-test scope, incident-response runbook, support policy,
+  multi-AZ/DR design, enterprise SSO/SCIM docs, independent-review package, case-study and
+  reviewer-acceptance templates, financial model calculator, and fundraise checklist.
+- KMS/HSM benchmark harness and Caddy `/scim/*` routing.
+
 ### Added — P1 design-partner readiness
 
 - Evidence packs can use an S3-compatible bucket (`EVIDENCE_S3_*`) with a local fallback.

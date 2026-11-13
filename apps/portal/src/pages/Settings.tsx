@@ -7,6 +7,7 @@ import {
   Badge,
   Button,
   Card,
+  CopyRow,
   EmptyState,
   ErrorBanner,
   PageHeader,
@@ -42,6 +43,7 @@ export function SettingsPage() {
   const [error, setError] = useState<string | null>(null);
   const [confirmDelete, setConfirmDelete] = useState("");
   const [retentionDays, setRetentionDays] = useState(String(me.org.retention_days ?? 365));
+  const [scimToken, setScimToken] = useState<string | null>(null);
 
   const usage = useQuery({
     queryKey: ["usage", environmentId],
@@ -62,6 +64,11 @@ export function SettingsPage() {
       api<{ items: Array<{ id: string; url: string; events: string[]; active: boolean; created_at: string }> }>(
         "/v1/webhooks",
       ),
+  });
+  const scimTokens = useQuery({
+    queryKey: ["scim-tokens"],
+    queryFn: () => api<{ items: Array<{ id: string; name: string; created_at: string; last_used_at: string | null; revoked_at: string | null }> }>("/v1/scim-tokens"),
+    enabled: me.role === "owner" || me.role === "admin",
   });
   const deliveries = useQuery({
     queryKey: ["webhook-deliveries"],
@@ -125,6 +132,28 @@ export function SettingsPage() {
     mutationFn: () => api<{ url: string }>("/v1/billing/portal", { method: "POST", body: "{}" }),
     onSuccess: (data) => {
       if (data.url) window.location.href = data.url;
+    },
+    onError: (err) => setError(err instanceof Error ? err.message : String(err)),
+  });
+
+  const createScimToken = useMutation({
+    mutationFn: () =>
+      api<{ token: string }>("/v1/scim-tokens", {
+        method: "POST",
+        body: JSON.stringify({ name: "Identity provider" }),
+      }),
+    onSuccess: async (data) => {
+      setScimToken(data.token);
+      setError(null);
+      await queryClient.invalidateQueries({ queryKey: ["scim-tokens"] });
+    },
+    onError: (err) => setError(err instanceof Error ? err.message : String(err)),
+  });
+
+  const revokeScimToken = useMutation({
+    mutationFn: (id: string) => api(`/v1/scim-tokens/${id}`, { method: "DELETE" }),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["scim-tokens"] });
     },
     onError: (err) => setError(err instanceof Error ? err.message : String(err)),
   });
@@ -403,6 +432,49 @@ export function SettingsPage() {
       </Card>
 
       ) : null}
+      {me.role === "owner" || me.role === "admin" ? (
+        <Card style={{ marginTop: 16 }}>
+          <div className="tf-actions" style={{ justifyContent: "space-between" }}>
+            <h2 style={{ margin: 0, fontSize: 18 }}>SCIM provisioning</h2>
+            <Badge tone="muted">Users</Badge>
+          </div>
+          <p className="tf-muted">
+            Create an organization-scoped token for your identity provider. Tokens are shown once
+            and can provision users and admins in this workspace.
+          </p>
+          <div className="tf-actions">
+            <Button variant="primary" onClick={() => createScimToken.mutate()} disabled={createScimToken.isPending}>
+              {createScimToken.isPending ? "Creating…" : "Create SCIM token"}
+            </Button>
+          </div>
+          {scimToken ? (
+            <div style={{ marginTop: 12 }}>
+              <p className="tf-muted">Store this token in your IdP now; it will not be shown again.</p>
+              <CopyRow value={scimToken} />
+            </div>
+          ) : null}
+          <div className="tf-list" style={{ marginTop: 12 }}>
+            {scimTokens.data?.items.filter((token) => !token.revoked_at).map((token) => (
+              <div className="tf-list-row" key={token.id}>
+                <div>
+                  <div>{token.name}</div>
+                  <div className="tf-muted">
+                    created {formatDate(token.created_at)}
+                    {token.last_used_at ? ` · last used ${formatDate(token.last_used_at)}` : ""}
+                  </div>
+                </div>
+                <Button variant="danger" onClick={() => revokeScimToken.mutate(token.id)} disabled={revokeScimToken.isPending}>
+                  Revoke
+                </Button>
+              </div>
+            ))}
+            {!scimTokens.data?.items.filter((token) => !token.revoked_at).length ? (
+              <p className="tf-muted">No active SCIM tokens.</p>
+            ) : null}
+          </div>
+        </Card>
+      ) : null}
+
       <Card style={{ marginTop: 16 }}>
         <div className="tf-actions" style={{ justifyContent: "space-between" }}>
           <h2 style={{ margin: 0, fontSize: 18 }}>Webhooks</h2>

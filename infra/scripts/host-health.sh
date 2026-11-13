@@ -25,6 +25,19 @@ disk="$(df -Pk / | awk 'NR==2 {print $5}' | tr -d '%')"
 [ "${disk:-100}" -lt 85 ] || { echo "FAIL disk=${disk}%"; failed=1; }
 echo "disk=${disk}%"
 
+cert_host="${BASE_URL#https://}"
+cert_host="${cert_host%%/*}"
+if command -v openssl >/dev/null 2>&1; then
+  cert_end="$(timeout 12 sh -c "echo | openssl s_client -servername '$cert_host' -connect '$cert_host':443 2>/dev/null | openssl x509 -noout -enddate" 2>/dev/null | cut -d= -f2)"
+  if [ -n "$cert_end" ]; then
+    cert_days=$(( ($(date -d "$cert_end" +%s) - $(date +%s)) / 86400 ))
+    [ "$cert_days" -ge 21 ] || { echo "FAIL certificate expires in ${cert_days} day(s)"; failed=1; }
+    echo "certificate_days=${cert_days}"
+  else
+    echo "WARN certificate expiry could not be read"
+  fi
+fi
+
 for name in docker-api-1 docker-broker-1 docker-postgres-1 docker-caddy-1; do
   running="$(docker inspect -f '{{.State.Status}}' "$name" 2>/dev/null || echo missing)"
   health="$(docker inspect -f '{{if .State.Health}}{{.State.Health.Status}}{{end}}' "$name" 2>/dev/null || true)"

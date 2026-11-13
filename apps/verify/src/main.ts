@@ -189,6 +189,8 @@ function verify(): void {
       render("chain", verifyChain(body.entries, d, signer), records);
     } else if (body.authorization && body.outcome) {
       render("action pair", verifyAction(body.authorization, body.outcome, d, signer), records);
+    } else if (body.authorization) {
+      render("receipt", verifyReceipt(body.authorization, d, signer), records);
     } else if (body.receipt) {
       render("receipt", verifyReceipt(body.receipt, d, signer), records);
     } else if (typeof body.v === "number") {

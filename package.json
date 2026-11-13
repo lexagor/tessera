@@ -22,7 +22,7 @@
     "load:authorize": "node scripts/load/authorize.mjs"
   },
   "devDependencies": {
-    "turbo": "^2.3.3",
+    "turbo": "^2.11.10",
     "typescript": "^5.6.3"
   }
 }

@@ -95,3 +95,24 @@ prohibit-password`, and `KbdInteractiveAuthentication no`. `sshd -T` now reports
 
 This assessment is internal, non-destructive testing. It is not a completed external penetration
 test, SOC 2 opinion, or proof that no vulnerabilities exist.
+
+## Repository and supply-chain checks
+
+- Repository is **public** and `main` is currently **not branch-protected**; direct pushes are
+  possible. API/Actions tokens have `repo`/`workflow` scopes; no admin token is assumed.
+- During this assessment, **secret scanning, push protection, and Dependabot security updates**
+  were enabled for the repository. Secret scanning reported no live credentials; source review
+  found only test/demo placeholders.
+- Workflows pin actions by commit SHA, but GitHub's `sha_pinning_required` setting is off. The
+  repository's Actions policy allows all actions.
+- Dependabot version updates are active; a high advisory remains only in the non-deployed LangChain
+  example (`@langchain/core` embedding Zod 3). Production API uses patched Zod 4.
+- Recommended: enable branch protection/rulesets, require CI/Security/CodeQL status checks, and
+  set SHA-pinning required. Do not do this blindly if the solo-maintainer workflow depends on
+  direct pushes; configure a bypass or PR-only release path first.
+
+## Contact/security metadata
+
+`/.well-known/security.txt` is now served on the site, app, and verifier domains with a
+`security@thetessera.xyz` contact and a one-year expiry. It is metadata, not an incident response
+tool; the mailbox must remain monitored.

@@ -22,7 +22,7 @@ is not included.
 | DB runtime role | Implemented | `postgres-init/001-app-role.sh`; production superuser startup refusal |
 | API statement/lock timeouts | Implemented | `apps/api/src/db.ts` |
 | Broker RLS | Verified locally | `infra/sql/rls.sql`, `docs/rls.md`, `rls_postgres` test, app-role query check |
-| Control-plane RLS | Not implemented | Documented as application-enforced; do not claim otherwise |
+| Control-plane RLS | Implemented and enabled | Migration 015, org/admin transaction helpers, RLS tests, live canary |
 | Scheduler leader | Implemented | Redis lease via `apps/broker/src/scheduler.rs` |
 | Graceful shutdown | Implemented | API SIGTERM drain; broker graceful axum shutdown |
 | Session/webhook cleanup | Implemented | Session idle cleanup; `WEBHOOK_RETENTION_DAYS` cleanup job |
@@ -87,7 +87,7 @@ is not included.
 - Multi-replica: two brokers handled 20 concurrent authorizes with a verified 20-entry chain and elected one scheduler leader; two APIs shared the Redis auth limit and delivered one webhook exactly once.
 - Helm chart rendered successfully with `helm template` (3 manifests, no Ingress).
 - CI Security workflow built and Trivy-scanned API and broker images successfully.
-- CI, Security, Images, and SBOM are green on `b5add27c`; Uptime manual run passed. P1/P2 CI/RLS checks passed on `828c8b9f`; live broker RLS 9/9; control-plane RLS canary passed; live SCIM and CSP checks passed.
+- CI, Security, Images, SBOM, CodeQL, and Scorecard are green on `828c8b9f`; live broker RLS 9/9; control-plane RLS canary passed; live SCIM and CSP checks passed.
 - Caddy production config validates.
 - Production compose config validates with a complete secret set.
 - `pnpm install --frozen-lockfile` passes.
@@ -96,8 +96,8 @@ is not included.
 
 1. Auth0 login and RP-initiated logout are live. Enterprise IdP validation (Okta/Entra) and a
    custom Auth0 domain remain; the temporary M2M app is disabled but not deleted.
-2. Broker RLS is active on 9 tables and was re-applied after migration 011; no startup
-   assertion exists. Control-plane tables remain application-enforced.
+2. Broker RLS is active on 9 tables; control-plane RLS is active on 18 tables. Both are checked
+   in CI/deploy; a startup assertion remains follow-up work.
 3. Local Docker was unavailable; images were built and Trivy-scanned in CI, so non-root
    runtime verification is covered there rather than on this machine.
 4. npm provenance and PyPI trusted publishing are implemented in the tag workflow but require
@@ -113,5 +113,4 @@ is not included.
 
 Safe wording: “production configuration is fail-closed; auth, session, SSRF, webhook, and
 database-role hardening are implemented; broker RLS is verified locally and documented.” Do not claim
-SOC 2, a completed external pen test, control-plane RLS, enterprise IdP/KMS validation, or
-immutable storage.
+SOC 2, a completed external pen test, enterprise IdP/KMS validation, or immutable storage.

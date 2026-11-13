@@ -33,7 +33,7 @@ broker tables forced); images are digest-pinned; local backups and uptime checks
   rate limits, body limits, and request timeouts are deployed.
 - Postgres app role, statement timeouts, and broker RLS are active.
 - API and broker images are published to GHCR and CI/security/image/SBOM workflows are green.
-- The core test suite is strong: 24 API tests, 343 Rust tests including Postgres/Anvil/KMS
+- The core test suite is strong: 35 API tests, 343 Rust tests including Postgres/Anvil/KMS
   integration tests, portal tests, and cross-language receipt parity.
 - Offline verification, evidence packs, reviewer links, webhook signing/leases, SSRF defenses,
   and scheduler leader election are implemented.
@@ -54,7 +54,7 @@ broker tables forced); images are digest-pinned; local backups and uptime checks
 | Environment key revocation | Done and verified live | Migration 011 stores `broker_key_id`; delete returned 200 and key `revoked_at` was set |
 | Redis persistence | Done | AOF + `docker_redisdata`; document RTO/RPO |
 | Broker admin bootstrap | Partial | Valid admin key/token live; preflight now checks token equality/key shape; actual broker auth still checked manually |
-| Broker RLS | Partial | 9 tables `ENABLE`+`FORCE` RLS; re-applied after migration; no startup assertion or control-plane RLS |
+| RLS | Implemented | 9 broker tables + 18 control-plane tables `ENABLE`+`FORCE`; control-plane RLS enabled and canaried; rollback flag exists |
 | Domain access copy | Done | Domain allowlist and invited-workspace behavior documented |
 | Auth0 RP-initiated logout | Done and verified live | `/auth/logout` returns Auth0 `/v2/logout`; portal redirects; host observed |
 
@@ -185,7 +185,7 @@ Do next:
 
 - Add a startup/deploy assertion for expected RLS tables.
 - Add a CI/deploy test that fails if a broker table lacks `ENABLE`/`FORCE ROW LEVEL SECURITY`.
-- Add control-plane RLS in a later phase; do not claim it today.
+- Add a startup assertion for the control-plane policy set in addition to CI/deploy checks.
 
 ### 9. Broker admin bootstrap is documented, but manual
 
@@ -284,7 +284,7 @@ Do next:
 7. [x] Fix environment deletion to revoke the broker key; verified live.
 8. [x] Enable Redis AOF persistence. Missing: documented RTO/RPO.
 9. [~] Document broker admin key/token bootstrap; preflight checks token equality/key shape. Missing: live broker-auth call/bootstrap command.
-10. [~] Re-apply RLS after migration and verify 9 forced tables. Missing: startup assertion/control-plane RLS.
+10. [x] Re-apply RLS after migration and verify 9 broker + 18 control-plane forced tables. Startup assertion pending.
 11. [x] Document domain allowlist vs invited workspace membership.
 12. [x] Implement Auth0 RP-initiated logout; verified live.
 
@@ -336,7 +336,7 @@ Do next:
 9. Add WAF/DDoS protection and edge rate limits.
 10. Add load tests for two API and two broker replicas, webhook delivery, scheduler, and chain append.
 11. Add automatic RLS verification to CI and deploy.
-12. Add control-plane RLS design (or keep the current application-enforced limitation explicit).
+12. [x] Add control-plane RLS design and implementation; enabled live behind `CONTROL_PLANE_RLS`.
 13. Add dependency/image update automation.
 14. Update README, trust center, hardening report, and one-pager to current Auth0/live state.
 15. Add `www` DNS or document that it is intentionally unavailable.
@@ -369,7 +369,8 @@ Do next:
 Safe today:
 
 > Tessera is live on a real domain with Auth0 login, a production-configured API/broker,
-> signed action records, offline verification, evidence packs, and a working control plane.
+> broker and control-plane RLS, signed action records, offline verification, evidence packs,
+> and a working control plane.
 
 Do not claim today:
 
@@ -377,7 +378,6 @@ Do not claim today:
 - completed external penetration test
 - production HA or enterprise SLA
 - cloud KMS/HSM-backed signing
-- control-plane RLS
 - paying customers or design-partner outcomes
 - immutable or tamper-proof storage
 

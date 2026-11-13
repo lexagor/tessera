@@ -224,6 +224,7 @@ docs/              Architecture, threat model, receipt spec, controls, RFCs
 - [`docs/monitoring.md`](docs/monitoring.md) — Prometheus/Grafana/host-health configuration
 - [`docs/dependency-updates.md`](docs/dependency-updates.md) — Renovate policy
 - [`docs/supply-chain.md`](docs/supply-chain.md) — signing, SBOM, CodeQL, Scorecard, and verification
+- `docs/security-assessment-2026-11-13.md` — internal live assessment (not public)
 - [`docs/privacy.md`](docs/privacy.md), [`docs/terms.md`](docs/terms.md), [`docs/dpa.md`](docs/dpa.md), [`docs/subprocessors.md`](docs/subprocessors.md) — legal and data-processing terms
 - [`docs/security-sla.md`](docs/security-sla.md) — security contact and response targets
 - [`docs/auth0-production.md`](docs/auth0-production.md) — custom domain and email-provider runbook

@@ -903,11 +903,11 @@ const authorizeSchema = z
     userId: z.string().min(1).max(256),
     tool: z.string().min(1).max(256),
     intent: z.string().min(1).max(8192),
-    args: z.record(z.unknown()).default({}),
+    args: z.record(z.string(), z.unknown()).default({}),
     toolSchemaHash: z.string().optional(),
-    principal: z.record(z.unknown()).optional(),
+    principal: z.record(z.string(), z.unknown()).optional(),
     authorityToken: z.string().max(8192).optional(),
-    agentMeta: z.record(z.unknown()).optional(),
+    agentMeta: z.record(z.string(), z.unknown()).optional(),
     requestedScopes: z.array(z.string()).optional(),
     riskClass: z.string().optional(),
     declaredPurpose: z.string().optional(),
@@ -1362,7 +1362,7 @@ routes.post("/v1/integrations", requireRole("owner", "admin", "member"), async (
       provider: z.string().min(1).max(64),
       name: z.string().trim().min(1).max(80).optional(),
       scopes: z.array(z.string().min(1).max(64)).min(1).max(20).optional(),
-      credential: z.record(z.string()).optional(),
+      credential: z.record(z.string(), z.string()).optional(),
     })
     .safeParse(await requestBody(c));
   if (!body.success) return fail(c, 400, "invalid_request", "Invalid integration request");
@@ -1405,7 +1405,7 @@ routes.post("/v1/integrations/:id/rotate", requireRole("owner", "admin"), async 
   const environment = await currentEnvironment(c, s);
   if (!environment) return fail(c, 404, "not_found", "Create an environment first");
   const body = z
-    .object({ credential: z.record(z.string()).optional() })
+    .object({ credential: z.record(z.string(), z.string()).optional() })
     .safeParse(await requestBody(c));
   if (!body.success) return fail(c, 400, "invalid_request", "Invalid credential payload");
   try {
@@ -1637,7 +1637,7 @@ routes.post("/v1/transitions", requireRole("owner", "admin"), async (c) => {
       ]),
       target: z.string().min(1).max(256),
       reason: z.string().max(512).optional(),
-      details: z.record(z.unknown()).optional(),
+      details: z.record(z.string(), z.unknown()).optional(),
     })
     .safeParse(await requestBody(c));
   if (!body.success) return fail(c, 400, "invalid_request", "Invalid transition");

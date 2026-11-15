@@ -130,4 +130,5 @@ by design.
 
 See [`docs/receipt-spec.md`](../../docs/receipt-spec.md) and
 [`docs/security-guarantees.md`](../../docs/security-guarantees.md) for the exact guarantees.
-Use the static pages in forwarded decks; hosted verifier links are time-limited.
+Use the static pages in forwarded decks; hosted verifier links are time-limited. The machine-readable
+manifest is at <https://thetessera.xyz/proof/manifest.json>.

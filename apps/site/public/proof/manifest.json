@@ -1,0 +1,73 @@
+{
+  "version": 1,
+  "generatedAt": "2026-11-15",
+  "index": "/proof/",
+  "description": "Machine-readable index of Tessera proof artifacts, their signers, levels, caveats, and SHA-256 hashes.",
+  "artifacts": [
+    {
+      "id": "live-denial",
+      "title": "Live deployment policy denial",
+      "kind": "signed-record",
+      "level": "policy-denial",
+      "scope": "live deployment / dedicated public-proof tenant",
+      "signer": "0xc35374b171e3be80b62c7612479f4d65e519f4e6",
+      "page": "/proof/live-denial.html",
+      "json": "/proof/live-denial.json",
+      "expiresAt": null,
+      "hostedVerifier": "https://verify.thetessera.xyz/verify/MF8r1-gEjpTqJkMXBftezBAfqhy6UORapo-xluIMlW4",
+      "hostedVerifierExpiresAt": "2027-11-13T08:14:49.952Z",
+      "caveat": "Policy denial only: no credential was issued, no provider call was made, and the tenant is a public-proof tenant, not a customer workspace.",
+      "pageSha256": "f2d61a6a16da8a849fa83b82edd8ed643cd1601a26c029c95e1e4291c5dd3bed",
+      "jsonSha256": "77fd9e91da324ff110663b459fbd678772de581f8b85e2479430154c872a9b09"
+    },
+    {
+      "id": "sandbox-action",
+      "title": "Sandbox allow + outcome",
+      "kind": "signed-record",
+      "level": "level-2-caller-asserted-agent-reported",
+      "scope": "local sandbox / mock Stripe",
+      "signer": "0x70997970c51812dc3a010c7d01b50e0d17dc79c8",
+      "page": "/proof/sandbox-action.html",
+      "json": "/proof/sandbox-action.json",
+      "expiresAt": null,
+      "hostedVerifier": null,
+      "hostedVerifierExpiresAt": null,
+      "caveat": "Mock Stripe; caller-asserted principal; outcome is agent_reported. No real refund or credential was involved.",
+      "pageSha256": "f095f947c3bb185c35c3669995dafdb5f51b954121f121d2f0a83db02255d4a0",
+      "jsonSha256": "04c0f4af2cb2b5833dd2c8b6df598590ecc6bd0f0e109179c9b367a3b5128c7e"
+    },
+    {
+      "id": "stripe-test-refund",
+      "title": "Broker-observed Stripe test-mode refund",
+      "kind": "signed-record",
+      "level": "level-1-broker-observed",
+      "scope": "live deployment / Stripe test mode",
+      "signer": "0xc35374b171e3be80b62c7612479f4d65e519f4e6",
+      "page": "/proof/stripe-test-refund.html",
+      "json": "/proof/stripe-test-refund.json",
+      "expiresAt": null,
+      "hostedVerifier": "https://verify.thetessera.xyz/verify/zumG5BY6b25CKFFrhmmkEV2BLy4UyF2TQioe4ADcc00",
+      "hostedVerifierExpiresAt": "2026-12-15T12:54:01.374Z",
+      "caveat": "Stripe test mode only; no live money moved. The displayed refund ID came from the broker-observed response; the signed outcome binds the response result hash.",
+      "pageSha256": "8ef872d0b8ee53754fe12e2b903a0ee8cd74276efc194a5b414c056ba92d3d58",
+      "jsonSha256": "bf7acc84d543f6e5aeba2ec8473ab8d38ab188aa6daf0c895c3e7e0ec5b3d34b"
+    },
+    {
+      "id": "tamper-test",
+      "title": "Tamper test \u2014 one signed field changed",
+      "kind": "tamper-test",
+      "level": "expected-invalid",
+      "scope": "negative test against the Stripe test-mode record",
+      "signer": "0xc35374b171e3be80b62c7612479f4d65e519f4e6",
+      "page": "/proof/tamper-test.html",
+      "json": "/proof/tamper-test-tampered.json",
+      "expiresAt": null,
+      "hostedVerifier": null,
+      "hostedVerifierExpiresAt": null,
+      "expectedValid": false,
+      "caveat": "The tampered copy must fail verification. This demonstrates tamper-evidence, not immutability or a valid provider action.",
+      "pageSha256": "0358dea83ab8079bb66e63c158f2c052d5fb41a2bbcca446eb514e7ce8033828",
+      "jsonSha256": "0d0bd62c3e5bd0da5773bd490b2226e1e2a711e59c0459010e3ffeeeae97777e"
+    }
+  ]
+}

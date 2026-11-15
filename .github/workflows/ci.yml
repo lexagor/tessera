@@ -39,6 +39,7 @@ jobs:
       - run: pnpm typecheck
       - run: pnpm build
       - run: node scripts/check-csp-hash.mjs
+      - run: node scripts/check-proof-manifest.mjs
       - run: pnpm test
       - name: Verify control-plane RLS policies
         env:

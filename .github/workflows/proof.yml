@@ -13,6 +13,7 @@ jobs:
   verify:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: 22
@@ -37,6 +38,7 @@ jobs:
           check "stripe-json" "https://thetessera.xyz/proof/stripe-test-refund.json"
           check "tamper-proof" "https://thetessera.xyz/proof/tamper-test.html"
           check "tamper-json" "https://thetessera.xyz/proof/tamper-test-tampered.json"
+          check "manifest" "https://thetessera.xyz/proof/manifest.json"
 
           curl -fsS --max-time 20 https://thetessera.xyz/proof/live-denial.json -o /tmp/live-denial.json
           npx -y -p @tessera-verify/verify@0.1.3 tessera-verify /tmp/live-denial.json \
@@ -59,6 +61,14 @@ jobs:
           else
             cat /tmp/tamper-result.json
             grep -q '"valid": false' /tmp/tamper-result.json || failed=1
+          fi
+
+          if ! curl -fsS --max-time 20 https://thetessera.xyz/proof/manifest.json -o /tmp/proof-manifest.json; then
+            echo "manifest download failed"
+            failed=1
+          else
+            PROOF_MANIFEST=/tmp/proof-manifest.json PROOF_BASE_URL=https://thetessera.xyz \
+              node scripts/check-proof-manifest.mjs || failed=1
           fi
 
           title="Public proof verification failed"

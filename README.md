@@ -66,6 +66,9 @@ The records are portable JSON with EIP-712 signatures and are committed under
 output. The static pages and the JSON do not expire; hosted reviewer links are time-limited. They
 are real signed records, not screenshots, and each page states what it does and does not prove.
 
+Machine-readable index with signers, levels, expiries, caveats, and SHA-256 hashes:
+<https://thetessera.xyz/proof/manifest.json>.
+
 ## Packages
 
 Registry state:

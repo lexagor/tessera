@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Tessera tamper test — one signed field changed</title>
+<meta name="description" content="Change one signed field in the Stripe proof and offline verification fails. Tamper-evident evidence without trusting the server." />
+<link rel="canonical" href="https://thetessera.xyz/proof/tamper-test.html" />
+<link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+<style>
+  :root { --ink:#111; --muted:#666; --line:#e5e5e5; --surface:#fafafa; --accent:#087f5b; --warn:#8a4b00; --mono:ui-monospace,SFMono-Regular,Menlo,monospace; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--surface); color:var(--ink); font:15px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }
+  main { max-width:900px; margin:0 auto; padding:56px 24px 80px; }
+  .eyebrow { margin:0 0 8px; color:var(--muted); font:11px var(--mono); letter-spacing:.12em; text-transform:uppercase; }
+  h1 { margin:0 0 12px; font-size:clamp(32px,5vw,48px); line-height:1.05; letter-spacing:-.04em; }
+  h2 { margin:32px 0 10px; font-size:20px; letter-spacing:-.02em; }
+  p { color:#333; }
+  .status { display:inline-flex; gap:8px; align-items:center; margin:4px 0 20px; padding:5px 10px; border:1px solid rgba(8,127,91,.3); border-radius:999px; color:var(--accent); background:rgba(8,127,91,.06); font-size:13px; font-weight:600; }
+  .sandbox { display:inline-flex; margin:0 0 18px 8px; padding:5px 10px; border:1px solid rgba(138,75,0,.3); border-radius:999px; color:var(--warn); background:rgba(138,75,0,.06); font-size:13px; font-weight:600; }
+  .facts { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:16px; margin:24px 0; padding:20px; border:1px solid var(--line); border-radius:12px; background:#fff; }
+  .fact small { display:block; color:var(--muted); font:10px var(--mono); letter-spacing:.08em; text-transform:uppercase; }
+  .fact strong { display:block; margin-top:4px; font-size:14px; overflow-wrap:anywhere; }
+  .actions { display:flex; flex-wrap:wrap; gap:8px; margin:22px 0; }
+  .button { display:inline-block; padding:9px 13px; border:1px solid var(--ink); border-radius:7px; color:var(--ink); text-decoration:none; font-size:13px; font-weight:600; }
+  .button.primary { background:var(--ink); color:#fff; }
+  pre { margin:12px 0; padding:14px; border:1px solid var(--line); border-radius:9px; background:#fff; overflow:auto; font:12px/1.55 var(--mono); white-space:pre-wrap; overflow-wrap:anywhere; }
+  details { margin-top:18px; }
+  summary { cursor:pointer; font-weight:600; }
+  .note { padding:14px 16px; border-left:3px solid var(--warn); background:#fff; color:#333; }
+  .fine { color:var(--muted); font-size:13px; }
+  footer { margin-top:40px; padding-top:18px; border-top:1px solid var(--line); color:var(--muted); font-size:12px; }
+  @media (max-width:640px) { .facts { grid-template-columns:1fr 1fr; } }
+</style>
+</head>
+<body>
+<main>
+  <p class="eyebrow">Tessera · proof of action</p>
+  <h1>Tamper test</h1>
+  <div><span class="status">● Expected: verification fails</span><span class="sandbox">Tamper-evident · not tamper-proof</span></div>
+  <p>The same signed Stripe test-mode record, with one field changed:
+  <code>authorization.call.tool</code> now ends in <code>-TAMPERED</code>. The offline verifier
+  rejects the pair because the authorization/outcome link no longer matches and the signed
+  payload is invalid.</p>
+
+  <div class="facts">
+    <div class="fact"><small>Original</small><strong>valid: true</strong></div>
+    <div class="fact"><small>Tampered</small><strong>valid: false</strong></div>
+    <div class="fact"><small>Changed field</small><strong>authorization.call.tool</strong></div>
+    <div class="fact"><small>Original signer</small><strong>0xc35374b171e3be80b62c7612479f4d65e519f4e6</strong></div>
+    <div class="fact"><small>Recovered from tampered pair</small><strong>0x0866f02a411dac15c3aaa5729750f3f7868e5d5c</strong></div>
+    <div class="fact"><small>Error</small><strong>outcome does not link to authorization</strong></div>
+  </div>
+
+  <div class="actions">
+    <a class="button primary" href="/proof/tamper-test-tampered.json" download>Download tampered JSON</a>
+    <a class="button" href="/proof/stripe-test-refund.json" download>Download original JSON</a>
+    <a class="button" href="/proof/stripe-test-refund.html">View original record</a>
+  </div>
+
+  <h2>Verify the original</h2>
+  <pre>npm install @tessera-verify/verify
+npx tessera-verify stripe-test-refund.json \
+  --expected-signer 0xc35374b171e3be80b62c7612479f4d65e519f4e6</pre>
+  <pre>{
+  "valid": true,
+  "length": 2,
+  "recovered": "0xc35374b171e3be80b62c7612479f4d65e519f4e6",
+  "errors": []
+}</pre>
+
+  <h2>Verify the tampered pair</h2>
+  <pre>npx tessera-verify tamper-test-tampered.json \
+  --expected-signer 0xc35374b171e3be80b62c7612479f4d65e519f4e6</pre>
+  <pre>{
+  "valid": false,
+  "length": 2,
+  "recovered": "0x0866f02a411dac15c3aaa5729750f3f7868e5d5c",
+  "errors": ["outcome does not link to authorization"]
+}</pre>
+
+  <h2>What this proves</h2>
+  <p>Changing one signed field is detectable without trusting a server or asking Tessera to
+  re-sign anything. The verifier checks the EIP-712 signature and the authorization/outcome
+  binding locally.</p>
+  <h2>What this does not prove</h2>
+  <p class="note">Tessera records are tamper-evident, not tamper-proof. This page demonstrates
+  detection of a modified copy; it does not make the original record immutable, and it does not
+  prove the business event was lawful.</p>
+  <footer>Apache-2.0 · <a href="https://thetessera.xyz/">thetessera.xyz</a> · <a href="https://github.com/lexagor/tessera/tree/main/examples/proof-of-action">source artifact</a></footer>
+</main>
+</body>
+</html>

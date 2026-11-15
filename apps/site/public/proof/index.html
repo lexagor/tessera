@@ -21,19 +21,19 @@
 </head>
 <body>
 <p class="eyebrow">Tessera · proof of action</p>
-<h1>Three signed records.</h1>
-<p>All records are portable JSON with EIP-712 signatures. Verify any of them offline without trusting Tessera; the hosted interactive verifier is optional.</p>
+<h1>Three signed records and a tamper test.</h1>
+<p>The records are portable JSON with EIP-712 signatures; the tamper test shows what happens when one signed field changes. Verify offline without trusting Tessera; the hosted interactive verifier is optional.</p>
 <div class="grid">
   <article class="card">
-    <div class="tag">Live production · deny</div>
+    <div class="tag">Live deployment · proof tenant · deny</div>
     <h2>Policy-denial record</h2>
-    <p>A real production request for a refund was denied because the amount exceeded the policy limit. No credential was issued and no provider call was made.</p>
+    <p>A real request on the live deployment&mdash;in a dedicated public-proof tenant, not a customer workspace&mdash;was denied because the amount exceeded the policy limit. No credential was issued and no provider call was made.</p>
     <p><a href="/proof/live-denial.html">View the denial record</a> · <a href="/proof/live-denial.json" download>Download JSON</a></p>
   </article>
   <article class="card">
-    <div class="tag sandbox">Sandbox · mock provider</div>
+    <div class="tag sandbox">Sandbox · mock provider · Level 2</div>
     <h2>Allow + outcome record</h2>
-    <p>A local demo broker authorized a mock Stripe refund and signed the linked agent-reported outcome. No real refund or credential was involved.</p>
+    <p>A local demo broker authorized a mock Stripe refund against a caller-asserted principal and signed the linked agent-reported outcome. No real refund or credential was involved.</p>
     <p><a href="/proof/sandbox-action.html">View the sandbox record</a> · <a href="/proof/sandbox-action.json" download>Download JSON</a></p>
   </article>
   <article class="card">
@@ -41,6 +41,12 @@
     <h2>Broker-observed refund</h2>
     <p>A real test-mode Stripe refund went through a broker-held restricted key. The broker observed the success and signed the linked outcome; no live money moved.</p>
     <p><a href="/proof/stripe-test-refund.html">View the refund record</a> · <a href="/proof/stripe-test-refund.json" download>Download JSON</a></p>
+  </article>
+  <article class="card">
+    <div class="tag">Tamper test · expected invalid</div>
+    <h2>One field changed</h2>
+    <p>The Stripe record with one signed field changed fails offline verification: the authorization/outcome link no longer matches.</p>
+    <p><a href="/proof/tamper-test.html">View the tamper test</a> · <a href="/proof/tamper-test-tampered.json" download>Download tampered JSON</a></p>
   </article>
 </div>
 <p><a href="https://thetessera.xyz/">Back to Tessera</a> · <a href="/docs/receipt-spec.html">Receipt spec</a> · <a href="https://verify.thetessera.xyz/verify/">Open verifier</a></p>

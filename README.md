@@ -45,16 +45,18 @@ Pre-revenue; recruiting design partners.
 
 **Proof index:** <https://thetessera.xyz/proof/>
 
-Four ways to check the system without an account:
+Ways to check the system without an account:
 
-- **Live production denial** — <https://thetessera.xyz/proof/live-denial.html>. A real request to
-  create a refund was denied because the amount exceeded the policy limit. No credential was
-  issued and no provider call was made.
+- **Live deployment denial** — <https://thetessera.xyz/proof/live-denial.html>. A real request to
+  create a refund in a dedicated public-proof tenant was denied because the amount exceeded the
+  policy limit. No credential was issued and no provider call was made.
 - **Sandbox allow + outcome** — <https://thetessera.xyz/proof/sandbox-action.html>. A local
   broker authorised a mock Stripe refund and signed the linked, agent-reported outcome.
 - **Live Stripe test-mode refund** — <https://thetessera.xyz/proof/stripe-test-refund.html>. A
   real test-mode Stripe API call through a broker-held restricted key, with a
   `broker_observed` success and no live money movement.
+- **Tamper test** — <https://thetessera.xyz/proof/tamper-test.html>. The Stripe record with one
+  signed field changed fails offline verification.
 - **Interactive verifier** — <https://verify.thetessera.xyz/verify/>. Runs in the browser and never
   uploads a record. JSON you paste is verified entirely locally; a record opened from a
   verification link is fetched from the public endpoint first, then verified locally.

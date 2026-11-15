@@ -17,6 +17,7 @@ import { KeysPage } from "./pages/Keys";
 import { LoginPage } from "./pages/Login";
 import { OverviewPage } from "./pages/Overview";
 import { PoliciesPage } from "./pages/Policies";
+import { QuickstartPage } from "./pages/Quickstart";
 import { PublicEvidencePage } from "./pages/PublicEvidence";
 import { PublicVerifyPage } from "./pages/PublicVerify";
 import { ReviewsPage } from "./pages/Reviews";
@@ -31,7 +32,7 @@ interface Workspace {
   me: Me;
   environmentId: string;
   setEnvironmentId: (id: string) => void;
-  refresh: () => void;
+  refresh: () => Promise<unknown>;
 }
 
 const WorkspaceContext = createContext<Workspace | null>(null);
@@ -127,7 +128,7 @@ export function App() {
       me: meQuery.data,
       environmentId,
       setEnvironmentId,
-      refresh: () => void meQuery.refetch(),
+      refresh: () => meQuery.refetch(),
     };
   }, [environmentId, meQuery.data]);
 
@@ -172,6 +173,7 @@ export function App() {
           <p className="tf-tagline">Proof of action for AI agents</p>
           <nav className="tf-nav" aria-label="Primary">
             <NavLink to="/" end>Overview</NavLink>
+            <NavLink to="/quickstart">Quickstart</NavLink>
             <NavLink to="/analytics">Analytics</NavLink>
             <NavLink to="/actions">Actions</NavLink>
             <NavLink to="/agents">Agents</NavLink>
@@ -236,6 +238,7 @@ export function App() {
           <div className="tf-page">
             <Routes>
               <Route path="/" element={<OverviewPage />} />
+              <Route path="/quickstart" element={<QuickstartPage />} />
               <Route path="/analytics" element={<AnalyticsPage />} />
               <Route path="/actions" element={<ActionsPage />} />
               <Route path="/actions/:actionId" element={<ActionDetailPage />} />

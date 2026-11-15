@@ -54,7 +54,7 @@ function emptyDays(days: number): string[] {
 }
 
 export function OverviewPage() {
-  const { me, environmentId, refresh } = useWorkspace();
+  const { me, environmentId, setEnvironmentId, refresh } = useWorkspace();
   const queryClient = useQueryClient();
   const [environmentName, setEnvironmentName] = useState("Production");
   const [keyName, setKeyName] = useState("agent-prod");
@@ -93,13 +93,14 @@ export function OverviewPage() {
 
   const createEnvironment = useMutation({
     mutationFn: () =>
-      api("/v1/environments", {
+      api<{ id: string }>("/v1/environments", {
         method: "POST",
         body: JSON.stringify({ name: environmentName }),
       }),
-    onSuccess: async () => {
+    onSuccess: async (environment) => {
       setError(null);
-      refresh();
+      await refresh();
+      setEnvironmentId(environment.id);
       await queryClient.invalidateQueries();
     },
     onError: (err) => setError(err instanceof Error ? err.message : String(err)),
@@ -173,7 +174,7 @@ export function OverviewPage() {
               <Link className="tf-btn" to="/actions">View all actions</Link>
             ) : null}
             {environmentId ? (
-              <Link className="tf-btn primary" to="/keys">Connect an agent</Link>
+              <Link className="tf-btn primary" to="/quickstart">Quickstart</Link>
             ) : null}
           </>
         }

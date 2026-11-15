@@ -63,9 +63,13 @@ jobs:
             grep -q '"valid": false' /tmp/tamper-result.json || failed=1
           fi
 
-          curl -fsS --max-time 20 https://thetessera.xyz/proof/manifest.json -o /tmp/proof-manifest.json
-          PROOF_MANIFEST=/tmp/proof-manifest.json PROOF_BASE_URL=https://thetessera.xyz \
-            node scripts/check-proof-manifest.mjs || failed=1
+          if ! curl -fsS --max-time 20 https://thetessera.xyz/proof/manifest.json -o /tmp/proof-manifest.json; then
+            echo "manifest download failed"
+            failed=1
+          else
+            PROOF_MANIFEST=/tmp/proof-manifest.json PROOF_BASE_URL=https://thetessera.xyz \
+              node scripts/check-proof-manifest.mjs || failed=1
+          fi
 
           title="Public proof verification failed"
           issue="$(gh issue list --state open --search "$title in:title" --json number --jq '.[0].number // empty')"

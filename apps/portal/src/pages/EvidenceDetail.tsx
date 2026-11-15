@@ -85,7 +85,7 @@ export function EvidenceDetailPage() {
             {pack.status === "ready" ? <a className="tf-btn" href={pack.downloadUrl}>Download archive</a> : null}
             {summary ? <a className="tf-btn" href={pack.reportUrl}>Download report</a> : null}
             {summary ? (
-              <a className="tf-btn ghost" href="/proof/reviewer-pack-sample.html" target="_blank" rel="noreferrer">Sample pack</a>
+              <a className="tf-btn ghost" href="https://thetessera.xyz/proof/reviewer-pack-sample.html" target="_blank" rel="noreferrer">Sample pack</a>
             ) : null}
             {summary ? (
               <Button variant="primary" onClick={() => share.mutate()} disabled={share.isPending}>

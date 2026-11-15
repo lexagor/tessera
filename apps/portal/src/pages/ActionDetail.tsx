@@ -143,7 +143,7 @@ export function ActionDetailPage() {
               onClick={() => createLink.mutate()}
               disabled={createLink.isPending}
             >
-              {createLink.isPending ? "Creating…" : "Create verification link"}
+              {createLink.isPending ? "Creating…" : "Share with reviewer"}
             </Button>
           </>
         }
@@ -203,14 +203,23 @@ export function ActionDetailPage() {
 
       <ErrorBanner message={error} />
 
+      <p className="tf-muted" style={{ marginTop: 0 }}>
+        A valid signature proves the signer and the signed bindings. It does not prove provider
+        execution, business legality, or that the record is immutable. See the{" "}
+        <a href="https://thetessera.xyz/docs/security-guarantees.html" target="_blank" rel="noreferrer">
+          security guarantees
+        </a>.
+      </p>
+
       {link ? (
         <Card className="tf-grid" style={{ marginBottom: 16 }}>
           <div className="tf-actions" style={{ justifyContent: "space-between" }}>
             <div>
-              <strong>Verification link created</strong>
+              <strong>Reviewer link ready</strong>
               <div className="tf-muted">
-                Expires {formatDate(link.expiresAt)}. Anyone with the link can verify this action
-                without signing in.
+                Expires {formatDate(link.expiresAt)}. Anyone with the link can verify this
+                single action without signing in. For a full reviewer pack, open{" "}
+                <Link to="/evidence">Evidence</Link>.
               </div>
             </div>
             <Badge tone="ok">ready</Badge>

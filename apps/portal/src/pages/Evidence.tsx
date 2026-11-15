@@ -22,6 +22,7 @@ import {
   GapList,
   ProofHealth,
   ReadinessCard,
+  ReviewerChecklist,
 } from "../components/Evidence";
 import {
   FRAMEWORK_OPTIONS,
@@ -118,18 +119,7 @@ export function EvidencePage() {
           <FrameworkGrid frameworks={summary.frameworks} />
           <div className="tf-evidence-bottom-grid">
             <GapList summary={summary} />
-            <Card>
-              <div className="tf-kpi-label">Pack checklist</div>
-              <h2 style={{ margin: "6px 0 10px", fontSize: 18 }}>Ready for a reviewer</h2>
-              <div className="tf-checklist">
-                <ChecklistItem done={summary.inventory.actions > 0} label="Action records in the window" />
-                <ChecklistItem done={summary.inventory.verified > 0} label="Broker signatures independently verified" />
-                <ChecklistItem done={summary.inventory.reviews > 0} label="Human review trail present" />
-                <ChecklistItem done={summary.inventory.transitions > 0} label="Signed authority transitions" />
-                <ChecklistItem done={summary.inventory.verificationLinks > 0} label="Public verification link available" />
-                <ChecklistItem done={summary.proof.anchors > 0} label="On-chain anchor batch" optional />
-              </div>
-            </Card>
+            <ReviewerChecklist summary={summary} />
           </div>
         </>
       ) : readiness.isLoading ? (
@@ -252,16 +242,6 @@ function SectionTitle({ title, note }: { title: string; note: string }) {
     <div className="tf-section-title">
       <h2>{title}</h2>
       <span>{note}</span>
-    </div>
-  );
-}
-
-function ChecklistItem({ done, label, optional }: { done: boolean; label: string; optional?: boolean }) {
-  return (
-    <div className={`tf-checklist-item ${done ? "done" : ""}`}>
-      <span className="tf-checklist-mark">{done ? "✓" : "·"}</span>
-      <span>{label}</span>
-      {optional && !done ? <Badge tone="warn">optional</Badge> : null}
     </div>
   );
 }

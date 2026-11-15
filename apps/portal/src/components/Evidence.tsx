@@ -378,3 +378,56 @@ export function ReviewerReport({
     </div>
   );
 }
+
+export function ReviewerChecklist({ summary }: { summary: EvidenceSummary }) {
+  const items = [
+    { done: summary.inventory.actions > 0, label: "Action records in the window" },
+    { done: summary.inventory.verified > 0, label: "Signatures independently verified" },
+    { done: summary.policies.length > 0, label: "Policy versions and hashes included" },
+    { done: summary.reviews.total > 0, label: "Human review decisions present" },
+    { done: summary.transitions.length > 0, label: "Authority transitions signed" },
+    { done: summary.proof.chainsVerified === true, label: "Receipt chains verified" },
+  ];
+  return (
+    <Card>
+      <div className="tf-kpi-label">Reviewer checklist</div>
+      <h2 style={{ margin: "6px 0 10px", fontSize: 18 }}>Ready for a reviewer</h2>
+      <div className="tf-checklist">
+        {items.map((item) => (
+          <div className={`tf-checklist-item ${item.done ? "done" : ""}`} key={item.label}>
+            <span className="tf-checklist-mark">{item.done ? "✓" : "·"}</span>
+            <span>{item.label}</span>
+          </div>
+        ))}
+        {summary.proof.anchors === 0 ? (
+          <div className="tf-checklist-item">
+            <span className="tf-checklist-mark">·</span>
+            <span>On-chain anchor batch</span>
+            <Badge tone="warn">optional</Badge>
+          </div>
+        ) : (
+          <div className="tf-checklist-item done">
+            <span className="tf-checklist-mark">✓</span>
+            <span>On-chain anchor batch</span>
+          </div>
+        )}
+      </div>
+      <p className="tf-muted" style={{ margin: "12px 0 0", fontSize: 12 }}>
+        The checklist is a review-readiness aid, not an external certification.
+      </p>
+    </Card>
+  );
+}
+
+export function EvidenceBoundaries({ summary }: { summary: EvidenceSummary }) {
+  return (
+    <Card>
+      <div className="tf-kpi-label">Claim boundary</div>
+      <h2 style={{ margin: "6px 0 10px", fontSize: 18 }}>What this pack does not prove</h2>
+      <ul className="tf-gap-list">
+        {summary.notes.map((note, index) => <li key={index}>{note}</li>)}
+        <li>It is not a certification, legal opinion, or independent penetration test.</li>
+      </ul>
+    </Card>
+  );
+}

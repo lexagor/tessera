@@ -3,7 +3,7 @@ import { Link, useParams } from "react-router-dom";
 
 import { api } from "../api";
 import { Badge, Card, formatDate, shortHash } from "@tessera/ui";
-import { ReviewerReport } from "../components/Evidence";
+import { EvidenceBoundaries, ReviewerChecklist, ReviewerReport } from "../components/Evidence";
 import { readinessTone, type SharedEvidencePack } from "../lib/evidence";
 
 export function PublicEvidencePage() {
@@ -54,6 +54,10 @@ export function PublicEvidencePage() {
           </p>
         </div>
         <a className="tf-btn primary" href={verifyUrl} target="_blank" rel="noreferrer">Verify a record</a>
+      </div>
+      <div className="tf-evidence-bottom-grid">
+        <ReviewerChecklist summary={summary} />
+        <EvidenceBoundaries summary={summary} />
       </div>
       <Card className="tf-report-shell">
         <ReviewerReport summary={summary} pack={{ id: pack.id, createdAt: pack.createdAt, expiresAt: pack.expiresAt }} />

@@ -1,7 +1,7 @@
 # Proof of Action — verifiable records
 
-These are two real signed Tessera records, not screenshots. Both can be checked offline with
-the open verifier; the live record also has a hosted reviewer link.
+These are three real signed Tessera records, not screenshots. All can be checked offline with
+the open verifier.
 
 ## 1. Live production record — policy denial
 
@@ -62,17 +62,49 @@ Expected result:
 }
 ```
 
+## 3. Live Stripe test-mode refund — Level 1, broker-observed
+
+- File: [`stripe-test-refund.json`](stripe-test-refund.json)
+- Signer: `0xc35374b171e3be80b62c7612479f4d65e519f4e6`
+- Domain: chain `84532`, verifying contract `0x0000000000000000000000000000000000000000`
+- Refund: `re_3Uc2v4J9TVu00iC610Bo9npp` (test mode)
+- PaymentIntent: `pi_3Uc2v4J9TVu00iC61PbJ1HpJ` (test mode)
+
+This is a real Stripe **test-mode** refund made through a broker-held restricted key. The broker
+re-checked the grant and exact arguments hash, forwarded one refund request, and signed a
+`broker_observed` success outcome. It is a complete Level 1 authorization → outcome pair. No live
+money moved.
+
+```bash
+npm install @tessera-verify/verify
+npx tessera-verify examples/proof-of-action/stripe-test-refund.json \
+  --expected-signer 0xc35374b171e3be80b62c7612479f4d65e519f4e6
+```
+
+Expected result:
+
+```json
+{
+  "valid": true,
+  "length": 2,
+  "recovered": "0xc35374b171e3be80b62c7612479f4d65e519f4e6",
+  "errors": []
+}
+```
+
 ## What is bound
 
-The receipts bind the tenant, agent, principal (caller-asserted user for the sandbox; the live
-record uses an API-minted authority subject), intent hash, policy id/version/hash, evaluated
-inputs hash, tool, arguments hash, credential metadata, outcome hash/source, previous receipt,
-and EIP-712 signature. The live denial has no credential/outcome by design.
+The receipts bind the tenant, agent, principal (the live records use an API-minted OIDC
+authority subject; the sandbox uses a caller-asserted user), intent hash, policy
+id/version/hash, evaluated inputs hash, tool, arguments hash, credential metadata, outcome
+hash/source, previous receipt, and EIP-712 signature. The live denial has no credential/outcome
+by design.
 
 ## What this does not prove
 
 - The live denial did not execute a provider call; it is an enforcement record.
 - The sandbox outcome is caller-reported and uses a mock issuer; it is not a real refund.
+- The Stripe proof is test mode; it proves a test-mode provider call, not live money movement.
 - A valid signature proves which key signed the record, not that the underlying business event
   was lawful or executed correctly.
 - Tessera records are tamper-evident, not tamper-proof.

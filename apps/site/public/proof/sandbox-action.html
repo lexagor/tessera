@@ -36,14 +36,16 @@
 <body>
 <main>
   <p class="eyebrow">Tessera · proof of action</p>
-  <h1>Sandbox allow + outcome record</h1>
-  <div><span class="status">● Signed authorization</span><span class="sandbox">Sandbox · mock Stripe</span></div>
+  <h1>Sandbox allow + outcome record · Level 2</h1>
+  <div><span class="status">● Signed authorization</span><span class="sandbox">Sandbox · mock Stripe · Level 2</span></div>
   <p><strong>proof-refund-agent</strong> was authorized for <code>stripe.refunds.create</code> by
-  <strong>demo-human-approver</strong> under policy <code>demo v1</code>. The broker issued a
-  mock Stripe credential and recorded the agent-reported success outcome.</p>
+  the caller-asserted principal <strong>demo-human-approver</strong> under policy
+  <code>demo v1</code>. The broker issued a mock Stripe credential and recorded the
+  agent-reported success outcome.</p>
   <p class="note"><strong>This is a sandbox record.</strong> It uses the mock Stripe issuer. No real
   Stripe call was made, no real credential was used, and no money moved. The outcome is
-  <code>agent_reported</code>, not broker-observed.</p>
+  <code>agent_reported</code>, not broker-observed. The principal is caller-asserted
+  (<code>verificationMethod: user_id</code>), not an OIDC-bound authority.</p>
 
   <div class="facts">
     <div class="fact"><small>Decision</small><strong>allow</strong></div>
@@ -234,8 +236,8 @@ npx tessera-verify sandbox-action.json \
   <p class="note">This is a sandbox run with a mock issuer. It does not prove a real Stripe refund
   occurred, that the agent used the credential correctly, or that the business intent was lawful.
   The outcome is caller-reported.</p>
-  <p class="fine">Compare with the <a href="/proof/live-denial.html">live production policy-denial
-  record</a>, which shows real policy enforcement with no credential and no provider call.</p>
+  <p class="fine">Compare with the <a href="/proof/live-denial.html">live deployment proof-tenant
+  policy-denial record</a>, which shows real policy enforcement with no credential and no provider call.</p>
   <footer>Apache-2.0 · <a href="https://thetessera.xyz/">thetessera.xyz</a> · <a href="https://github.com/lexagor/tessera/tree/main/examples/proof-of-action">source artifact</a></footer>
 </main>
 </body>

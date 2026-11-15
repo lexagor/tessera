@@ -195,6 +195,7 @@ export function QuickstartPage() {
   });
 
   const endpoint = window.location.origin;
+  const canManageEnvironment = me.role === "owner" || me.role === "admin";
   const canManagePolicy = me.role === "owner" || me.role === "admin";
   const snippet = `curl -X POST ${endpoint}/v1/authorize \\
   -H "x-api-key: $TESSERA_API_KEY" \\
@@ -244,12 +245,17 @@ export function QuickstartPage() {
             <Button
               variant="primary"
               onClick={() => createEnvironment.mutate()}
-              disabled={createEnvironment.isPending || !environmentName.trim()}
+              disabled={createEnvironment.isPending || !environmentName.trim() || !canManageEnvironment}
             >
               {createEnvironment.isPending ? "Creating…" : "Create environment"}
             </Button>
           </div>
         )}
+        {!environmentId && !canManageEnvironment ? (
+          <p className="tf-muted" style={{ fontSize: 12, marginTop: 8 }}>
+            Only owners and admins can create an environment. Ask an owner to create one for this workspace.
+          </p>
+        ) : null}
       </Card>
 
       <Card style={{ marginBottom: 16 }}>

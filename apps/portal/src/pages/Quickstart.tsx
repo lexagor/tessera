@@ -195,11 +195,13 @@ export function QuickstartPage() {
   });
 
   const endpoint = window.location.origin;
+  const canManagePolicy = me.role === "owner" || me.role === "admin";
   const snippet = `curl -X POST ${endpoint}/v1/authorize \\
   -H "x-api-key: $TESSERA_API_KEY" \\
   -H "content-type: application/json" \\
   -d '{
     "agentId": "my-agent",
+    "userId": "user_42",
     "tool": "${template.example.tool}",
     "intent": "describe the action",
     "args": ${JSON.stringify(template.example.args)}
@@ -211,7 +213,7 @@ export function QuickstartPage() {
       <PageHeader
         title="Quickstart"
         subtitle="Create a policy, connect an agent, and produce your first signed proof in a few minutes."
-        actions={<Link className="tf-btn" to="/proof/">View proof index</Link>}
+        actions={<a className="tf-btn" href="https://thetessera.xyz/proof/">View proof index</a>}
       />
       <ErrorBanner message={error} />
 
@@ -275,12 +277,18 @@ export function QuickstartPage() {
           <Button
             variant="primary"
             onClick={() => savePolicy.mutate()}
-            disabled={!environmentId || savePolicy.isPending}
+            disabled={!environmentId || !canManagePolicy || savePolicy.isPending}
           >
             {savePolicy.isPending ? "Saving…" : policySaved ? "Save policy" : "Create policy"}
           </Button>
           {policySaved ? <Badge tone="ok">Policy ready</Badge> : null}
         </div>
+        {!canManagePolicy ? (
+          <p className="tf-muted" style={{ fontSize: 12, marginTop: 8 }}>
+            Only owners and admins can apply a policy template. Ask an owner to apply one, then use
+            the agent key and policy in your integration.
+          </p>
+        ) : null}
       </Card>
 
       <Card style={{ marginBottom: 16 }}>

@@ -32,3 +32,15 @@ tessera-vs-tidy.md
 **/.ruff_cache/
 .mypy_cache/
 **/.mypy_cache/
+
+# Secrets — never commit. Examples are allowed.
+.env
+.env.*
+!.env.example
+!.env.*.example
+*.pem
+*.key
+*.p12
+*.pfx
+secrets.json
+credentials.json

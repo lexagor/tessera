@@ -43,15 +43,26 @@ Pre-revenue; recruiting design partners.
 
 ## Verify a proof of action
 
-Permanent static proof page: <https://thetessera.xyz/proof/live-denial.html>
+**Proof index:** <https://thetessera.xyz/proof/>
 
-Two signed records are included in [`examples/proof-of-action`](examples/proof-of-action/):
+Four ways to check the system without an account:
 
-- live production policy-denial record with a hosted reviewer link;
-- sandbox allow + outcome record from the mock Stripe issuer.
+- **Live production denial** — <https://thetessera.xyz/proof/live-denial.html>. A real request to
+  create a refund was denied because the amount exceeded the policy limit. No credential was
+  issued and no provider call was made.
+- **Sandbox allow + outcome** — <https://thetessera.xyz/proof/sandbox-action.html>. A local
+  broker authorised a mock Stripe refund and signed the linked, agent-reported outcome.
+- **Live Stripe test-mode refund** — <https://thetessera.xyz/proof/stripe-test-refund.html>. A
+  real test-mode Stripe API call through a broker-held restricted key, with a
+  `broker_observed` success and no live money movement.
+- **Interactive verifier** — <https://verify.thetessera.xyz/verify/>. Runs in the browser and never
+  uploads a record. JSON you paste is verified entirely locally; a record opened from a
+  verification link is fetched from the public endpoint first, then verified locally.
 
-Both include the verifier command and expected output. They are real signed records, not
-screenshots; the README states exactly what each does and does not prove.
+The records are portable JSON with EIP-712 signatures and are committed under
+[`examples/proof-of-action`](examples/proof-of-action/) with the verifier command and expected
+output. The static pages and the JSON do not expire; hosted reviewer links are time-limited. They
+are real signed records, not screenshots, and each page states what it does and does not prove.
 
 ## Packages
 

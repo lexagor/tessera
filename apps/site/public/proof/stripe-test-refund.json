@@ -1,0 +1,153 @@
+{
+  "domain": {
+    "chainId": 84532,
+    "verifyingContract": "0x0000000000000000000000000000000000000000"
+  },
+  "authorization": {
+    "v": 2,
+    "ts": "2026-11-15T12:53:39Z",
+    "call": {
+      "tool": "stripe.refunds.create",
+      "argsHash": "0x904437c605505358c8c298708c7ed5be821e0b3bd9fa57c628e8908fd87e28d4",
+      "resultHash": null
+    },
+    "prev": "0x97db1ff47d83e813426008ec0640c356b66ae909bcef735992482cd48b4b1593",
+    "user": "447df0de-f328-4cd3-b89b-2c537bf22847",
+    "agent": "proof-stripe-agent",
+    "grant": {
+      "ttlS": 30,
+      "status": "issued",
+      "provider": "stripe",
+      "singleUse": true
+    },
+    "nonce": "0x705ec58af3f0ae2c3f7548e57c03c62e58e898e15d4ac4045c33bbc01da361c8",
+    "intent": {
+      "riskClass": "low",
+      "intentHash": "0x45314c226630156acb557a1a8689c4963f977c4e41477d7bb29d6515cc35d089"
+    },
+    "policy": {
+      "decision": "allow",
+      "policyId": "stripe-test-proof",
+      "policyHash": "0xd53d7f21c612bfc24deee6480ad33d38d9c4329a9083901e6fa88d8d88ae804a",
+      "reasonCode": "grant 'stripe:refunds.create' matched",
+      "policyVersion": 1,
+      "evaluatorVersion": "tessera-policy-v1",
+      "evaluatedInputsHash": "0x6b6a4b0d05e6ccda4c5a0bf827d55c58a70c8600835e6ab3ad0f7e4af6ad7662"
+    },
+    "tenant": "ale-s-workspace-stripe-test-proof",
+    "actionId": "128733ce-5903-4901-ad0b-a0c70d4764f1",
+    "agentMeta": {
+      "agentId": "proof-stripe-agent",
+      "environment": "stripe-test",
+      "agentVersion": "2026.11"
+    },
+    "principal": {
+      "verifiedAt": "2026-11-15T12:53:39Z",
+      "principalId": "447df0de-f328-4cd3-b89b-2c537bf22847",
+      "authorityRef": "oidc:google-oauth2|113018472362238291892",
+      "authorityHash": "0x5c6b3ab470e17480feeba06698cce802cb666363283e78cc2b000cf1c34d2054",
+      "principalType": "user",
+      "verificationMethod": "hmac-jwt"
+    },
+    "signature": "0xbd656d3e62474ea21c071e3b23bfb3d63480685b07cf1c3da05bbb6721bff5a562bae75c0a849a695af9c7c2b3e638b0364f4938ffc41b76b8ce736dd7dcc4241b",
+    "credential": {
+      "issuer": "stripe",
+      "singleUse": true,
+      "issuanceId": "grant_stripe_72d3fa42d51d4bf09dab7b8d1508c31d",
+      "thumbprint": "0x916ac9ee1d4674c24d400f4e9f27d5ace7daa244045dc1ac07340a2bcf9ebcd8",
+      "ttlSeconds": 30,
+      "credentialType": "broker_grant"
+    },
+    "intentHash": "0x45314c226630156acb557a1a8689c4963f977c4e41477d7bb29d6515cc35d089",
+    "attestation": {
+      "timestamp": "2026-11-15T12:53:39Z",
+      "signerKeyId": "0xc35374b171e3be80b62c7612479f4d65e519f4e6",
+      "signatureAlg": "secp256k1-eip712"
+    },
+    "authorization": {
+      "policy": "stripe-test-proof",
+      "decision": "allow",
+      "resource": "stripe:refunds.create",
+      "policyHash": "0xd53d7f21c612bfc24deee6480ad33d38d9c4329a9083901e6fa88d8d88ae804a",
+      "anomalyScore": 0,
+      "policyVersion": 1
+    }
+  },
+  "outcome": {
+    "v": 2,
+    "ts": "2026-11-15T12:53:41Z",
+    "call": {
+      "tool": "stripe.refunds.create",
+      "argsHash": "0x904437c605505358c8c298708c7ed5be821e0b3bd9fa57c628e8908fd87e28d4",
+      "resultHash": "0x64239955b51050e2b297752bd9bea85791942162a3d9380b76cb76e90f1639bd"
+    },
+    "prev": "0x3099616b47549df06983f7ec072d778c08a7e4e1c8cf6113f783dd004faec31b",
+    "user": "447df0de-f328-4cd3-b89b-2c537bf22847",
+    "agent": "proof-stripe-agent",
+    "grant": {
+      "ttlS": 30,
+      "status": "used",
+      "provider": "stripe",
+      "singleUse": true
+    },
+    "nonce": "0x21514c5b5dea510421e4236d7e4b9a2ceed565d476934b0f3b6cccb6e4983506",
+    "intent": {
+      "riskClass": "low",
+      "intentHash": "0x45314c226630156acb557a1a8689c4963f977c4e41477d7bb29d6515cc35d089"
+    },
+    "policy": {
+      "decision": "allow",
+      "policyId": "stripe-test-proof",
+      "policyHash": "0xd53d7f21c612bfc24deee6480ad33d38d9c4329a9083901e6fa88d8d88ae804a",
+      "reasonCode": "grant 'stripe:refunds.create' matched",
+      "policyVersion": 1,
+      "evaluatorVersion": "tessera-policy-v1",
+      "evaluatedInputsHash": "0x6b6a4b0d05e6ccda4c5a0bf827d55c58a70c8600835e6ab3ad0f7e4af6ad7662"
+    },
+    "tenant": "ale-s-workspace-stripe-test-proof",
+    "outcome": {
+      "source": "broker_observed",
+      "status": "success",
+      "resultHash": "0x64239955b51050e2b297752bd9bea85791942162a3d9380b76cb76e90f1639bd",
+      "completedAt": "2026-11-15T12:53:41Z"
+    },
+    "actionId": "128733ce-5903-4901-ad0b-a0c70d4764f1",
+    "agentMeta": {
+      "agentId": "proof-stripe-agent",
+      "environment": "stripe-test",
+      "agentVersion": "2026.11"
+    },
+    "principal": {
+      "verifiedAt": "2026-11-15T12:53:39Z",
+      "principalId": "447df0de-f328-4cd3-b89b-2c537bf22847",
+      "authorityRef": "oidc:google-oauth2|113018472362238291892",
+      "authorityHash": "0x5c6b3ab470e17480feeba06698cce802cb666363283e78cc2b000cf1c34d2054",
+      "principalType": "user",
+      "verificationMethod": "hmac-jwt"
+    },
+    "signature": "0xca717c71a1e659e842781d3ffff68113c8c08324f102a39b356cf11efb8bbbdc5399b4e401a4f8a2e0cd1f3384d9eb63cd7d9ba8415830c7f9a56fde8fe49c491c",
+    "credential": {
+      "issuer": "stripe",
+      "singleUse": true,
+      "issuanceId": "grant_stripe_72d3fa42d51d4bf09dab7b8d1508c31d",
+      "thumbprint": "0x916ac9ee1d4674c24d400f4e9f27d5ace7daa244045dc1ac07340a2bcf9ebcd8",
+      "ttlSeconds": 30,
+      "credentialType": "broker_grant"
+    },
+    "intentHash": "0x45314c226630156acb557a1a8689c4963f977c4e41477d7bb29d6515cc35d089",
+    "attestation": {
+      "timestamp": "2026-11-15T12:53:41Z",
+      "signerKeyId": "0xc35374b171e3be80b62c7612479f4d65e519f4e6",
+      "signatureAlg": "secp256k1-eip712"
+    },
+    "authorization": {
+      "policy": "stripe-test-proof",
+      "decision": "allow",
+      "resource": "stripe:refunds.create",
+      "policyHash": "0xd53d7f21c612bfc24deee6480ad33d38d9c4329a9083901e6fa88d8d88ae804a",
+      "anomalyScore": 0,
+      "policyVersion": 1
+    },
+    "authorizationReceiptId": "0x3099616b47549df06983f7ec072d778c08a7e4e1c8cf6113f783dd004faec31b"
+  }
+}

@@ -68,6 +68,8 @@ services:
       TESSERA_AUTHORITY_ISSUER: ${TESSERA_AUTHORITY_ISSUER:-tessera-api}
       TESSERA_AUTHORITY_AUDIENCE: ${TESSERA_AUTHORITY_AUDIENCE:-tessera-broker}
       TESSERA_AUTHORITY_REQUIRE_TOKEN: ${TESSERA_AUTHORITY_REQUIRE_TOKEN:-0}
+      STRIPE_RESTRICTED_KEYS: ${STRIPE_RESTRICTED_KEYS:-}
+      STRIPE_API_BASE: ${STRIPE_API_BASE:-https://api.stripe.com}
     depends_on:
       postgres:
         condition: service_healthy

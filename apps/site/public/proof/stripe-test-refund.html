@@ -1,0 +1,249 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Tessera proof of action — Stripe test-mode refund</title>
+<meta name="description" content="A live-deployment Stripe test-mode refund, broker-observed and independently verifiable offline. No live money moved." />
+<link rel="canonical" href="https://thetessera.xyz/proof/stripe-test-refund.html" />
+<link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+<style>
+  :root { --ink:#111; --muted:#666; --line:#e5e5e5; --surface:#fafafa; --accent:#087f5b; --warn:#8a4b00; --mono:ui-monospace,SFMono-Regular,Menlo,monospace; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--surface); color:var(--ink); font:15px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }
+  main { max-width:900px; margin:0 auto; padding:56px 24px 80px; }
+  .eyebrow { margin:0 0 8px; color:var(--muted); font:11px var(--mono); letter-spacing:.12em; text-transform:uppercase; }
+  h1 { margin:0 0 12px; font-size:clamp(32px,5vw,48px); line-height:1.05; letter-spacing:-.04em; }
+  h2 { margin:32px 0 10px; font-size:20px; letter-spacing:-.02em; }
+  p { color:#333; }
+  .status { display:inline-flex; gap:8px; align-items:center; margin:4px 0 20px; padding:5px 10px; border:1px solid rgba(8,127,91,.3); border-radius:999px; color:var(--accent); background:rgba(8,127,91,.06); font-size:13px; font-weight:600; }
+  .sandbox { display:inline-flex; margin:0 0 18px 8px; padding:5px 10px; border:1px solid rgba(138,75,0,.3); border-radius:999px; color:var(--warn); background:rgba(138,75,0,.06); font-size:13px; font-weight:600; }
+  .facts { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:16px; margin:24px 0; padding:20px; border:1px solid var(--line); border-radius:12px; background:#fff; }
+  .fact small { display:block; color:var(--muted); font:10px var(--mono); letter-spacing:.08em; text-transform:uppercase; }
+  .fact strong { display:block; margin-top:4px; font-size:14px; overflow-wrap:anywhere; }
+  .actions { display:flex; flex-wrap:wrap; gap:8px; margin:22px 0; }
+  .button { display:inline-block; padding:9px 13px; border:1px solid var(--ink); border-radius:7px; color:var(--ink); text-decoration:none; font-size:13px; font-weight:600; }
+  .button.primary { background:var(--ink); color:#fff; }
+  pre { margin:12px 0; padding:14px; border:1px solid var(--line); border-radius:9px; background:#fff; overflow:auto; font:12px/1.55 var(--mono); white-space:pre-wrap; overflow-wrap:anywhere; }
+  details { margin-top:18px; }
+  summary { cursor:pointer; font-weight:600; }
+  .note { padding:14px 16px; border-left:3px solid var(--warn); background:#fff; color:#333; }
+  .fine { color:var(--muted); font-size:13px; }
+  footer { margin-top:40px; padding-top:18px; border-top:1px solid var(--line); color:var(--muted); font-size:12px; }
+  @media (max-width:640px) { .facts { grid-template-columns:1fr 1fr; } }
+</style>
+</head>
+<body>
+<main>
+  <p class="eyebrow">Tessera · proof of action</p>
+  <h1>Live Stripe test-mode refund</h1>
+  <div><span class="status">● Signed authorization + outcome</span><span class="status">Live deployment · Stripe test mode · Level 1</span></div>
+  <p><strong>proof-stripe-agent</strong> was authorized for <code>stripe.refunds.create</code> by an
+  OIDC-verified human principal under policy <code>stripe-test-proof v1</code>. The broker held
+  the restricted Stripe test key, proxied the exact refund request, and observed a successful
+  Stripe response.</p>
+  <p class="note"><strong>This is a real Stripe test-mode API call.</strong> It used a test-mode
+  restricted key and a test PaymentIntent (<code>pi_3Uc2v4J9TVu00iC61PbJ1HpJ</code>). The refund
+  <code>re_3Uc2v4J9TVu00iC610Bo9npp</code> succeeded in test mode; no live money moved. The outcome is
+  <code>broker_observed</code>.</p>
+
+  <div class="facts">
+    <div class="fact"><small>Decision</small><strong>allow</strong></div>
+    <div class="fact"><small>Outcome</small><strong>success</strong></div>
+    <div class="fact"><small>Outcome source</small><strong>broker_observed</strong></div>
+    <div class="fact"><small>Policy</small><strong>stripe-test-proof v1</strong></div>
+    <div class="fact"><small>Credential</small><strong>Stripe · broker-held grant</strong></div>
+    <div class="fact"><small>Action ID</small><strong>128733ce-5903-4901-ad0b-a0c70d4764f1</strong></div>
+    <div class="fact"><small>Signer</small><strong>0xc35374b171e3be80b62c7612479f4d65e519f4e6</strong></div>
+    <div class="fact"><small>Domain</small><strong>Base Sepolia · 84532</strong></div>
+    <div class="fact"><small>External ref</small><strong>re_3Uc2v4J9TVu00iC610Bo9npp</strong></div>
+  </div>
+
+  <div class="actions">
+    <a class="button primary" href="/proof/stripe-test-refund.json" download>Download signed JSON</a>
+    <a class="button" href="https://verify.thetessera.xyz/verify/">Open verifier</a>
+    <a class="button" href="/proof/live-denial.html">View live denial record</a>
+    <a class="button" href="/proof/sandbox-action.html">View sandbox record</a>
+  </div>
+
+  <h2>Verify offline</h2>
+  <pre>npm install @tessera-verify/verify
+npx tessera-verify stripe-test-refund.json \
+  --expected-signer 0xc35374b171e3be80b62c7612479f4d65e519f4e6</pre>
+  <p class="fine">Expected: <code>valid: true</code>, <code>length: 2</code>, and the signer above.
+  The JSON contains the EIP-712 domain plus the authorization/outcome pair.</p>
+
+  <details>
+    <summary>Signed authorization + outcome JSON</summary>
+    <pre>{
+  &quot;domain&quot;: {
+    &quot;chainId&quot;: 84532,
+    &quot;verifyingContract&quot;: &quot;0x0000000000000000000000000000000000000000&quot;
+  },
+  &quot;authorization&quot;: {
+    &quot;v&quot;: 2,
+    &quot;ts&quot;: &quot;2026-11-15T12:53:39Z&quot;,
+    &quot;call&quot;: {
+      &quot;tool&quot;: &quot;stripe.refunds.create&quot;,
+      &quot;argsHash&quot;: &quot;0x904437c605505358c8c298708c7ed5be821e0b3bd9fa57c628e8908fd87e28d4&quot;,
+      &quot;resultHash&quot;: null
+    },
+    &quot;prev&quot;: &quot;0x97db1ff47d83e813426008ec0640c356b66ae909bcef735992482cd48b4b1593&quot;,
+    &quot;user&quot;: &quot;447df0de-f328-4cd3-b89b-2c537bf22847&quot;,
+    &quot;agent&quot;: &quot;proof-stripe-agent&quot;,
+    &quot;grant&quot;: {
+      &quot;ttlS&quot;: 30,
+      &quot;status&quot;: &quot;issued&quot;,
+      &quot;provider&quot;: &quot;stripe&quot;,
+      &quot;singleUse&quot;: true
+    },
+    &quot;nonce&quot;: &quot;0x705ec58af3f0ae2c3f7548e57c03c62e58e898e15d4ac4045c33bbc01da361c8&quot;,
+    &quot;intent&quot;: {
+      &quot;riskClass&quot;: &quot;low&quot;,
+      &quot;intentHash&quot;: &quot;0x45314c226630156acb557a1a8689c4963f977c4e41477d7bb29d6515cc35d089&quot;
+    },
+    &quot;policy&quot;: {
+      &quot;decision&quot;: &quot;allow&quot;,
+      &quot;policyId&quot;: &quot;stripe-test-proof&quot;,
+      &quot;policyHash&quot;: &quot;0xd53d7f21c612bfc24deee6480ad33d38d9c4329a9083901e6fa88d8d88ae804a&quot;,
+      &quot;reasonCode&quot;: &quot;grant &#x27;stripe:refunds.create&#x27; matched&quot;,
+      &quot;policyVersion&quot;: 1,
+      &quot;evaluatorVersion&quot;: &quot;tessera-policy-v1&quot;,
+      &quot;evaluatedInputsHash&quot;: &quot;0x6b6a4b0d05e6ccda4c5a0bf827d55c58a70c8600835e6ab3ad0f7e4af6ad7662&quot;
+    },
+    &quot;tenant&quot;: &quot;ale-s-workspace-stripe-test-proof&quot;,
+    &quot;actionId&quot;: &quot;128733ce-5903-4901-ad0b-a0c70d4764f1&quot;,
+    &quot;agentMeta&quot;: {
+      &quot;agentId&quot;: &quot;proof-stripe-agent&quot;,
+      &quot;environment&quot;: &quot;stripe-test&quot;,
+      &quot;agentVersion&quot;: &quot;2026.11&quot;
+    },
+    &quot;principal&quot;: {
+      &quot;verifiedAt&quot;: &quot;2026-11-15T12:53:39Z&quot;,
+      &quot;principalId&quot;: &quot;447df0de-f328-4cd3-b89b-2c537bf22847&quot;,
+      &quot;authorityRef&quot;: &quot;oidc:google-oauth2|113018472362238291892&quot;,
+      &quot;authorityHash&quot;: &quot;0x5c6b3ab470e17480feeba06698cce802cb666363283e78cc2b000cf1c34d2054&quot;,
+      &quot;principalType&quot;: &quot;user&quot;,
+      &quot;verificationMethod&quot;: &quot;hmac-jwt&quot;
+    },
+    &quot;signature&quot;: &quot;0xbd656d3e62474ea21c071e3b23bfb3d63480685b07cf1c3da05bbb6721bff5a562bae75c0a849a695af9c7c2b3e638b0364f4938ffc41b76b8ce736dd7dcc4241b&quot;,
+    &quot;credential&quot;: {
+      &quot;issuer&quot;: &quot;stripe&quot;,
+      &quot;singleUse&quot;: true,
+      &quot;issuanceId&quot;: &quot;grant_stripe_72d3fa42d51d4bf09dab7b8d1508c31d&quot;,
+      &quot;thumbprint&quot;: &quot;0x916ac9ee1d4674c24d400f4e9f27d5ace7daa244045dc1ac07340a2bcf9ebcd8&quot;,
+      &quot;ttlSeconds&quot;: 30,
+      &quot;credentialType&quot;: &quot;broker_grant&quot;
+    },
+    &quot;intentHash&quot;: &quot;0x45314c226630156acb557a1a8689c4963f977c4e41477d7bb29d6515cc35d089&quot;,
+    &quot;attestation&quot;: {
+      &quot;timestamp&quot;: &quot;2026-11-15T12:53:39Z&quot;,
+      &quot;signerKeyId&quot;: &quot;0xc35374b171e3be80b62c7612479f4d65e519f4e6&quot;,
+      &quot;signatureAlg&quot;: &quot;secp256k1-eip712&quot;
+    },
+    &quot;authorization&quot;: {
+      &quot;policy&quot;: &quot;stripe-test-proof&quot;,
+      &quot;decision&quot;: &quot;allow&quot;,
+      &quot;resource&quot;: &quot;stripe:refunds.create&quot;,
+      &quot;policyHash&quot;: &quot;0xd53d7f21c612bfc24deee6480ad33d38d9c4329a9083901e6fa88d8d88ae804a&quot;,
+      &quot;anomalyScore&quot;: 0,
+      &quot;policyVersion&quot;: 1
+    }
+  },
+  &quot;outcome&quot;: {
+    &quot;v&quot;: 2,
+    &quot;ts&quot;: &quot;2026-11-15T12:53:41Z&quot;,
+    &quot;call&quot;: {
+      &quot;tool&quot;: &quot;stripe.refunds.create&quot;,
+      &quot;argsHash&quot;: &quot;0x904437c605505358c8c298708c7ed5be821e0b3bd9fa57c628e8908fd87e28d4&quot;,
+      &quot;resultHash&quot;: &quot;0x64239955b51050e2b297752bd9bea85791942162a3d9380b76cb76e90f1639bd&quot;
+    },
+    &quot;prev&quot;: &quot;0x3099616b47549df06983f7ec072d778c08a7e4e1c8cf6113f783dd004faec31b&quot;,
+    &quot;user&quot;: &quot;447df0de-f328-4cd3-b89b-2c537bf22847&quot;,
+    &quot;agent&quot;: &quot;proof-stripe-agent&quot;,
+    &quot;grant&quot;: {
+      &quot;ttlS&quot;: 30,
+      &quot;status&quot;: &quot;used&quot;,
+      &quot;provider&quot;: &quot;stripe&quot;,
+      &quot;singleUse&quot;: true
+    },
+    &quot;nonce&quot;: &quot;0x21514c5b5dea510421e4236d7e4b9a2ceed565d476934b0f3b6cccb6e4983506&quot;,
+    &quot;intent&quot;: {
+      &quot;riskClass&quot;: &quot;low&quot;,
+      &quot;intentHash&quot;: &quot;0x45314c226630156acb557a1a8689c4963f977c4e41477d7bb29d6515cc35d089&quot;
+    },
+    &quot;policy&quot;: {
+      &quot;decision&quot;: &quot;allow&quot;,
+      &quot;policyId&quot;: &quot;stripe-test-proof&quot;,
+      &quot;policyHash&quot;: &quot;0xd53d7f21c612bfc24deee6480ad33d38d9c4329a9083901e6fa88d8d88ae804a&quot;,
+      &quot;reasonCode&quot;: &quot;grant &#x27;stripe:refunds.create&#x27; matched&quot;,
+      &quot;policyVersion&quot;: 1,
+      &quot;evaluatorVersion&quot;: &quot;tessera-policy-v1&quot;,
+      &quot;evaluatedInputsHash&quot;: &quot;0x6b6a4b0d05e6ccda4c5a0bf827d55c58a70c8600835e6ab3ad0f7e4af6ad7662&quot;
+    },
+    &quot;tenant&quot;: &quot;ale-s-workspace-stripe-test-proof&quot;,
+    &quot;outcome&quot;: {
+      &quot;source&quot;: &quot;broker_observed&quot;,
+      &quot;status&quot;: &quot;success&quot;,
+      &quot;resultHash&quot;: &quot;0x64239955b51050e2b297752bd9bea85791942162a3d9380b76cb76e90f1639bd&quot;,
+      &quot;completedAt&quot;: &quot;2026-11-15T12:53:41Z&quot;
+    },
+    &quot;actionId&quot;: &quot;128733ce-5903-4901-ad0b-a0c70d4764f1&quot;,
+    &quot;agentMeta&quot;: {
+      &quot;agentId&quot;: &quot;proof-stripe-agent&quot;,
+      &quot;environment&quot;: &quot;stripe-test&quot;,
+      &quot;agentVersion&quot;: &quot;2026.11&quot;
+    },
+    &quot;principal&quot;: {
+      &quot;verifiedAt&quot;: &quot;2026-11-15T12:53:39Z&quot;,
+      &quot;principalId&quot;: &quot;447df0de-f328-4cd3-b89b-2c537bf22847&quot;,
+      &quot;authorityRef&quot;: &quot;oidc:google-oauth2|113018472362238291892&quot;,
+      &quot;authorityHash&quot;: &quot;0x5c6b3ab470e17480feeba06698cce802cb666363283e78cc2b000cf1c34d2054&quot;,
+      &quot;principalType&quot;: &quot;user&quot;,
+      &quot;verificationMethod&quot;: &quot;hmac-jwt&quot;
+    },
+    &quot;signature&quot;: &quot;0xca717c71a1e659e842781d3ffff68113c8c08324f102a39b356cf11efb8bbbdc5399b4e401a4f8a2e0cd1f3384d9eb63cd7d9ba8415830c7f9a56fde8fe49c491c&quot;,
+    &quot;credential&quot;: {
+      &quot;issuer&quot;: &quot;stripe&quot;,
+      &quot;singleUse&quot;: true,
+      &quot;issuanceId&quot;: &quot;grant_stripe_72d3fa42d51d4bf09dab7b8d1508c31d&quot;,
+      &quot;thumbprint&quot;: &quot;0x916ac9ee1d4674c24d400f4e9f27d5ace7daa244045dc1ac07340a2bcf9ebcd8&quot;,
+      &quot;ttlSeconds&quot;: 30,
+      &quot;credentialType&quot;: &quot;broker_grant&quot;
+    },
+    &quot;intentHash&quot;: &quot;0x45314c226630156acb557a1a8689c4963f977c4e41477d7bb29d6515cc35d089&quot;,
+    &quot;attestation&quot;: {
+      &quot;timestamp&quot;: &quot;2026-11-15T12:53:41Z&quot;,
+      &quot;signerKeyId&quot;: &quot;0xc35374b171e3be80b62c7612479f4d65e519f4e6&quot;,
+      &quot;signatureAlg&quot;: &quot;secp256k1-eip712&quot;
+    },
+    &quot;authorization&quot;: {
+      &quot;policy&quot;: &quot;stripe-test-proof&quot;,
+      &quot;decision&quot;: &quot;allow&quot;,
+      &quot;resource&quot;: &quot;stripe:refunds.create&quot;,
+      &quot;policyHash&quot;: &quot;0xd53d7f21c612bfc24deee6480ad33d38d9c4329a9083901e6fa88d8d88ae804a&quot;,
+      &quot;anomalyScore&quot;: 0,
+      &quot;policyVersion&quot;: 1
+    },
+    &quot;authorizationReceiptId&quot;: &quot;0x3099616b47549df06983f7ec072d778c08a7e4e1c8cf6113f783dd004faec31b&quot;
+  }
+}</pre>
+  </details>
+
+  <h2>What this proves</h2>
+  <p>The broker signed the exact call, principal, policy version and hash, evaluated inputs,
+  tool and arguments hash, broker-held Stripe grant, and the linked broker-observed outcome.
+  The broker re-checked the grant and arguments hash before forwarding exactly one refund
+  request to Stripe test mode. Changing any signed field invalidates the signature or the
+  action-pair link.</p>
+  <h2>What this does not prove</h2>
+  <p class="note">This is a Stripe test-mode call, not a live payment. It does not prove a live
+  customer refund occurred, that the underlying business intent was lawful, or that the provider
+  executed every field correctly. A valid signature proves the signer and bindings, not semantic
+  correctness, and Tessera records are tamper-evident, not tamper-proof.</p>
+  <p class="fine">The static JSON has no bearer-link expiry. The hosted verifier link
+  <a href="https://verify.thetessera.xyz/verify/zumG5BY6b25CKFFrhmmkEV2BLy4UyF2TQioe4ADcc00">expires 2026-12-15</a>; use the downloaded JSON after that.</p>
+  <footer>Apache-2.0 · <a href="https://thetessera.xyz/">thetessera.xyz</a> · <a href="https://github.com/lexagor/tessera/tree/main/examples/proof-of-action">source artifact</a></footer>
+</main>
+</body>
+</html>

@@ -17,6 +17,7 @@ interface PaletteResult {
 
 const PAGES: PaletteResult[] = [
   { id: "page-overview", group: "Navigate", title: "Overview", subtitle: "Current control-plane posture", href: "/", mark: "O" },
+  { id: "page-quickstart", group: "Navigate", title: "Quickstart", subtitle: "Create the first signed proof", href: "/quickstart", mark: "Q" },
   { id: "page-analytics", group: "Navigate", title: "Analytics", subtitle: "Action trends and proof latency", href: "/analytics", mark: "A" },
   { id: "page-actions", group: "Navigate", title: "Actions", subtitle: "Searchable action evidence", href: "/actions", mark: "A" },
   { id: "page-agents", group: "Navigate", title: "Agents", subtitle: "Agent inventory and blast radius", href: "/agents", mark: "A" },

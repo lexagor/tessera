@@ -8,6 +8,7 @@ import { IntegrationsPage } from "../src/pages/Integrations";
 import { LoginPage } from "../src/pages/Login";
 import { PublicEvidencePage } from "../src/pages/PublicEvidence";
 import { PublicVerifyPage } from "../src/pages/PublicVerify";
+import { QuickstartPage } from "../src/pages/Quickstart";
 
 vi.mock("../src/App", () => ({
   useWorkspace: () => ({
@@ -51,6 +52,22 @@ describe("portal pages", () => {
       </QueryClientProvider>,
     );
     expect(await screen.findByText("Dev sign in")).toBeInTheDocument();
+  });
+
+  test("quickstart renders the policy templates", async () => {
+    render(
+      <QueryClientProvider client={queryClient()}>
+        <MemoryRouter initialEntries={["/quickstart"]}>
+          <Routes>
+            <Route path="/quickstart" element={<QuickstartPage />} />
+          </Routes>
+        </MemoryRouter>
+      </QueryClientProvider>,
+    );
+    expect(await screen.findByRole("heading", { name: "Quickstart" })).toBeInTheDocument();
+    expect(screen.getByText("Refund cap")).toBeInTheDocument();
+    expect(screen.getByText("GitHub issues only")).toBeInTheDocument();
+    expect(screen.getByText("Slack posts")).toBeInTheDocument();
   });
 
   test("public evidence renders a reviewer report", async () => {

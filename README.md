@@ -159,6 +159,10 @@ npx tessera-verify receipt.json
 pnpm --filter @tessera/verify-app dev
 ```
 
+The hosted portal includes a guided **Quickstart** at `/quickstart`: create an environment, apply
+a policy template, create an agent key, and produce a signed policy-check proof without calling
+a provider.
+
 Full control plane + portal + verifier (local dev auth, demo broker mode):
 
 ```bash

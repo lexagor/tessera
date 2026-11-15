@@ -67,7 +67,8 @@ output. The static pages and the JSON do not expire; hosted reviewer links are t
 are real signed records, not screenshots, and each page states what it does and does not prove.
 
 Machine-readable index with signers, levels, expiries, caveats, and SHA-256 hashes:
-<https://thetessera.xyz/proof/manifest.json>.
+<https://thetessera.xyz/proof/manifest.json>. A redacted format sample of the reviewer
+evidence pack is at <https://thetessera.xyz/proof/reviewer-pack-sample.html>.
 
 ## Packages
 

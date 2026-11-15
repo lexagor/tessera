@@ -14,7 +14,7 @@ import {
   formatDate,
   shortHash,
 } from "@tessera/ui";
-import { ReviewerReport } from "../components/Evidence";
+import { EvidenceBoundaries, ReviewerChecklist, ReviewerReport } from "../components/Evidence";
 import {
   isEvidenceSummary,
   readinessTone,
@@ -85,8 +85,11 @@ export function EvidenceDetailPage() {
             {pack.status === "ready" ? <a className="tf-btn" href={pack.downloadUrl}>Download archive</a> : null}
             {summary ? <a className="tf-btn" href={pack.reportUrl}>Download report</a> : null}
             {summary ? (
+              <a className="tf-btn ghost" href="/proof/reviewer-pack-sample.html" target="_blank" rel="noreferrer">Sample pack</a>
+            ) : null}
+            {summary ? (
               <Button variant="primary" onClick={() => share.mutate()} disabled={share.isPending}>
-                {share.isPending ? "Creating…" : pack.hasShare ? "Rotate reviewer link" : "Create reviewer link"}
+                {share.isPending ? "Creating…" : pack.hasShare ? "Rotate reviewer link" : "Share with reviewer"}
               </Button>
             ) : null}
             {summary && pack.hasShare ? (
@@ -130,6 +133,13 @@ export function EvidenceDetailPage() {
             <CopyRowInline value={shareUrl} />
           </div>
         </Card>
+      ) : null}
+
+      {summary ? (
+        <div className="tf-evidence-bottom-grid">
+          <ReviewerChecklist summary={summary} />
+          <EvidenceBoundaries summary={summary} />
+        </div>
       ) : null}
 
       {!summary ? (

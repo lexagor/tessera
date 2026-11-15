@@ -98,3 +98,14 @@ When S3 evidence storage is enabled, the local `docker_evidence` volume is no lo
 of truth. Back up the bucket with versioning/replication and test restore separately; do not
 claim the local evidence archive covers it. The Postgres dump still contains the locator, so a
 database restore requires the matching bucket objects.
+
+## Reviewer handoff
+
+Use **Share with reviewer** on an action for a single-action verification link, or on an
+evidence pack for the full reviewer report and signed archive. The pack view shows a short
+reviewer checklist and a claim-boundary panel; the public reviewer page shows the same checklist
+and the explicit "what this pack does not prove" notes.
+
+A redacted format sample is at
+<https://thetessera.xyz/proof/reviewer-pack-sample.html>. It uses demo/public proof data and is
+not an external acceptance or certification.
